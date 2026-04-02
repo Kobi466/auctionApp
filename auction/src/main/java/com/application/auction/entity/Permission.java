@@ -1,23 +1,21 @@
-package com.application.auction.dto.response;
+package com.application.auction.entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.util.Set;
-import java.util.UUID;
-
+@Entity
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
-public class UserResponse {
-    UUID id;
-    String email;
-    boolean isActive;
-    Set<RoleResponse> roles;
-
+public class Permission {
+    @Id
+    String name;
+    String description;
 }

@@ -1,14 +1,14 @@
-package com.application.auction.dto.response;
+package com.application.auction.dto.request;
 
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-@Builder
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
-public class PermissionResponse {
+public class PermissionRequest {
     String name;
     String description;
 }

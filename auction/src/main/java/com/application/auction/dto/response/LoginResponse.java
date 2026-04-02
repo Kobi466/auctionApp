@@ -3,16 +3,16 @@ package com.application.auction.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
-import java.util.Set;
-
 @Builder
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class RoleResponse {
-    Long id;
-    String name;
-    String description;
-    Set<PermissionResponse> permissions;
+public class LoginResponse {
+    String accessToken;
+    String refreshToken;
+    String tokenType;
+    long accessTokenExpiresIn;
+    long refreshTokenExpiresIn;
+    boolean authenticated;
 }
