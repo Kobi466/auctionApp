@@ -1,33 +1,26 @@
-HELP.md
+# Java / Spring
 target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+*.log
+*.class
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
-.idea
-*.iws
+# IntelliJ
+.idea/
 *.iml
-*.ipr
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+# Flutter / Dart
 build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
 
-### VS Code ###
+# Android
+.gradle/
+local.properties
+.kotlin/
+
+# MacOS
+.DS_Store
+
+# VSCode
 .vscode/
