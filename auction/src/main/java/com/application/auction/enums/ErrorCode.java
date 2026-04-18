@@ -29,7 +29,14 @@ public enum ErrorCode {
     PROFILE_NOT_FOUND(423, "Profile not found", HttpStatus.NOT_FOUND),
     KYC_DETAIL_NOT_FOUND(424, "KYC detail not found", HttpStatus.NOT_FOUND),
     INVALID_REFRESH_TOKEN(425, "Invalid refresh token", HttpStatus.UNAUTHORIZED),
-    REFRESH_TOKEN_ALREADY_USED_OR_REVOKED(426, "Refresh token already used or revoked", HttpStatus.UNAUTHORIZED);
+    REFRESH_TOKEN_ALREADY_USED_OR_REVOKED(426, "Refresh token already used or revoked", HttpStatus.UNAUTHORIZED),
+    PHONE_NUMBER_ALREADY_EXISTS(427, "Phone number already exists", HttpStatus.BAD_REQUEST),
+    FULL_NAME_ALREADY_EXISTS(428, "Full name already exists", HttpStatus.BAD_REQUEST),
+    KYC_ID_NUMBER_ALREADY_EXISTS(429, "KYC id number already exists", HttpStatus.BAD_REQUEST),
+    KYC_DOCUMENT_REQUIRED(430, "KYC documents are required", HttpStatus.BAD_REQUEST),
+    KYC_REJECT_REASON_REQUIRED(431, "Rejected reason is required", HttpStatus.BAD_REQUEST),
+    KYC_VERIFICATION_REQUIRED(432, "KYC verification is required", HttpStatus.FORBIDDEN),
+    KYC_INFORMATION_REQUIRED(433, "KYC personal information is required", HttpStatus.BAD_REQUEST);
 
     int code;
     String message;

@@ -1,26 +1,28 @@
 class ApiResponse<T> {
-  final int status;
+  final int code;
   final String message;
-  final T? data;
+  final T? result;
 
   ApiResponse({
-    required this.status,
+    required this.code,
     required this.message,
-    this.data,
+    this.result,
   });
 
   factory ApiResponse.fromJson(
-      Map<String, dynamic> json,
-      T Function(dynamic json)? fromJsonT,
-      ) {
+    Map<String, dynamic> json,
+    T Function(dynamic json)? fromJsonT,
+  ) {
     return ApiResponse<T>(
-      status: json['status'] ?? 0,
+      code: json['code'] ?? 0,
       message: json['message'] ?? '',
-      data: json['data'] != null && fromJsonT != null
-          ? fromJsonT(json['data'])
+      result: json['result'] != null && fromJsonT != null
+          ? fromJsonT(json['result'])
           : null,
     );
   }
 
-  bool get isSuccess => status >= 200 && status < 300;
+  T? get data => result;
+
+  bool get isSuccess => code == 0 || code == 1000;
 }

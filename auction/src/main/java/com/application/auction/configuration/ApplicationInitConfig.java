@@ -2,6 +2,7 @@ package com.application.auction.configuration;
 
 import com.application.auction.entity.User;
 import com.application.auction.enums.Role;
+import com.application.auction.repository.RoleRepository;
 import com.application.auction.repository.UserRepository;
 import com.application.auction.service.ProfileService;
 
@@ -13,6 +14,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.HashSet;
+import java.util.Set;
 
 @Configuration
 @Slf4j
@@ -22,23 +24,41 @@ public class ApplicationInitConfig {
     PasswordEncoder passwordEncoder;
 
     @Bean
-    ApplicationRunner applicationRunner(UserRepository userRepository, ProfileService profileService) {
+    ApplicationRunner applicationRunner(
+            UserRepository userRepository,
+            RoleRepository roleRepository,
+            ProfileService profileService
+    ) {
         return args -> {
+            com.application.auction.entity.Role adminRole = roleRepository.findByName(Role.ADMIN.name())
+                    .orElseGet(() -> roleRepository.save(com.application.auction.entity.Role.builder()
+                            .name(Role.ADMIN.name())
+                            .description("Administrator")
+                            .build()));
+
+            roleRepository.findByName(Role.USER.name())
+                    .orElseGet(() -> roleRepository.save(com.application.auction.entity.Role.builder()
+                            .name(Role.USER.name())
+                            .description("Default user")
+                            .build()));
+
             User adminUser = userRepository.findByEmail("admin@gmail.com")
                     .orElseGet(() -> {
-                        var roles = new HashSet<String>();
-                        roles.add(Role.ADMIN.name());
                         User user = User.builder()
                                 .username("admin@gmail.com")
                                 .password(passwordEncoder.encode("admin"))
-                              //  .roles(roles)
                                 .email("admin@gmail.com")
+                                .roles(new HashSet<>(Set.of(adminRole)))
                                 .build();
 
                         User savedUser = userRepository.save(user);
                         log.info("Admin user created");
                         return savedUser;
                     });
+
+            adminUser.setRoles(new HashSet<>(Set.of(adminRole)));
+            adminUser = userRepository.save(adminUser);
+            log.info("Admin role assigned to admin user");
 
             profileService.ensureProfileExists(adminUser);
         };

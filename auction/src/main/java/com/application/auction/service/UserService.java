@@ -45,11 +45,14 @@ public class UserService {
     public UserResponse createUser(UserCreationRequest userCreationRequest) {
         if(userRepository.existsByEmail(userCreationRequest.getEmail()))
             throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
+
+        var defaultRole = roleRepository.findByName(Role.USER.name())
+                .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
+
         User user = userMapper.toUser(userCreationRequest);
         user.setUsername(userCreationRequest.getEmail());
         user.setPassword(passwordEncoder.encode(userCreationRequest.getPassword()));
-        HashSet<String> roles = new HashSet<>();
-        roles.add(Role.USER.name());
+        user.setRoles(new HashSet<>(List.of(defaultRole)));
         user = userRepository.save(user);
         profileService.ensureProfileExists(user);
         return userMapper.toUserResponse(user);
@@ -62,7 +65,7 @@ public class UserService {
                 .map(userMapper::toUserResponse)
                 .toList();
     }
-    @PostAuthorize("hasAuthority('ADMIN') or returnObject.email == authentication.name")
+    @PostAuthorize("hasRole('ADMIN') or returnObject.email == authentication.name")
     public UserResponse getUserById(UUID id) {
         return userRepository.findById(id)
                 .map(userMapper::toUserResponse)

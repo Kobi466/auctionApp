@@ -4,7 +4,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/validators.dart';
 import '../../data/auth_service.dart';
-import '../../data/models/authenticated_response.dart';
+import '../../data/models/token_response.dart';
 import '../../domain/auth_repository.dart';
 import '../widgets/auth_header_widget.dart';
 import '../widgets/auth_label_widget.dart';
@@ -14,6 +14,7 @@ import '../widgets/face_id_widget.dart';
 import '../widgets/login_button_widget.dart';
 import '../widgets/register_prompt_widget.dart';
 import '../pages/register_screen.dart';
+import '../../../profile/presentation/pages/profile_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -62,20 +63,28 @@ class LoginScreenState extends State<LoginScreen> {
         password: passwordController.text.trim(),
       );
 
-      final AuthenticatedResponse? authData = response.data;
+      final TokenResponse? authData = response.data;
 
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(response.message)),
+        SnackBar(
+          content: Text(
+            response.message.isNotEmpty ? response.message : 'Dang nhap thanh cong',
+          ),
+        ),
       );
+
+      if (authData == null || !authData.authenticated) {
+        throw Exception('Dang nhap that bai');
+      }
 
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => HomePlaceholderScreen(
-            email: authData?.user.email ?? '',
-            accessToken: authData?.token.accessToken ?? '',
+          builder: (_) => ProfileScreen(
+            accessToken: authData.accessToken,
+            refreshToken: authData.refreshToken,
           ),
         ),
       );
@@ -102,7 +111,7 @@ class LoginScreenState extends State<LoginScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => RegisterScreen(),
+        builder: (_) => const RegisterScreen(),
       ),
     );
   }
@@ -202,47 +211,3 @@ class LoginScreenState extends State<LoginScreen> {
   }
 }
 
-class HomePlaceholderScreen extends StatelessWidget {
-  final String email;
-  final String accessToken;
-
-  const HomePlaceholderScreen({
-    super.key,
-    required this.email,
-    required this.accessToken,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.background,
-        foregroundColor: Colors.white,
-        title: const Text('Home'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Email: $email',
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Access Token:',
-              style: TextStyle(color: Colors.white, fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              accessToken,
-              style: const TextStyle(color: Colors.white70),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}

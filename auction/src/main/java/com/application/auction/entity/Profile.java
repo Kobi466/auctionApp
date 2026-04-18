@@ -33,13 +33,13 @@ public class Profile {
     )
     User user;
 
-    @Column(name = "full_name")
+    @Column(name = "full_name", unique = true)
     String fullName;
 
     @Column(nullable = false, unique = true)
     String email;
 
-    @Column(name = "phone_number")
+    @Column(name = "phone_number", unique = true)
     String phoneNumber;
 
     String avatar;
