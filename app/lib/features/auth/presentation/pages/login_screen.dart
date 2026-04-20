@@ -9,12 +9,11 @@ import '../../domain/auth_repository.dart';
 import '../widgets/auth_header_widget.dart';
 import '../widgets/auth_label_widget.dart';
 import '../widgets/auth_text_field_widget.dart';
-import '../widgets/encrypted_footer_widget.dart';
-import '../widgets/face_id_widget.dart';
 import '../widgets/login_button_widget.dart';
 import '../widgets/register_prompt_widget.dart';
 import '../pages/register_screen.dart';
-import '../../../profile/presentation/pages/profile_screen.dart';
+import '../../../setting/presentation/pages/setting_screen.dart';
+
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -82,9 +81,9 @@ class LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => ProfileScreen(
-            accessToken: authData.accessToken,
-            refreshToken: authData.refreshToken,
+          builder: (_) => const SettingScreen(
+            accessToken: '',
+            refreshToken: '',
           ),
         ),
       );
@@ -116,8 +115,6 @@ class LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void onFaceIdPressed() {}
-
   void onTogglePasswordVisibility() {
     setState(() {
       obscurePassword = !obscurePassword;
@@ -127,36 +124,35 @@ class LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.lightBackground,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 430),
               child: Form(
                 key: formKey,
                 child: Column(
                   children: [
-                    const SizedBox(height: 18),
                     const AuthHeaderWidget(),
-                    const SizedBox(height: 56),
+                    const SizedBox(height: 48),
 
                     const AuthLabelWidget(text: 'EMAIL ADDRESS'),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     AuthTextFieldWidget(
                       controller: emailController,
-                      hintText: 'collector@prestigevault.com',
+                      hintText: 'example@gmail.com',
                       validator: Validators.validateEmail,
                       keyboardType: TextInputType.emailAddress,
                     ),
 
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 20),
                     const AuthLabelWidget(text: 'PASSWORD'),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     AuthTextFieldWidget(
                       controller: passwordController,
-                      hintText: '••••••••••',
+                      hintText: 'Nhập mật khẩu',
                       validator: Validators.validatePassword,
                       obscureText: obscurePassword,
                       suffixIcon: IconButton(
@@ -165,41 +161,32 @@ class LoginScreenState extends State<LoginScreen> {
                           obscurePassword
                               ? Icons.visibility_off_outlined
                               : Icons.visibility_outlined,
-                          color: AppColors.hint,
+                          color: AppColors.lightHint,
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 10),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: onForgotPressed,
-                        child: const Text(
-                          'FORGOT CREDENTIALS?',
-                          style: AppTextStyles.forgotText,
+                        child: Text(
+                          'Quên mật khẩu?',
+                          style: AppTextStyles.registerLinkLight.copyWith(fontSize: 13),
                         ),
                       ),
                     ),
 
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 24),
                     LoginButtonWidget(
                       isLoading: isLoading,
                       onPressed: onLoginPressed,
                     ),
 
-                    const SizedBox(height: 34),
+                    const SizedBox(height: 32),
                     RegisterPromptWidget(
                       onRegister: onRegisterPressed,
                     ),
-
-                    const SizedBox(height: 70),
-                    FaceIdWidget(
-                      onTap: onFaceIdPressed,
-                    ),
-
-                    const EncryptedFooterWidget(),
-                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -210,4 +197,3 @@ class LoginScreenState extends State<LoginScreen> {
     );
   }
 }
-

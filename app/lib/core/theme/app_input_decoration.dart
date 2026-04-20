@@ -9,43 +9,43 @@ class AppInputDecoration {
   }) {
     return InputDecoration(
       hintText: hintText,
-      hintStyle: AppTextStyles.inputText.copyWith(
-        color: AppColors.hint.withOpacity(0.95),
+      hintStyle: AppTextStyles.registerInputLight.copyWith(
+        color: AppColors.lightHint,
       ),
       filled: true,
-      fillColor: AppColors.surface,
+      fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(
         horizontal: 20,
-        vertical: 22,
+        vertical: 18,
       ),
       suffixIcon: suffixIcon,
       errorStyle: AppTextStyles.errorStyle,
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(0),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(
-          color: AppColors.border,
-          width: 1.2,
+          color: AppColors.lightBorder,
+          width: 1.5,
         ),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(0),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(
-          color: AppColors.gold,
-          width: 1.4,
+          color: AppColors.primaryBlue,
+          width: 2.0,
         ),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(0),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(
           color: AppColors.error,
-          width: 1.2,
+          width: 1.5,
         ),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(0),
+        borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(
           color: AppColors.error,
-          width: 1.4,
+          width: 2.0,
         ),
       ),
     );
@@ -56,49 +56,6 @@ class AppInputDecoration {
     Widget? prefixIcon,
     Widget? suffixIcon,
   }) {
-    return InputDecoration(
-      hintText: hintText,
-      hintStyle: AppTextStyles.registerInputLight.copyWith(
-        color: AppColors.lightHint,
-        fontWeight: FontWeight.w400,
-      ),
-      filled: true,
-      fillColor: AppColors.lightSurface,
-      prefixIcon: prefixIcon,
-      suffixIcon: suffixIcon,
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 18,
-        vertical: 18,
-      ),
-      errorStyle: AppTextStyles.errorStyle,
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(
-          color: AppColors.lightBorder,
-          width: 1.2,
-        ),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(
-          color: AppColors.primaryBlue,
-          width: 1.4,
-        ),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(
-          color: AppColors.error,
-          width: 1.2,
-        ),
-      ),
-      focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(16),
-        borderSide: const BorderSide(
-          color: AppColors.error,
-          width: 1.4,
-        ),
-      ),
-    );
+    return auth(hintText: hintText, suffixIcon: suffixIcon);
   }
 }

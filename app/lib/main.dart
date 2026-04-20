@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/presentation/pages/login_screen.dart';
+import 'features/home/presentation/pages/home_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,8 +14,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Auction Login',
-      theme: AppTheme.darkTheme,
+      title: 'Auction App',
+      theme: AppTheme.lightTheme,
       home: const LoginScreen(),
     );
   }

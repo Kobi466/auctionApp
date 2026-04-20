@@ -8,46 +8,46 @@ import '../../../auth/presentation/pages/login_screen.dart';
 import '../../../../core/network/api_client.dart';
 import '../../data/models/profile_response.dart';
 import '../../domain/profile_repository_impl.dart';
-import 'edit_profile_screen.dart';
+import 'edit_setting_screen.dart';
 import '../widgets/action_button_widget.dart';
-import '../widgets/profile_header_widget.dart';
+import '../widgets/setting_header_widget.dart';
 import '../widgets/section_title_widget.dart';
 import '../widgets/setting_tile_widget.dart';
 import '../widgets/switch_tile_widget.dart';
 
-class ProfileScreen extends StatefulWidget {
+class SettingScreen extends StatefulWidget {
   final String accessToken;
   final String refreshToken;
 
-  const ProfileScreen({
+  const SettingScreen({
     super.key,
     required this.accessToken,
     required this.refreshToken,
   });
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  State<SettingScreen> createState() => _SettingScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
-  late final ProfileRepositoryImpl _profileRepository;
+class _SettingScreenState extends State<SettingScreen> {
+  late final ProfileRepositoryImpl _settingRepository;
 
-  Future<ProfileResponse>? _profileFuture;
-  ProfileResponse? _profile;
+  Future<ProfileResponse>? _settingFuture;
+  ProfileResponse? _setting;
 
   @override
   void initState() {
     super.initState();
-    _profileRepository = ProfileRepositoryImpl();
-    _profileFuture = _loadProfile();
+    _settingRepository = ProfileRepositoryImpl();
+    _settingFuture = _loadSetting();
   }
 
-  Future<ProfileResponse> _loadProfile() async {
-    final profile = await _profileRepository.getProfile(
+  Future<ProfileResponse> _loadSetting() async {
+    final setting = await _settingRepository.getProfile(
       accessToken: widget.accessToken,
     );
-    _profile = profile;
-    return profile;
+    _setting = setting;
+    return setting;
   }
 
   Future<void> _onLogoutPressed(BuildContext context) async {
@@ -69,7 +69,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         MaterialPageRoute(
           builder: (_) => const LoginScreen(),
         ),
-        (route) => false,
+            (route) => false,
       );
     } catch (e) {
       if (!context.mounted) return;
@@ -84,15 +84,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Map<String, dynamic> _decodePreferences(String raw) {
-    if (raw.trim().isEmpty) {
-      return const {};
-    }
+    if (raw.trim().isEmpty) return const {};
 
     try {
       final decoded = jsonDecode(raw);
-      if (decoded is Map<String, dynamic>) {
-        return decoded;
-      }
+      if (decoded is Map<String, dynamic>) return decoded;
     } on FormatException {
       return const {};
     }
@@ -100,11 +96,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return const {};
   }
 
-  String _displayName(ProfileResponse profile) {
-    if (profile.fullName != null && profile.fullName!.trim().isNotEmpty) {
-      return profile.fullName!.trim();
+  String _displayName(ProfileResponse setting) {
+    if (setting.fullName != null && setting.fullName!.trim().isNotEmpty) {
+      return setting.fullName!.trim();
     }
-    return profile.email;
+    return setting.email;
   }
 
   String _kycLabel(String status) {
@@ -118,26 +114,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _openEditProfile(ProfileResponse profile) async {
-    final updatedProfile = await Navigator.of(context).push<ProfileResponse>(
+  Future<void> _openEditSetting(ProfileResponse setting) async {
+    final updatedSetting = await Navigator.of(context).push<ProfileResponse>(
       MaterialPageRoute(
-        builder: (_) => EditProfileScreen(
+        builder: (_) => EditSettingScreen(
           accessToken: widget.accessToken,
-          profile: profile,
+          setting: setting,
         ),
       ),
     );
 
-    if (!mounted || updatedProfile == null) {
-      return;
-    }
+    if (!mounted || updatedSetting == null) return;
 
     setState(() {
-      _profile = updatedProfile;
+      _setting = updatedSetting;
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Cap nhat profile thanh cong')),
+      const SnackBar(content: Text('Cap nhat setting thanh cong')),
     );
   }
 
@@ -157,7 +151,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ],
       ),
       body: FutureBuilder<ProfileResponse>(
-        future: _profileFuture,
+        future: _settingFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
             return const Center(
@@ -178,8 +172,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
           }
 
-          final profile = _profile ?? snapshot.data!;
-          final preferences = _decodePreferences(profile.preferences);
+          final setting = _setting ?? snapshot.data!;
+          final preferences = _decodePreferences(setting.preferences);
           final currency = preferences['currency']?.toString() ?? 'USD';
           final language = preferences['language']?.toString() ?? 'English';
           final twoFactor = preferences['twoFactorEnabled'] == true;
@@ -191,41 +185,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 const SizedBox(height: 20),
                 ProfileHeaderWidget(
-                  fullName: _displayName(profile),
-                  email: profile.email,
-                  avatar: profile.avatar,
-                  bio: profile.bio,
-                  isVerified: profile.kycStatus.toUpperCase() == 'VERIFIED',
+                  fullName: _displayName(setting),
+                  email: setting.email,
+                  avatar: setting.avatar,
+                  bio: setting.bio,
+                  isVerified:
+                  setting.kycStatus.toUpperCase() == 'VERIFIED',
                 ),
                 const SizedBox(height: 20),
                 ActionButtonWidget(
-                  text: 'EDIT PROFILE',
+                  text: 'EDIT SETTING',
                   color: Colors.amber,
-                  onPressed: () => _openEditProfile(profile),
+                  onPressed: () => _openEditSetting(setting),
                 ),
                 const SizedBox(height: 14),
                 const SectionTitleWidget(title: 'IDENTITY STATUS'),
                 SettingTileWidget(
                   icon: Icons.verified,
                   title: 'KYC Verification',
-                  subtitle: _kycLabel(profile.kycStatus),
-                  isVerified: profile.kycStatus.toUpperCase() == 'VERIFIED',
+                  subtitle: _kycLabel(setting.kycStatus),
+                  isVerified:
+                  setting.kycStatus.toUpperCase() == 'VERIFIED',
                 ),
                 SettingTileWidget(
                   icon: Icons.account_balance_wallet_outlined,
                   title: 'Wallet Status',
-                  trailingText: profile.isWalletActive ? 'Ready' : 'Inactive',
+                  trailingText:
+                  setting.isWalletActive ? 'Ready' : 'Inactive',
                 ),
                 const SectionTitleWidget(title: 'ACCOUNT SECURITY'),
                 SettingTileWidget(
                   icon: Icons.email_outlined,
                   title: 'Email',
-                  subtitle: profile.email,
+                  subtitle: setting.email,
                 ),
                 SettingTileWidget(
                   icon: Icons.phone_outlined,
                   title: 'Phone Number',
-                  subtitle: profile.phoneNumber ?? 'Not updated',
+                  subtitle: setting.phoneNumber ?? 'Not updated',
                 ),
                 SwitchTileWidget(
                   icon: Icons.security,

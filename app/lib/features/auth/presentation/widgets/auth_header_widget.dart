@@ -7,24 +7,24 @@ class AuthHeaderWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
+    return Column(
       children: [
-        Icon(
-          Icons.shield_outlined,
-          color: AppColors.gold,
-          size: 34,
+        const Icon(
+          Icons.account_balance_wallet_rounded,
+          color: AppColors.primaryBlue,
+          size: 60,
         ),
-        SizedBox(height: 22),
+        const SizedBox(height: 24),
         Text(
-          'Welcome Back',
+          'Đăng nhập',
           textAlign: TextAlign.center,
-          style: AppTextStyles.welcomeTitle,
+          style: AppTextStyles.registerTitleLight,
         ),
-        SizedBox(height: 10),
+        const SizedBox(height: 8),
         Text(
-          'ELITE ACCESS SECURED',
+          'Chào mừng trở lại với ReBid',
           textAlign: TextAlign.center,
-          style: AppTextStyles.subtitle,
+          style: AppTextStyles.registerSubtitleLight,
         ),
       ],
     );

@@ -15,7 +15,7 @@ class AuthLabelWidget extends StatelessWidget {
       alignment: Alignment.centerLeft,
       child: Text(
         text,
-        style: AppTextStyles.label,
+        style: AppTextStyles.registerLabelLight,
       ),
     );
   }

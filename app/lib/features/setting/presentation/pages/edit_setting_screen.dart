@@ -7,27 +7,28 @@ import 'package:flutter/material.dart';
 import '../../data/models/profile_response.dart';
 import '../../domain/profile_repository_impl.dart';
 
-class EditProfileScreen extends StatefulWidget {
+class EditSettingScreen extends StatefulWidget {
   final String accessToken;
-  final ProfileResponse profile;
+  final ProfileResponse setting;
 
-  const EditProfileScreen({
+  const EditSettingScreen({
     super.key,
     required this.accessToken,
-    required this.profile,
+    required this.setting,
   });
 
   @override
-  State<EditProfileScreen> createState() => _EditProfileScreenState();
+  State<EditSettingScreen> createState() => _EditSettingScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _EditSettingScreenState extends State<EditSettingScreen> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _avatarController = TextEditingController();
-  final ProfileRepositoryImpl _profileRepository = ProfileRepositoryImpl();
+
+  final ProfileRepositoryImpl _settingRepository = ProfileRepositoryImpl();
 
   Uint8List? _selectedImageBytes;
   bool _isSaving = false;
@@ -35,11 +36,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _fullNameController.text = widget.profile.fullName ?? '';
-    _emailController.text = widget.profile.email;
-    _phoneController.text = widget.profile.phoneNumber ?? '';
-    _avatarController.text = widget.profile.avatar ?? '';
-    _selectedImageBytes = _extractImageBytes(widget.profile.avatar);
+    _fullNameController.text = widget.setting.fullName ?? '';
+    _emailController.text = widget.setting.email;
+    _phoneController.text = widget.setting.phoneNumber ?? '';
+    _avatarController.text = widget.setting.avatar ?? '';
+    _selectedImageBytes = _extractImageBytes(widget.setting.avatar);
   }
 
   @override
@@ -59,9 +60,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         withData: true,
       );
 
-      if (result == null || result.files.isEmpty) {
-        return;
-      }
+      if (result == null || result.files.isEmpty) return;
 
       final file = result.files.single;
       final bytes = file.bytes;
@@ -76,6 +75,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         'webp' => 'image/webp',
         _ => 'image/png',
       };
+
       final encoded = base64Encode(bytes);
 
       setState(() {
@@ -93,17 +93,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
-  Future<void> _saveProfile() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+  Future<void> _saveSetting() async {
+    if (!_formKey.currentState!.validate()) return;
 
-    setState(() {
-      _isSaving = true;
-    });
+    setState(() => _isSaving = true);
 
     try {
-      final updatedProfile = await _profileRepository.updateProfile(
+      final updatedSetting = await _settingRepository.updateProfile(
         accessToken: widget.accessToken,
         fullName: _fullNameController.text.trim(),
         email: _emailController.text.trim(),
@@ -112,7 +108,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
 
       if (!mounted) return;
-      Navigator.of(context).pop(updatedProfile);
+      Navigator.of(context).pop(updatedSetting);
     } catch (e) {
       if (!mounted) return;
 
@@ -124,22 +120,16 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       );
     } finally {
       if (!mounted) return;
-      setState(() {
-        _isSaving = false;
-      });
+      setState(() => _isSaving = false);
     }
   }
 
   Uint8List? _extractImageBytes(String? avatarValue) {
     final normalized = avatarValue?.trim() ?? '';
-    if (!normalized.startsWith('data:image/')) {
-      return null;
-    }
+    if (!normalized.startsWith('data:image/')) return null;
 
     final commaIndex = normalized.indexOf(',');
-    if (commaIndex == -1) {
-      return null;
-    }
+    if (commaIndex == -1) return null;
 
     try {
       return base64Decode(normalized.substring(commaIndex + 1));
@@ -157,9 +147,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   String? _validateEmail(String? value) {
     final text = value?.trim() ?? '';
-    if (text.isEmpty) {
-      return 'Email khong duoc de trong';
-    }
+    if (text.isEmpty) return 'Email khong duoc de trong';
+
     final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
     if (!emailRegex.hasMatch(text)) {
       return 'Email khong dung dinh dang';
@@ -186,7 +175,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: const Text('Edit Profile'),
+        title: const Text('Edit Setting'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -273,13 +262,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               const SizedBox(height: 24),
               ElevatedButton(
-                onPressed: _isSaving ? null : _saveProfile,
+                onPressed: _isSaving ? null : _saveSetting,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.amber,
                   foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: Text(_isSaving ? 'DANG LUU...' : 'SAVE PROFILE'),
+                child: Text(_isSaving ? 'DANG LUU...' : 'SAVE SETTING'),
               ),
             ],
           ),

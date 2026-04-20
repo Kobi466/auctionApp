@@ -16,31 +16,32 @@ class LoginButtonWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       width: double.infinity,
-      height: 60,
+      height: 56,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.gold,
-          foregroundColor: Colors.black,
-          disabledBackgroundColor: AppColors.gold.withOpacity(0.7),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.zero,
+          backgroundColor: AppColors.primaryBlue,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: AppColors.primaryBlue.withOpacity(0.6),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
-          elevation: 0,
+          elevation: 2,
+          shadowColor: AppColors.primaryBlue.withOpacity(0.3),
         ),
         child: isLoading
             ? const SizedBox(
-          width: 22,
-          height: 22,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.4,
-            color: Colors.black,
-          ),
-        )
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: Colors.white,
+                ),
+              )
             : const Text(
-          'LOGIN',
-          style: AppTextStyles.loginButton,
-        ),
+                'Đăng nhập',
+                style: AppTextStyles.registerButtonLight,
+              ),
       ),
     );
   }

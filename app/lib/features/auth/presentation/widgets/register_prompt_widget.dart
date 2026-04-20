@@ -15,13 +15,13 @@ class RegisterPromptWidget extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Text(
-          "Don't have an account?  ",
+          "Bạn chưa có tài khoản?  ",
           style: AppTextStyles.registerMuted,
         ),
         GestureDetector(
           onTap: onRegister,
           child: const Text(
-            'Register',
+            'Đăng ký',
             style: AppTextStyles.registerLink,
           ),
         ),
