@@ -26,15 +26,18 @@ public class RoleService {
 
     public RoleResponse create(RoleRequest request) {
         var role = roleMapper.toRole(request);
-        var permissions =  permissionRepository.findAllById(request.getPermissions());
+        var permissions = permissionRepository.findAllById(request.getPermissions());
+
         role.setPermissions(new HashSet<>(permissions));
-      role =  roleRepository.save(role);
-      return roleMapper.toRoleResponse(role);
+        role = roleRepository.save(role);
+
+        return roleMapper.toRoleResponse(role);
     }
 
     public List<RoleResponse> getAll() {
-        var roles = roleRepository.findAll();
-        return roles.stream().map(roleMapper::toRoleResponse).toList();
+        return roleRepository.findAll().stream()
+                .map(roleMapper::toRoleResponse)
+                .toList();
     }
 
     public void delete(Long id) {

@@ -12,8 +12,7 @@ import '../widgets/auth_text_field_widget.dart';
 import '../widgets/login_button_widget.dart';
 import '../widgets/register_prompt_widget.dart';
 import '../pages/register_screen.dart';
-import '../../../setting/presentation/pages/setting_screen.dart';
-
+import '../../../home/presentation/pages/home_page.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -81,9 +80,8 @@ class LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => const SettingScreen(
-            accessToken: '',
-            refreshToken: '',
+          builder: (_) => HomePage(
+            accessToken: authData.accessToken,
           ),
         ),
       );

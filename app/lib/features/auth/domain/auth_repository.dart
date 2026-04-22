@@ -1,6 +1,7 @@
 import '../../../core/network/api_response.dart';
 import '../data/auth_service.dart';
 import '../data/models/token_response.dart';
+import '../data/models/user_response.dart';
 
 class AuthRepository {
   final AuthService authService;
@@ -12,6 +13,16 @@ class AuthRepository {
     required String password,
   }) async {
     return authService.login(
+      email: email,
+      password: password,
+    );
+  }
+
+  Future<ApiResponse<UserResponse>> register({
+    required String email,
+    required String password,
+  }) async {
+    return authService.register(
       email: email,
       password: password,
     );

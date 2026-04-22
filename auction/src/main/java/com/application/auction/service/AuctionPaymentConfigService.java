@@ -5,6 +5,7 @@ import com.application.auction.dto.response.AuctionPaymentConfigResponse;
 import com.application.auction.entity.AuctionPaymentConfig;
 import com.application.auction.enums.ErrorCode;
 import com.application.auction.exception.AppException;
+import com.application.auction.mapper.AuctionPaymentConfigMapper;
 import com.application.auction.repository.AuctionPaymentConfigRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -19,29 +20,32 @@ import org.springframework.transaction.annotation.Transactional;
 public class AuctionPaymentConfigService {
 
     AuctionPaymentConfigRepository auctionPaymentConfigRepository;
+    AuctionPaymentConfigMapper auctionPaymentConfigMapper;
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public AuctionPaymentConfigResponse upsert(AuctionPaymentConfigRequest request) {
         AuctionPaymentConfig config = auctionPaymentConfigRepository.findById(1L)
                 .orElse(AuctionPaymentConfig.builder().id(1L).build());
+        AuctionPaymentConfigRequest sanitizedRequest = AuctionPaymentConfigRequest.builder()
+                .bankName(requireText(request.getBankName(), ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED))
+                .accountNumber(requireText(request.getAccountNumber(), ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED))
+                .accountHolderName(requireText(request.getAccountHolderName(), ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED))
+                .qrImageUrl(requireText(request.getQrImageUrl(), ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED))
+                .branchName(normalize(request.getBranchName()))
+                .transferNotePrefix(normalize(request.getTransferNotePrefix()))
+                .active(request.getActive() == null || request.getActive())
+                .build();
 
-        config.setBankName(requireText(request.getBankName(), ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED));
-        config.setAccountNumber(requireText(request.getAccountNumber(), ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED));
-        config.setAccountHolderName(requireText(request.getAccountHolderName(), ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED));
-        config.setQrImageUrl(requireText(request.getQrImageUrl(), ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED));
-        config.setBranchName(normalize(request.getBranchName()));
-        config.setTransferNotePrefix(normalize(request.getTransferNotePrefix()));
-        config.setActive(request.getActive() == null || request.getActive());
-
-        return toResponse(auctionPaymentConfigRepository.save(config));
+        auctionPaymentConfigMapper.updateAuctionPaymentConfig(config, sanitizedRequest);
+        return auctionPaymentConfigMapper.toAuctionPaymentConfigResponse(auctionPaymentConfigRepository.save(config));
     }
 
     @Transactional(readOnly = true)
     public AuctionPaymentConfigResponse getActive() {
         AuctionPaymentConfig config = auctionPaymentConfigRepository.findFirstByActiveTrue()
                 .orElseThrow(() -> new AppException(ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED));
-        return toResponse(config);
+        return auctionPaymentConfigMapper.toAuctionPaymentConfigResponse(config);
     }
 
     AuctionPaymentConfig getActiveEntity() {
@@ -65,18 +69,4 @@ public class AuctionPaymentConfigService {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
-    private AuctionPaymentConfigResponse toResponse(AuctionPaymentConfig config) {
-        return AuctionPaymentConfigResponse.builder()
-                .id(config.getId())
-                .bankName(config.getBankName())
-                .accountNumber(config.getAccountNumber())
-                .accountHolderName(config.getAccountHolderName())
-                .qrImageUrl(config.getQrImageUrl())
-                .branchName(config.getBranchName())
-                .transferNotePrefix(config.getTransferNotePrefix())
-                .active(config.isActive())
-                .createdAt(config.getCreatedAt())
-                .updatedAt(config.getUpdatedAt())
-                .build();
-    }
 }

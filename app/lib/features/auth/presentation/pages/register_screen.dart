@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../data/auth_service.dart';
+import '../../domain/auth_repository.dart';
 import 'login_screen.dart';
 import '../widgets/auth_card_container_widget.dart';
 import '../widgets/register_button_widget.dart';
@@ -21,12 +24,19 @@ class RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
-  TextEditingController();
+      TextEditingController();
 
   bool obscurePassword = true;
   bool obscureConfirmPassword = true;
   bool isLoading = false;
   bool acceptedTerms = false;
+  late final AuthRepository authRepository;
+
+  @override
+  void initState() {
+    super.initState();
+    authRepository = AuthRepository(AuthService(ApiClient()));
+  }
 
   @override
   void dispose() {
@@ -65,7 +75,7 @@ class RegisterScreenState extends State<RegisterScreen> {
     if (!acceptedTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Vui lòng đồng ý với điều khoản sử dụng'),
+          content: Text('Vui long dong y voi dieu khoan su dung'),
           backgroundColor: Colors.red,
         ),
       );
@@ -76,24 +86,43 @@ class RegisterScreenState extends State<RegisterScreen> {
       isLoading = true;
     });
 
-    await Future.delayed(const Duration(milliseconds: 1200));
+    try {
+      final response = await authRepository.register(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      isLoading = false;
-    });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            response.message.isNotEmpty ? response.message : 'Dang ky thanh cong',
+          ),
+        ),
+      );
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Đăng ký thành công')),
-    );
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const LoginScreen(),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const LoginScreen(),
-      ),
-    );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   void onGoToLoginPressed() {

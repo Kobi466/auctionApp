@@ -14,6 +14,9 @@ import com.application.auction.entity.User;
 import com.application.auction.enums.AuctionDepositStatus;
 import com.application.auction.enums.ErrorCode;
 import com.application.auction.exception.AppException;
+import com.application.auction.mapper.AuctionDepositMapper;
+import com.application.auction.mapper.AuctionPaymentConfigMapper;
+import com.application.auction.mapper.AuctionRoomMapper;
 import com.application.auction.repository.AuctionDepositRepository;
 import com.application.auction.repository.AuctionRoomRepository;
 import com.application.auction.repository.UserRepository;
@@ -48,6 +51,9 @@ public class AuctionParticipationService {
     AuctionPaymentConfigService auctionPaymentConfigService;
     KycDetailService kycDetailService;
     UserRepository userRepository;
+    AuctionDepositMapper auctionDepositMapper;
+    AuctionPaymentConfigMapper auctionPaymentConfigMapper;
+    AuctionRoomMapper auctionRoomMapper;
 
     @Transactional(readOnly = true)
     public AuctionParticipationStatusResponse getParticipationStatus(UUID productId) {
@@ -180,11 +186,7 @@ public class AuctionParticipationService {
             throw new AppException(ErrorCode.AUCTION_DEPOSIT_APPROVAL_REQUIRED);
         }
 
-        return AuctionRoomAccessResponse.builder()
-                .roomId(room.getId().toString())
-                .roomPassword(room.getRoomPassword())
-                .roomCode(room.getRoomCode())
-                .build();
+        return auctionRoomMapper.toAuctionRoomAccessResponse(room);
     }
 
     private String buildTransferContent(AuctionPaymentConfig config, AuctionRoom room, User currentUser) {
@@ -239,38 +241,13 @@ public class AuctionParticipationService {
         if (deposit == null) {
             return null;
         }
-        return AuctionDepositResponse.builder()
-                .id(deposit.getId())
-                .auctionRoomId(deposit.getAuctionRoomId())
-                .productId(deposit.getProductId())
-                .userId(deposit.getUserId())
-                .requiredAmount(deposit.getRequiredAmount())
-                .transferContent(deposit.getTransferContent())
-                .status(deposit.getStatus())
-                .adminNote(deposit.getAdminNote())
-                .userNote(deposit.getUserNote())
-                .paymentSubmittedAt(deposit.getPaymentSubmittedAt())
-                .approvedAt(deposit.getApprovedAt())
-                .createdAt(deposit.getCreatedAt())
-                .updatedAt(deposit.getUpdatedAt())
-                .build();
+        return auctionDepositMapper.toAuctionDepositResponse(deposit);
     }
 
     private AuctionPaymentConfigResponse toPaymentConfigResponse(AuctionPaymentConfig config) {
         if (config == null) {
             return null;
         }
-        return AuctionPaymentConfigResponse.builder()
-                .id(config.getId())
-                .bankName(config.getBankName())
-                .accountNumber(config.getAccountNumber())
-                .accountHolderName(config.getAccountHolderName())
-                .qrImageUrl(config.getQrImageUrl())
-                .branchName(config.getBranchName())
-                .transferNotePrefix(config.getTransferNotePrefix())
-                .active(config.isActive())
-                .createdAt(config.getCreatedAt())
-                .updatedAt(config.getUpdatedAt())
-                .build();
+        return auctionPaymentConfigMapper.toAuctionPaymentConfigResponse(config);
     }
 }

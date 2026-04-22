@@ -9,6 +9,7 @@ import com.application.auction.entity.User;
 import com.application.auction.enums.ErrorCode;
 import com.application.auction.enums.KycStatus;
 import com.application.auction.exception.AppException;
+import com.application.auction.mapper.KycDetailMapper;
 import com.application.auction.repository.KycDetailRepository;
 import com.application.auction.repository.ProfileRepository;
 import com.application.auction.repository.UserRepository;
@@ -31,6 +32,7 @@ public class KycDetailService {
     KycDetailRepository kycDetailRepository;
     UserRepository userRepository;
     ProfileRepository profileRepository;
+    KycDetailMapper kycDetailMapper;
 
     //Lấy KYC mới nhất của user đang đăng nhập
     @Transactional(readOnly = true)
@@ -38,7 +40,7 @@ public class KycDetailService {
         User currentUser = getCurrentUser();
         KycDetail kycDetail = kycDetailRepository.findTopByUserIdOrderByCreatedAtDesc(currentUser.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.KYC_DETAIL_NOT_FOUND));
-        return toResponse(kycDetail);
+        return kycDetailMapper.toKycDetailResponse(kycDetail);
     }
 
     //User gửi hoặc cập nhật thông tin KYC
@@ -62,26 +64,31 @@ public class KycDetailService {
 
         validateIdNumber(normalizedIdNumber, existingDetail == null ? null : existingDetail.getId());
 
-        KycDetail kycDetail = existingDetail != null ? existingDetail : KycDetail.builder()
-                .userId(currentUser.getId())
+        KycDetailRequest sanitizedRequest = KycDetailRequest.builder()
+                .idNumber(normalizedIdNumber)
+                .fullName(normalizedFullName)
+                .dateOfBirth(dateOfBirth)
+                .gender(normalizedGender)
+                .nationality(normalizedNationality)
+                .placeOfOrigin(normalizedPlaceOfOrigin)
+                .placeOfResidence(normalizedPlaceOfResidence)
+                .selfie(normalizedSelfie)
+                .frontSide(normalizedFrontSide)
+                .backSide(normalizedBackSide)
                 .build();
 
-        kycDetail.setIdNumber(normalizedIdNumber);
-        kycDetail.setFullName(normalizedFullName);
-        kycDetail.setDateOfBirth(dateOfBirth);
-        kycDetail.setGender(normalizedGender);
-        kycDetail.setNationality(normalizedNationality);
-        kycDetail.setPlaceOfOrigin(normalizedPlaceOfOrigin);
-        kycDetail.setPlaceOfResidence(normalizedPlaceOfResidence);
-        kycDetail.setSelfie(normalizedSelfie);
-        kycDetail.setFrontSide(normalizedFrontSide);
-        kycDetail.setBackSide(normalizedBackSide);
+        KycDetail kycDetail = existingDetail != null ? existingDetail : kycDetailMapper.toKycDetail(sanitizedRequest);
+        if (existingDetail != null) {
+            kycDetailMapper.updateKycDetail(kycDetail, sanitizedRequest);
+        }
+
+        kycDetail.setUserId(currentUser.getId());
         kycDetail.setStatus(KycStatus.PENDING);
         kycDetail.setRejectedReason(null);
 
         KycDetail savedDetail = kycDetailRepository.save(kycDetail);
         syncProfileKycStatus(currentUser.getId(), KycStatus.PENDING);
-        return toResponse(savedDetail);
+        return kycDetailMapper.toKycDetailResponse(savedDetail);
     }
 
     //Admin duyệt hoặc từ chối KYC
@@ -107,7 +114,7 @@ public class KycDetailService {
 
         KycDetail savedDetail = kycDetailRepository.save(kycDetail);
         syncProfileKycStatus(savedDetail.getUserId(), nextStatus);
-        return toResponse(savedDetail);
+        return kycDetailMapper.toKycDetailResponse(savedDetail);
     }
 
     //Check user đã KYC chưa trước khi cho đấu giá
@@ -179,24 +186,4 @@ public class KycDetailService {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
-    private KycDetailResponse toResponse(KycDetail kycDetail) {
-        return KycDetailResponse.builder()
-                .id(kycDetail.getId())
-                .userId(kycDetail.getUserId())
-                .idNumber(kycDetail.getIdNumber())
-                .fullName(kycDetail.getFullName())
-                .dateOfBirth(kycDetail.getDateOfBirth())
-                .gender(kycDetail.getGender())
-                .nationality(kycDetail.getNationality())
-                .placeOfOrigin(kycDetail.getPlaceOfOrigin())
-                .placeOfResidence(kycDetail.getPlaceOfResidence())
-                .selfie(kycDetail.getSelfie())
-                .frontSide(kycDetail.getFrontSide())
-                .backSide(kycDetail.getBackSide())
-                .status(kycDetail.getStatus())
-                .rejectedReason(kycDetail.getRejectedReason())
-                .createdAt(kycDetail.getCreatedAt())
-                .updatedAt(kycDetail.getUpdatedAt())
-                .build();
-    }
 }

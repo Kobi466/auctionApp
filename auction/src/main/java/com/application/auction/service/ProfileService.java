@@ -8,6 +8,7 @@ import com.application.auction.entity.User;
 import com.application.auction.enums.ErrorCode;
 import com.application.auction.enums.KycStatus;
 import com.application.auction.exception.AppException;
+import com.application.auction.mapper.ProfileMapper;
 import com.application.auction.repository.ProfileRepository;
 import com.application.auction.repository.UserRepository;
 import lombok.AccessLevel;
@@ -24,6 +25,7 @@ public class ProfileService {
 
     ProfileRepository profileRepository;
     UserRepository userRepository;
+    ProfileMapper profileMapper;
 
     @Transactional
     public Profile ensureProfileExists(User user) {
@@ -38,7 +40,7 @@ public class ProfileService {
     public ProfileResponse getMyProfile() {
         User currentUser = getCurrentUser();
         Profile profile = ensureProfileExists(currentUser);
-        return toProfileResponse(profile);
+        return profileMapper.toProfileResponse(profile);
     }
 
     @Transactional
@@ -101,7 +103,7 @@ public class ProfileService {
 
         userRepository.save(currentUser);
         Profile savedProfile = profileRepository.save(profile);
-        return toProfileResponse(savedProfile);
+        return profileMapper.toProfileResponse(savedProfile);
     }
 
     private User getCurrentUser() {
@@ -162,20 +164,6 @@ public class ProfileService {
 
         profileRepository.delete(profile);
         return profileRepository.save(migratedProfile);
-    }
-
-    private ProfileResponse toProfileResponse(Profile profile) {
-        return ProfileResponse.builder()
-                .userId(profile.getUserId())
-                .fullName(profile.getFullName())
-                .email(profile.getEmail())
-                .phoneNumber(profile.getPhoneNumber())
-                .avatar(profile.getAvatar())
-                .bio(profile.getBio())
-                .isWalletActive(profile.getIsWalletActive())
-                .kycStatus(profile.getKycStatus())
-                .preferences(profile.getPreferences())
-                .build();
     }
 
     private String normalize(String value) {

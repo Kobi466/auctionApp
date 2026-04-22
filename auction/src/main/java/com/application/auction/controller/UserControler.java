@@ -28,32 +28,28 @@ public class UserControler {
 
     @PostMapping
     public UserResponse createUser(@RequestBody @Valid UserCreationRequest request) {
-        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(userService.createUser(request));
-        return apiResponse.getResult();
+        return userService.createUser(request);
     }
 
     @GetMapping
-    ApiResponse<List<UserResponse>>getallUser() {
-        ApiResponse<List<UserResponse>> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(userService.getAllUser());
-        return apiResponse;
+    public ApiResponse<List<UserResponse>> getAllUser() {
+        return ApiResponse.<List<UserResponse>>builder()
+                .result(userService.getAllUser())
+                .build();
     }
+
     @GetMapping("/{id}")
     public UserResponse getUserById(@PathVariable UUID id) {
-        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(userService.getUserById(id));
-        return apiResponse.getResult();
+        return userService.getUserById(id);
     }
 
     @PutMapping("/{id}")
-    UserResponse updateUser(@PathVariable UUID id, @RequestBody @Valid UserUpdateRequest request) {
-        ApiResponse<UserResponse> apiResponse = new ApiResponse<>();
-        apiResponse.setResult(userService.update(id, request));
-        return apiResponse.getResult();
+    public UserResponse updateUser(@PathVariable UUID id, @RequestBody @Valid UserUpdateRequest request) {
+        return userService.update(id, request);
     }
+
     @GetMapping("/myInfo")
-    ApiResponse<UserResponse> getMyInfo() {
+    public ApiResponse<UserResponse> getMyInfo() {
         return ApiResponse.<UserResponse>builder()
                 .result(userService.getMyInfo())
                 .build();

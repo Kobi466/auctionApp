@@ -9,6 +9,8 @@ import com.application.auction.entity.User;
 import com.application.auction.enums.AuctionRoomStatus;
 import com.application.auction.enums.ErrorCode;
 import com.application.auction.exception.AppException;
+import com.application.auction.mapper.AuctionRoomMapper;
+import com.application.auction.mapper.ProductMapper;
 import com.application.auction.repository.AuctionRoomRepository;
 import com.application.auction.repository.ProductRepository;
 import com.application.auction.repository.UserRepository;
@@ -35,12 +37,14 @@ public class ProductService {
     ProductRepository productRepository;
     AuctionRoomRepository auctionRoomRepository;
     UserRepository userRepository;
+    ProductMapper productMapper;
+    AuctionRoomMapper auctionRoomMapper;
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
     public ProductResponse createProduct(ProductRequest request) {
-        Product product = Product.builder().build();
-        applyProductRequest(product, request);
+        Product product = productMapper.toProduct(sanitizeProductRequest(request));
+        product.setCreatedByAdminId(getCurrentAdmin().getId());
         Product savedProduct = productRepository.save(product);
 
         AuctionRoom auctionRoom = buildAuctionRoom(savedProduct.getId(), request);
@@ -54,7 +58,9 @@ public class ProductService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
 
-        applyProductRequest(product, request);
+        ProductRequest sanitizedRequest = sanitizeProductRequest(request);
+        productMapper.updateProduct(product, sanitizedRequest);
+        product.setCreatedByAdminId(getCurrentAdmin().getId());
         Product savedProduct = productRepository.save(product);
 
         AuctionRoom auctionRoom = auctionRoomRepository.findByProductId(productId)
@@ -94,26 +100,30 @@ public class ProductService {
                 .toList();
     }
 
-    private void applyProductRequest(Product product, ProductRequest request) {
-        User currentAdmin = getCurrentAdmin();
-        product.setName(requireText(request.getName(), ErrorCode.PRODUCT_NAME_REQUIRED));
-        product.setSubTitle(normalize(request.getSubTitle()));
-        product.setBrand(requireText(request.getBrand(), ErrorCode.PRODUCT_BRAND_REQUIRED));
-        product.setDescription(normalize(request.getDescription()));
-        product.setShortDescription(normalize(request.getShortDescription()));
-        product.setImageUrls(requireImageUrls(request.getImageUrls()));
-        product.setMainImageUrl(normalize(request.getMainImageUrl()));
-        product.setCategoryId(requireText(request.getCategoryId(), ErrorCode.PRODUCT_CATEGORY_REQUIRED));
-        product.setCreatedByAdminId(currentAdmin.getId());
-        product.setTags(request.getTags() == null ? List.of() : request.getTags().stream()
-                .map(this::normalize)
-                .filter(value -> value != null)
-                .toList());
-        product.setAuthenticity(normalize(request.getAuthenticity()));
-        product.setProvenance(normalize(request.getProvenance()));
-        product.setAttributes(request.getAttributes() == null ? java.util.Map.of() : request.getAttributes());
-        product.setRarityRank(request.getRarityRank());
-        product.setStatus(request.getStatus() == null ? com.application.auction.enums.ProductStatus.DRAFT : request.getStatus());
+    private ProductRequest sanitizeProductRequest(ProductRequest request) {
+        return ProductRequest.builder()
+                .name(requireText(request.getName(), ErrorCode.PRODUCT_NAME_REQUIRED))
+                .subTitle(normalize(request.getSubTitle()))
+                .brand(requireText(request.getBrand(), ErrorCode.PRODUCT_BRAND_REQUIRED))
+                .description(normalize(request.getDescription()))
+                .shortDescription(normalize(request.getShortDescription()))
+                .imageUrls(requireImageUrls(request.getImageUrls()))
+                .mainImageUrl(normalize(request.getMainImageUrl()))
+                .categoryId(requireText(request.getCategoryId(), ErrorCode.PRODUCT_CATEGORY_REQUIRED))
+                .tags(request.getTags() == null ? List.of() : request.getTags().stream()
+                        .map(this::normalize)
+                        .filter(value -> value != null)
+                        .toList())
+                .authenticity(normalize(request.getAuthenticity()))
+                .provenance(normalize(request.getProvenance()))
+                .attributes(request.getAttributes() == null ? java.util.Map.of() : request.getAttributes())
+                .rarityRank(request.getRarityRank())
+                .status(request.getStatus() == null ? com.application.auction.enums.ProductStatus.DRAFT : request.getStatus())
+                .minimumBid(request.getMinimumBid())
+                .depositAmount(request.getDepositAmount())
+                .auctionStartTime(request.getAuctionStartTime())
+                .auctionEndTime(request.getAuctionEndTime())
+                .build();
     }
 
     private AuctionRoom buildAuctionRoom(UUID productId, ProductRequest request) {
@@ -213,27 +223,9 @@ public class ProductService {
     }
 
     private ProductResponse toResponse(Product product, AuctionRoom auctionRoom) {
-        return ProductResponse.builder()
-                .id(product.getId())
-                .name(product.getName())
-                .subTitle(product.getSubTitle())
-                .brand(product.getBrand())
-                .description(product.getDescription())
-                .shortDescription(product.getShortDescription())
-                .imageUrls(product.getImageUrls())
-                .mainImageUrl(product.getMainImageUrl())
-                .categoryId(product.getCategoryId())
-                .createdByAdminId(product.getCreatedByAdminId())
-                .tags(product.getTags())
-                .authenticity(product.getAuthenticity())
-                .provenance(product.getProvenance())
-                .attributes(product.getAttributes())
-                .rarityRank(product.getRarityRank())
-                .status(product.getStatus())
-                .createdAt(product.getCreatedAt())
-                .updatedAt(product.getUpdatedAt())
-                .auctionRoom(toAuctionRoomResponse(auctionRoom))
-                .build();
+        ProductResponse response = productMapper.toProductResponse(product);
+        response.setAuctionRoom(auctionRoomMapper.toAuctionRoomResponse(auctionRoom));
+        return response;
     }
 
     private String generateRoomPassword() {
@@ -246,19 +238,4 @@ public class ProductService {
         return builder.toString().toUpperCase(Locale.ROOT);
     }
 
-    private AuctionRoomResponse toAuctionRoomResponse(AuctionRoom auctionRoom) {
-        return AuctionRoomResponse.builder()
-                .id(auctionRoom.getId())
-                .productId(auctionRoom.getProductId())
-                .roomCode(auctionRoom.getRoomCode())
-                .roomPassword(null)
-                .minimumBid(auctionRoom.getMinimumBid())
-                .depositAmount(auctionRoom.getDepositAmount())
-                .startTime(auctionRoom.getStartTime())
-                .endTime(auctionRoom.getEndTime())
-                .status(auctionRoom.getStatus())
-                .createdAt(auctionRoom.getCreatedAt())
-                .updatedAt(auctionRoom.getUpdatedAt())
-                .build();
-    }
 }

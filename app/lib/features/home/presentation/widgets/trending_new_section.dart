@@ -1,19 +1,40 @@
 import 'package:flutter/material.dart';
+import '../../data/models/product_model.dart';
 
 class TrendingNewSection extends StatelessWidget {
-  const TrendingNewSection({super.key});
+  final List<ProductModel> products;
+
+  const TrendingNewSection({
+    super.key,
+    required this.products,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final trendingCount = products
+        .where((product) => product.tags.any((tag) => tag.toLowerCase().contains('trend')))
+        .length;
+
+    final sortedProducts = products.toList()
+      ..sort((first, second) {
+        final firstTime = first.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final secondTime = second.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return secondTime.compareTo(firstTime);
+      });
+
+    final latestProduct = sortedProducts.isEmpty ? null : sortedProducts.first;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
           Expanded(
             child: _buildCard(
-              title: 'Sản phẩm Xu hướng',
-              subtitle: 'Nhu cầu đấu giá cao nhất tuần này',
-              buttonText: 'Xem thêm',
+              title: 'San pham xu huong',
+              subtitle: trendingCount > 0
+                  ? '$trendingCount san pham dang duoc quan tam'
+                  : 'Danh sach duoc dong bo tu backend',
+              buttonText: 'Xem them',
               icon: Icons.trending_up_rounded,
               bgColor: const Color(0xFFE9EFFF),
               iconColor: const Color(0xFF4F7DFF),
@@ -24,9 +45,11 @@ class TrendingNewSection extends StatelessWidget {
           const SizedBox(width: 16),
           Expanded(
             child: _buildCard(
-              title: 'Vừa mới đăng',
-              subtitle: 'Cập nhật 2 phút trước',
-              buttonText: 'Xem mới nhất',
+              title: 'Vua moi dang',
+              subtitle: latestProduct != null
+                  ? latestProduct.name
+                  : 'Chua co san pham moi',
+              buttonText: 'Xem moi nhat',
               icon: Icons.verified_rounded,
               bgColor: const Color(0xFF262D55),
               iconColor: const Color(0xFF4F7DFF),
