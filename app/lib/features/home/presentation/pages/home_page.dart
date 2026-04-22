@@ -10,6 +10,8 @@ import '../widgets/home_search_bar.dart';
 import '../widgets/live_auction_section.dart';
 import '../widgets/trending_new_section.dart';
 import '../widgets/wishlist_section.dart';
+import '../widgets/custom_bottom_navigation.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
 
 class HomePage extends StatefulWidget {
   final String accessToken;
@@ -64,23 +66,9 @@ class _HomePageState extends State<HomePage> {
         child: const Icon(Icons.add, color: Colors.white, size: 32),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.white,
-        elevation: 10,
-        child: Container(
-          height: 60,
-          padding: const EdgeInsets.symmetric(horizontal: 4),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(0, Icons.home_rounded, 'Trang chu'),
-              _buildNavItem(1, Icons.list_alt_rounded, 'San pham'),
-              _buildNavItem(2, Icons.pending_actions_rounded, 'Cho duyet'),
-              _buildNavItem(3, Icons.gavel_rounded, 'Phong bid'),
-              _buildNavItem(4, Icons.person_rounded, 'Ca nhan'),
-            ],
-          ),
-        ),
+      bottomNavigationBar: CustomBottomNavigation(
+        selectedIndex: _selectedIndex,
+        onItemTapped: _onItemTapped,
       ),
     );
   }
@@ -170,38 +158,6 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildNavItem(int index, IconData icon, String label) {
-    final isSelected = _selectedIndex == index;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => _onItemTapped(index),
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? AppColors.primaryBlue : Colors.grey[400],
-              size: 22,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 9,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? AppColors.primaryBlue : Colors.grey[400],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

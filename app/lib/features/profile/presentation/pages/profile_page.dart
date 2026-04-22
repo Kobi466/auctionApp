@@ -1,0 +1,265 @@
+import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../../home/presentation/widgets/custom_bottom_navigation.dart';
+import '../widgets/wallet_card.dart';
+
+class ProfilePage extends StatefulWidget {
+  const ProfilePage({super.key});
+
+  @override
+  State<ProfilePage> createState() => _ProfilePageState();
+}
+
+class _ProfilePageState extends State<ProfilePage> {
+  // Trang này mặc định đang ở index 4 (Cá nhân)
+  int _selectedIndex = 4;
+  bool _isNotificationEnabled = true;
+  bool _isDarkModeEnabled = false;
+
+  void _onItemTapped(int index) {
+    if (index == _selectedIndex) return;
+    
+    setState(() {
+      _selectedIndex = index;
+    });
+
+    // Nếu người dùng chọn Trang chủ (index 0), ta quay lại HomePage
+    if (index == 0) {
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    }
+    // Bạn có thể thêm các logic điều hướng cho Sản phẩm, Chờ duyệt, Phòng bid tại đây
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F8FF),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1C1E)),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Cá nhân',
+          style: TextStyle(
+            color: Color(0xFF1A1C1E), 
+            fontWeight: FontWeight.bold, 
+            fontSize: 18,
+          ),
+        ),
+        centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: AppColors.primaryBlue),
+            onPressed: () {},
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Column(
+          children: [
+            const SizedBox(height: 10),
+            _buildProfileHeader(),
+            const SizedBox(height: 24),
+            const WalletCard(balance: 45200000),
+            const SizedBox(height: 32),
+            _buildSection(
+              title: 'HOẠT ĐỘNG ĐẤU GIÁ',
+              children: [
+                _buildMenuItem(Icons.local_offer_outlined, 'Đồ tôi đang bán'),
+                _buildMenuItem(Icons.gavel_outlined, 'Lịch sử đấu giá'),
+                _buildMenuItem(Icons.emoji_events_outlined, 'Sản phẩm đã thắng'),
+                _buildMenuItem(Icons.favorite_border_rounded, 'Danh sách yêu thích'),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _buildSection(
+              title: 'BẢO MẬT & ĐỊNH DANH',
+              trailing: _buildVerifiedBadge(),
+              children: [
+                _buildMenuItem(Icons.badge_outlined, 'Xác minh danh tính', subtitle: 'Hoàn thành để nâng hạn mức bid'),
+                _buildMenuItem(Icons.lock_outline_rounded, 'Đổi mật khẩu'),
+              ],
+            ),
+            const SizedBox(height: 24),
+            _buildSection(
+              title: 'CÀI ĐẶT',
+              children: [
+                _buildToggleItem(Icons.notifications_none_rounded, 'Thông báo', _isNotificationEnabled, (v) => setState(() => _isNotificationEnabled = v)),
+                _buildMenuItem(Icons.language_rounded, 'Ngôn ngữ', trailingText: 'Tiếng Việt'),
+                _buildToggleItem(Icons.dark_mode_outlined, 'Chế độ tối', _isDarkModeEnabled, (v) => setState(() => _isDarkModeEnabled = v)),
+              ],
+            ),
+            const SizedBox(height: 32),
+            _buildLogoutButton(),
+            const SizedBox(height: 120),
+          ],
+        ),
+      ),
+      // Tận dụng lại widget đã tạo ở home
+      bottomNavigationBar: CustomBottomNavigation(
+        selectedIndex: _selectedIndex,
+        onItemTapped: _onItemTapped,
+      ),
+    );
+  }
+
+  Widget _buildProfileHeader() {
+    return Column(
+      children: [
+        Stack(
+          alignment: Alignment.bottomRight,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: AppColors.primaryBlue, width: 2),
+              ),
+              child: const CircleAvatar(
+                radius: 50,
+                backgroundImage: NetworkImage('https://i.pravatar.cc/300'),
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.all(4),
+              decoration: const BoxDecoration(
+                color: AppColors.primaryBlue, 
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check_circle, color: Colors.white, size: 20),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        const Text(
+          'Lê Anh Tuấn',
+          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Color(0xFF1A1C1E)),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'tuana.le@rebid.luxury',
+          style: TextStyle(fontSize: 14, color: Colors.grey),
+        ),
+        const SizedBox(height: 16),
+        ElevatedButton(
+          onPressed: () {},
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryBlue.withOpacity(0.1),
+            foregroundColor: AppColors.primaryBlue,
+            elevation: 0,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          ),
+          child: const Text('Edit Profile', style: TextStyle(fontWeight: FontWeight.w600)),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSection({required String title, Widget? trailing, required List<Widget> children}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey, letterSpacing: 0.5),
+            ),
+            if (trailing != null) trailing,
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 10, offset: const Offset(0, 4)),
+            ],
+          ),
+          child: Column(children: children),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMenuItem(IconData icon, String title, {String? subtitle, String? trailingText}) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppColors.primaryBlue.withOpacity(0.08), 
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: AppColors.primaryBlue, size: 20),
+      ),
+      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1A1C1E))),
+      subtitle: subtitle != null ? Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.grey)) : null,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (trailingText != null) 
+            Text(trailingText, style: const TextStyle(color: AppColors.primaryBlue, fontWeight: FontWeight.w500)),
+          const SizedBox(width: 4),
+          const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+        ],
+      ),
+      onTap: () {},
+    );
+  }
+
+  Widget _buildToggleItem(IconData icon, String title, bool value, Function(bool) onChanged) {
+    return ListTile(
+      leading: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: AppColors.primaryBlue.withOpacity(0.08), 
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, color: AppColors.primaryBlue, size: 20),
+      ),
+      title: Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1A1C1E))),
+      trailing: Switch(
+        value: value,
+        onChanged: onChanged,
+        activeColor: AppColors.primaryBlue,
+      ),
+    );
+  }
+
+  Widget _buildVerifiedBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(color: Colors.purple.withOpacity(0.1), borderRadius: BorderRadius.circular(10)),
+      child: const Row(
+        children: [
+          Icon(Icons.verified_user, color: Colors.purple, size: 12),
+          SizedBox(width: 4),
+          Text('VERIFIED', style: TextStyle(color: Colors.purple, fontSize: 10, fontWeight: FontWeight.bold)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLogoutButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: TextButton.icon(
+        onPressed: () {},
+        icon: const Icon(Icons.logout, color: Colors.redAccent),
+        label: const Text('Đăng xuất', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold, fontSize: 16)),
+        style: TextButton.styleFrom(
+          backgroundColor: Colors.redAccent.withOpacity(0.05),
+          padding: const EdgeInsets.symmetric(vertical: 16),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        ),
+      ),
+    );
+  }
+}
