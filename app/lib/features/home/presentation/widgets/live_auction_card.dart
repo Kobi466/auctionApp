@@ -154,7 +154,7 @@ class LiveAuctionCard extends StatelessWidget {
                         ],
                       ),
                       child: const Text(
-                        'Đặt giá',
+                        'Đăng ký đấu giá',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 10,

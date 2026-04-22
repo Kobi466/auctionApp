@@ -31,7 +31,7 @@ class BannerSlider extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Text(
-                  'Đại tiệc Đấu giá\nThiết bị Công nghệ',
+                  'Đại tiệc Đấu giá',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -39,13 +39,6 @@ class BannerSlider extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 6),
-                Text(
-                  'Giảm phí tham gia tới 50%',
-                  style: TextStyle(
-                    color: Colors.white.withOpacity(0.8),
-                    fontSize: 12,
-                  ),
-                ),
                 const SizedBox(height: 12),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

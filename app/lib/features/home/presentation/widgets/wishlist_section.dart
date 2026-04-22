@@ -29,7 +29,7 @@ class WishlistSection extends StatelessWidget {
                   Icon(Icons.favorite, color: Color(0xFFE11D48), size: 20),
                   SizedBox(width: 8),
                   Text(
-                    'Danh sách mong muốn',
+                    'Danh sách yêu thích',
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
@@ -39,7 +39,7 @@ class WishlistSection extends StatelessWidget {
                 ],
               ),
               const Text(
-                '4 sản phẩm',
+                '1 sản phẩm',
                 style: TextStyle(
                   fontSize: 11,
                   color: Color(0xFF94A3B8),
@@ -94,7 +94,7 @@ class WishlistSection extends StatelessWidget {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: const Text(
-                              'Being Live',
+                              'Live',
                               style: TextStyle(
                                 fontSize: 8,
                                 fontWeight: FontWeight.w700,
