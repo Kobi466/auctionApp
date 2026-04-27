@@ -73,7 +73,7 @@ class WalletCard extends StatelessWidget {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text('Nạp tiền', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text('Rút tiền', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
               const SizedBox(width: 16),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../home/presentation/widgets/custom_bottom_navigation.dart';
+import '../../../kyc/presentation/pages/kyc_main_page.dart';
 import '../widgets/wallet_card.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -11,24 +12,8 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  // Trang này mặc định đang ở index 4 (Cá nhân)
-  int _selectedIndex = 4;
   bool _isNotificationEnabled = true;
   bool _isDarkModeEnabled = false;
-
-  void _onItemTapped(int index) {
-    if (index == _selectedIndex) return;
-    
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    // Nếu người dùng chọn Trang chủ (index 0), ta quay lại HomePage
-    if (index == 0) {
-      Navigator.of(context).popUntil((route) => route.isFirst);
-    }
-    // Bạn có thể thêm các logic điều hướng cho Sản phẩm, Chờ duyệt, Phòng bid tại đây
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -44,8 +29,8 @@ class _ProfilePageState extends State<ProfilePage> {
         title: const Text(
           'Cá nhân',
           style: TextStyle(
-            color: Color(0xFF1A1C1E), 
-            fontWeight: FontWeight.bold, 
+            color: Color(0xFF1A1C1E),
+            fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
@@ -80,7 +65,16 @@ class _ProfilePageState extends State<ProfilePage> {
               title: 'BẢO MẬT & ĐỊNH DANH',
               trailing: _buildVerifiedBadge(),
               children: [
-                _buildMenuItem(Icons.badge_outlined, 'Xác minh danh tính', subtitle: 'Hoàn thành để nâng hạn mức bid'),
+                _buildMenuItem(
+                  Icons.badge_outlined,
+                  'Xác minh danh tính',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const KycMainPage()),
+                    );
+                  },
+                ),
                 _buildMenuItem(Icons.lock_outline_rounded, 'Đổi mật khẩu'),
               ],
             ),
@@ -99,10 +93,8 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
-      // Tận dụng lại widget đã tạo ở home
-      bottomNavigationBar: CustomBottomNavigation(
-        selectedIndex: _selectedIndex,
-        onItemTapped: _onItemTapped,
+      bottomNavigationBar: const CustomBottomNavigation(
+        selectedIndex: 4,
       ),
     );
   }
@@ -189,7 +181,7 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildMenuItem(IconData icon, String title, {String? subtitle, String? trailingText}) {
+  Widget _buildMenuItem(IconData icon, String title, {String? subtitle, String? trailingText, VoidCallback? onTap}) {
     return ListTile(
       leading: Container(
         padding: const EdgeInsets.all(8),
@@ -210,7 +202,7 @@ class _ProfilePageState extends State<ProfilePage> {
           const Icon(Icons.chevron_right_rounded, color: Colors.grey),
         ],
       ),
-      onTap: () {},
+      onTap: onTap,
     );
   }
 
