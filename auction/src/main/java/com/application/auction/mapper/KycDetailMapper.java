@@ -18,6 +18,7 @@ public interface KycDetailMapper {
     @Mapping(target = "updatedAt", ignore = true)
     KycDetail toKycDetail(KycDetailRequest request);
 
+    @Mapping(target = "email", source = "user.email")
     KycDetailResponse toKycDetailResponse(KycDetail kycDetail);
 
     @Mapping(target = "id", ignore = true)

@@ -12,13 +12,17 @@ class HomeAppBar extends StatelessWidget {
         children: [
           Row(
             children: [
-              Image.network(
-                'https://i.imgur.com/your_logo_url.png', // Placeholder
-                height: 32,
-                errorBuilder: (context, error, stackTrace) => const Icon(
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFE8EEFF),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
                   Icons.gavel_rounded,
                   color: Color(0xFF2563EB),
-                  size: 32,
+                  size: 24,
                 ),
               ),
               const SizedBox(width: 8),

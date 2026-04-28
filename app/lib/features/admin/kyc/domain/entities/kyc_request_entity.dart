@@ -1,4 +1,4 @@
-enum KycStatus { pending, approved, rejected }
+enum KycStatus { pending, verified, rejected }
 
 class KycRequestEntity {
   final String id;
@@ -12,6 +12,7 @@ class KycRequestEntity {
   final String idBackUrl;
   final String faceImageUrl;
   final KycStatus status;
+  final String? rejectedReason;
   final DateTime updatedAt;
 
   KycRequestEntity({
@@ -26,6 +27,7 @@ class KycRequestEntity {
     required this.idBackUrl,
     required this.faceImageUrl,
     required this.status,
+    this.rejectedReason,
     required this.updatedAt,
   });
 }

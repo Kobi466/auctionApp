@@ -20,26 +20,22 @@ class AuthService {
       },
     );
 
-    final int statusCode = response['statusCode'] as int;
-    final Map<String, dynamic> body = response['body'] as Map<String, dynamic>;
-    final String rawBody = response['rawBody']?.toString() ?? '';
-
     final apiResponse = ApiResponse<TokenResponse>.fromJson(
-      body,
+      _responseBody(response),
       (json) => TokenResponse.fromJson(json as Map<String, dynamic>),
     );
 
-    if (statusCode >= 200 && statusCode < 300 && apiResponse.isSuccess) {
+    if (_isSuccessful(response) && apiResponse.isSuccess) {
       return apiResponse;
     }
 
     throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : rawBody.isNotEmpty
-              ? 'HTTP $statusCode: $rawBody'
-              : 'Dang nhap that bai',
-    );
+      _extractErrorMessage(
+      statusCode: _statusCode(response),
+      apiMessage: apiResponse.message,
+      rawBody: _rawBody(response),
+      fallbackMessage: 'Dang nhap that bai',
+    ));
   }
 
   Future<ApiResponse<UserResponse>> register({
@@ -53,27 +49,33 @@ class AuthService {
         'password': password,
       },
     );
+    final body = _responseBody(response);
 
-    final int statusCode = response['statusCode'] as int;
-    final Map<String, dynamic> body = response['body'] as Map<String, dynamic>;
-    final String rawBody = response['rawBody']?.toString() ?? '';
+    if (_isSuccessful(response)) {
+      // Backend register endpoint currently returns a plain UserResponse,
+      // while error cases are wrapped in ApiResponse.
+      if (body.containsKey('result') || body.containsKey('code')) {
+        return ApiResponse<UserResponse>.fromJson(
+          body,
+          (json) => UserResponse.fromJson(json as Map<String, dynamic>),
+        );
+      }
 
-    final apiResponse = ApiResponse<UserResponse>.fromJson(
-      body,
-      (json) => UserResponse.fromJson(json as Map<String, dynamic>),
-    );
-
-    if (statusCode >= 200 && statusCode < 300) {
-      return apiResponse;
+      return ApiResponse<UserResponse>(
+        code: 1000,
+        message: '',
+        result: UserResponse.fromJson(body),
+      );
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : rawBody.isNotEmpty
-              ? 'HTTP $statusCode: $rawBody'
-              : 'Dang ky that bai',
-    );
+    final apiResponse = ApiResponse<UserResponse>.fromJson(body, null);
+
+    throw Exception(_extractErrorMessage(
+      statusCode: _statusCode(response),
+      apiMessage: apiResponse.message,
+      rawBody: _rawBody(response),
+      fallbackMessage: 'Dang ky that bai',
+    ));
   }
 
   Future<void> logout({
@@ -86,22 +88,49 @@ class AuthService {
       },
     );
 
-    final int statusCode = response['statusCode'] as int;
-    final Map<String, dynamic> body = response['body'] as Map<String, dynamic>;
-    final String rawBody = response['rawBody']?.toString() ?? '';
+    final apiResponse = ApiResponse<void>.fromJson(_responseBody(response), null);
 
-    final apiResponse = ApiResponse<void>.fromJson(body, null);
-
-    if (statusCode >= 200 && statusCode < 300 && apiResponse.isSuccess) {
+    if (_isSuccessful(response) && apiResponse.isSuccess) {
       return;
     }
 
-    throw Exception(
-      apiResponse.message.isNotEmpty
-          ? apiResponse.message
-          : rawBody.isNotEmpty
-              ? 'HTTP $statusCode: $rawBody'
-              : 'Dang xuat that bai',
-    );
+    throw Exception(_extractErrorMessage(
+      statusCode: _statusCode(response),
+      apiMessage: apiResponse.message,
+      rawBody: _rawBody(response),
+      fallbackMessage: 'Dang xuat that bai',
+    ));
+  }
+
+  int _statusCode(Map<String, dynamic> response) {
+    return response['statusCode'] as int? ?? 0;
+  }
+
+  Map<String, dynamic> _responseBody(Map<String, dynamic> response) {
+    return response['body'] as Map<String, dynamic>? ?? <String, dynamic>{};
+  }
+
+  String _rawBody(Map<String, dynamic> response) {
+    return response['rawBody']?.toString() ?? '';
+  }
+
+  bool _isSuccessful(Map<String, dynamic> response) {
+    final statusCode = _statusCode(response);
+    return statusCode >= 200 && statusCode < 300;
+  }
+
+  String _extractErrorMessage({
+    required int statusCode,
+    required String apiMessage,
+    required String rawBody,
+    required String fallbackMessage,
+  }) {
+    if (apiMessage.isNotEmpty) {
+      return apiMessage;
+    }
+    if (rawBody.isNotEmpty) {
+      return 'HTTP $statusCode: $rawBody';
+    }
+    return fallbackMessage;
   }
 }

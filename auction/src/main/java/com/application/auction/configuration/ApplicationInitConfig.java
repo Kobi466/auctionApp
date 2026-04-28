@@ -19,7 +19,6 @@ import java.util.Set;
 @Configuration
 @Slf4j
 public class ApplicationInitConfig {
-
     @Autowired
     PasswordEncoder passwordEncoder;
 
@@ -42,12 +41,12 @@ public class ApplicationInitConfig {
                             .description("Default user")
                             .build()));
 
-            User adminUser = userRepository.findByEmail("admin@gmail.com")
+            User adminUser = userRepository.findByEmail("admin2@gmail.com")
                     .orElseGet(() -> {
                         User user = User.builder()
-                                .username("admin@gmail.com")
-                                .password(passwordEncoder.encode("admin"))
-                                .email("admin@gmail.com")
+                                .username("admin2@gmail.com")
+                                .password(passwordEncoder.encode("admin3456789"))
+                                .email("admin2@gmail.com")
                                 .roles(new HashSet<>(Set.of(adminRole)))
                                 .build();
 
@@ -55,7 +54,6 @@ public class ApplicationInitConfig {
                         log.info("Admin user created");
                         return savedUser;
                     });
-
             adminUser.setRoles(new HashSet<>(Set.of(adminRole)));
             adminUser = userRepository.save(adminUser);
             log.info("Admin role assigned to admin user");

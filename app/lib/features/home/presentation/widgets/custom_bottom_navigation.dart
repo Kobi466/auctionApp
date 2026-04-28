@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../auth/data/auth_session.dart';
 import '../pages/home_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 
@@ -17,7 +18,7 @@ class CustomBottomNavigation extends StatelessWidget {
     Widget nextPage;
     switch (index) {
       case 0:
-        nextPage = const HomePage(accessToken: "");
+        nextPage = const HomePage();
         break;
       case 4:
         nextPage = const ProfilePage();

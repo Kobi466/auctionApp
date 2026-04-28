@@ -61,13 +61,13 @@ public class KycDetail {
     @Column(name = "place_of_residence", nullable = false, columnDefinition = "TEXT")
     String placeOfResidence;
 
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(nullable = false, columnDefinition = "LONGTEXT")
     String selfie;
 
-    @Column(name = "front_side", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "front_side", nullable = false, columnDefinition = "LONGTEXT")
     String frontSide;
 
-    @Column(name = "back_side", nullable = false, columnDefinition = "TEXT")
+    @Column(name = "back_side", nullable = false, columnDefinition = "LONGTEXT")
     String backSide;
 
     @Enumerated(EnumType.STRING)

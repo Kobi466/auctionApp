@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../admin/overview/presentation/pages/admin_dashboard_page.dart';
+import '../../../home/presentation/pages/home_page.dart';
+import '../../data/auth_session.dart';
 import '../../data/auth_service.dart';
 import '../../data/models/token_response.dart';
 import '../../domain/auth_repository.dart';
@@ -11,11 +15,15 @@ import '../widgets/auth_label_widget.dart';
 import '../widgets/auth_text_field_widget.dart';
 import '../widgets/login_button_widget.dart';
 import '../widgets/register_prompt_widget.dart';
-import '../pages/register_screen.dart';
-import '../../../home/presentation/pages/home_page.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+  final String initialEmail;
+
+  const LoginScreen({
+    super.key,
+    this.initialEmail = '',
+  });
 
   @override
   State<LoginScreen> createState() => LoginScreenState();
@@ -35,6 +43,7 @@ class LoginScreenState extends State<LoginScreen> {
   void initState() {
     super.initState();
     authRepository = AuthRepository(AuthService(ApiClient()));
+    emailController.text = widget.initialEmail;
   }
 
   @override
@@ -58,7 +67,7 @@ class LoginScreenState extends State<LoginScreen> {
     try {
       final response = await authRepository.login(
         email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+        password: passwordController.text,
       );
 
       final TokenResponse? authData = response.data;
@@ -68,7 +77,9 @@ class LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            response.message.isNotEmpty ? response.message : 'Dang nhap thanh cong',
+            response.message.isNotEmpty
+                ? response.message
+                : 'Dang nhap thanh cong',
           ),
         ),
       );
@@ -77,12 +88,21 @@ class LoginScreenState extends State<LoginScreen> {
         throw Exception('Dang nhap that bai');
       }
 
+      AuthSession.instance.save(
+        accessToken: authData.accessToken,
+        refreshToken: authData.refreshToken,
+        roles: authData.roles,
+        isAdmin: authData.isAdmin,
+      );
+
+      final isAdmin = AuthSession.instance.isAdmin;
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => HomePage(
-            accessToken: authData.accessToken,
-          ),
+          builder: (_) => isAdmin
+              ? const AdminDashboardPage()
+              : const HomePage(),
         ),
       );
     } catch (e) {
@@ -135,7 +155,6 @@ class LoginScreenState extends State<LoginScreen> {
                   children: [
                     const AuthHeaderWidget(),
                     const SizedBox(height: 48),
-
                     const AuthLabelWidget(text: 'EMAIL ADDRESS'),
                     const SizedBox(height: 8),
                     AuthTextFieldWidget(
@@ -144,13 +163,12 @@ class LoginScreenState extends State<LoginScreen> {
                       validator: Validators.validateEmail,
                       keyboardType: TextInputType.emailAddress,
                     ),
-
                     const SizedBox(height: 20),
                     const AuthLabelWidget(text: 'PASSWORD'),
                     const SizedBox(height: 8),
                     AuthTextFieldWidget(
                       controller: passwordController,
-                      hintText: 'Nhập mật khẩu',
+                      hintText: 'Nhap mat khau',
                       validator: Validators.validatePassword,
                       obscureText: obscurePassword,
                       suffixIcon: IconButton(
@@ -163,24 +181,23 @@ class LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                     ),
-
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: onForgotPressed,
                         child: Text(
-                          'Quên mật khẩu?',
-                          style: AppTextStyles.registerLinkLight.copyWith(fontSize: 13),
+                          'Quen mat khau?',
+                          style: AppTextStyles.registerLinkLight.copyWith(
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                     ),
-
                     const SizedBox(height: 24),
                     LoginButtonWidget(
                       isLoading: isLoading,
                       onPressed: onLoginPressed,
                     ),
-
                     const SizedBox(height: 32),
                     RegisterPromptWidget(
                       onRegister: onRegisterPressed,

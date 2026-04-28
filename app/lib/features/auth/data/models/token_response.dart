@@ -5,6 +5,8 @@ class TokenResponse extends BaseModel {
   final String refreshToken;
   final String tokenType;
   final bool authenticated;
+  final List<String> roles;
+  final bool isAdmin;
   final String? accessExpiresAt;
   final String? refreshExpiresAt;
   final String? accessIssuedAt;
@@ -17,6 +19,8 @@ class TokenResponse extends BaseModel {
     required this.refreshToken,
     required this.tokenType,
     required this.authenticated,
+    required this.roles,
+    required this.isAdmin,
     required this.accessExpirationTime,
     required this.refreshExpirationTime,
     this.accessExpiresAt,
@@ -31,6 +35,10 @@ class TokenResponse extends BaseModel {
       refreshToken: json['refreshToken']?.toString() ?? '',
       tokenType: json['tokenType']?.toString() ?? '',
       authenticated: json['authenticated'] == true,
+      roles: (json['roles'] as List<dynamic>? ?? const [])
+          .map((role) => role.toString())
+          .toList(),
+      isAdmin: json['admin'] == true,
       accessExpiresAt: json['accessExpiresAt']?.toString(),
       refreshExpiresAt: json['refreshExpiresAt']?.toString(),
       accessIssuedAt: json['accessIssuedAt']?.toString(),
@@ -51,6 +59,8 @@ class TokenResponse extends BaseModel {
       'refreshToken': refreshToken,
       'tokenType': tokenType,
       'authenticated': authenticated,
+      'roles': roles,
+      'admin': isAdmin,
       'accessExpiresAt': accessExpiresAt,
       'refreshExpiresAt': refreshExpiresAt,
       'accessIssuedAt': accessIssuedAt,

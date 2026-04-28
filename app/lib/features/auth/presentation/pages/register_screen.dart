@@ -89,7 +89,7 @@ class RegisterScreenState extends State<RegisterScreen> {
     try {
       final response = await authRepository.register(
         email: emailController.text.trim(),
-        password: passwordController.text.trim(),
+        password: passwordController.text,
       );
 
       if (!mounted) return;
@@ -105,7 +105,9 @@ class RegisterScreenState extends State<RegisterScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => const LoginScreen(),
+          builder: (_) => LoginScreen(
+            initialEmail: emailController.text.trim(),
+          ),
         ),
       );
     } catch (e) {
@@ -126,7 +128,7 @@ class RegisterScreenState extends State<RegisterScreen> {
   }
 
   void onGoToLoginPressed() {
-    Navigator.push(
+    Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (_) => const LoginScreen(),

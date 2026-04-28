@@ -32,7 +32,9 @@ import org.springframework.util.CollectionUtils;
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.LinkedHashSet;
 import java.util.Date;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.UUID;
 
@@ -63,7 +65,7 @@ public class LoginService {
             throw new AppException(ErrorCode.USER_NOT_FOUND);
         }
 
-        User user = userRepository.findByEmail(request.getEmail())
+        User user = userRepository.findWithRolesByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
@@ -97,6 +99,7 @@ public class LoginService {
         String accessToken = generateToken(user, ACCESS_TOKEN_TYPE);
         String refreshToken = generateToken(user, REFRESH_TOKEN_TYPE);
         saveRefreshToken(user, refreshToken);
+        Set<String> roleNames = extractRoleNames(user);
 
         return LoginResponse.builder()
                 .accessToken(accessToken)
@@ -105,6 +108,8 @@ public class LoginService {
                 .accessTokenExpiresIn(ACCESS_TOKEN_EXPIRY_MINUTES * 60)
                 .refreshTokenExpiresIn(REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60)
                 .authenticated(true)
+                .roles(roleNames)
+                .admin(roleNames.contains("ADMIN"))
                 .build();
     }
 
@@ -214,6 +219,15 @@ public class LoginService {
         }
         return stringJoiner.toString();
     }
+
+    private Set<String> extractRoleNames(User user) {
+        Set<String> roleNames = new LinkedHashSet<>();
+        if (!CollectionUtils.isEmpty(user.getRoles())) {
+            user.getRoles().forEach(role -> roleNames.add(role.getName()));
+        }
+        return roleNames;
+    }
+
     public void logout(LogoutRequest request) throws ParseException, JOSEException {
         SignedJWT signedJWT = verifytoken(request.getToken());
         Object tokenType = signedJWT.getJWTClaimsSet().getClaim("token_type");

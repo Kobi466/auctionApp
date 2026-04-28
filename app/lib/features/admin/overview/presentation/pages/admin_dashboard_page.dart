@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+
+import '../../../../../core/network/api_client.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../presentation/admin_access_guard.dart';
+import '../../../../auth/data/auth_session.dart';
+import '../../../data/admin_service.dart';
+import '../../../data/models/admin_dashboard_summary_model.dart';
 import '../widgets/admin_app_bar.dart';
-import '../widgets/admin_stat_card.dart';
 import '../widgets/admin_auction_item.dart';
 import '../widgets/admin_bottom_navigation.dart';
+import '../widgets/admin_stat_card.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -13,10 +19,62 @@ class AdminDashboardPage extends StatefulWidget {
 }
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
+  final AdminService _adminService = AdminService(ApiClient());
   int _selectedIndex = 0;
+  AdminDashboardSummaryModel? _summary;
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      ensureAdminAccess(context);
+    });
+    _loadSummary();
+  }
+
+  Future<void> _loadSummary() async {
+    final accessToken = AuthSession.instance.accessToken;
+    if (accessToken == null || accessToken.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Khong tim thay access token';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final summary = await _adminService.getDashboardSummary(
+        accessToken: accessToken,
+      );
+      if (!mounted) return;
+      setState(() {
+        _summary = summary;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      });
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final summary = _summary;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFF),
       body: Column(
@@ -30,7 +88,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 children: [
                   const SizedBox(height: 20),
                   const Text(
-                    'Chào buổi sáng, Quản trị viên',
+                    'Chao buoi sang, Quan tri vien',
                     style: TextStyle(
                       color: Color(0xFF1E293B),
                       fontSize: 24,
@@ -39,7 +97,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Hệ thống đang ổn định với 12 phiên mới.',
+                    'Tong quan he thong va cac ho so KYC can xu ly.',
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 14,
@@ -47,45 +105,9 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  
-                  // Stats Grid
-                  GridView.count(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 16,
-                    mainAxisSpacing: 16,
-                    childAspectRatio: 1.1,
-                    children: const [
-                      AdminStatCard(
-                        icon: Icons.people_rounded,
-                        iconColor: Color(0xFF6366F1),
-                        label: 'TỔNG USER',
-                        value: '12,842',
-                      ),
-                      AdminStatCard(
-                        icon: Icons.verified_user_rounded,
-                        iconColor: Color(0xFFD11F66),
-                        label: 'KYC CHỜ',
-                        value: '48',
-                      ),
-                      AdminStatCard(
-                        icon: Icons.gavel_rounded,
-                        iconColor: Color(0xFF3B82F6),
-                        label: 'ĐANG ĐẤU',
-                        value: '156',
-                      ),
-                      AdminStatCard(
-                        icon: Icons.description_rounded,
-                        iconColor: Color(0xFF6366F1),
-                        label: 'YÊU CẦU',
-                        value: '12',
-                      ),
-                    ],
-                  ),
-                  
+                  _buildStats(summary),
                   const SizedBox(height: 32),
-                  _buildSectionHeader('Phiên nổi bật', () {}),
+                  _buildSectionHeader('Phien noi bat', () {}),
                   const SizedBox(height: 16),
                   const AdminAuctionItem(
                     imageUrl: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49',
@@ -96,15 +118,14 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   ),
                   const AdminAuctionItem(
                     imageUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3',
-                    title: 'Hermès Birkin 30 Togo',
+                    title: 'Hermes Birkin 30 Togo',
                     code: '#REB-189',
                     price: '568tr',
                     bids: 18,
                   ),
-                  
                   const SizedBox(height: 32),
                   const Text(
-                    'Hoạt động gần đây',
+                    'Hoat dong gan day',
                     style: TextStyle(
                       color: Color(0xFF1E293B),
                       fontSize: 18,
@@ -112,7 +133,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildActivityList(),
+                  _buildActivityList(summary),
                   const SizedBox(height: 100),
                 ],
               ),
@@ -120,9 +141,69 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           ),
         ],
       ),
-      bottomNavigationBar: AdminBottomNavigation(
-        selectedIndex: _selectedIndex
-      ),
+      bottomNavigationBar: AdminBottomNavigation(selectedIndex: _selectedIndex),
+    );
+  }
+
+  Widget _buildStats(AdminDashboardSummaryModel? summary) {
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 32),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFEE2E2),
+          borderRadius: BorderRadius.circular(16),
+        ),
+        child: Text(
+          _errorMessage!,
+          style: const TextStyle(
+            color: Color(0xFF991B1B),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    }
+
+    return GridView.count(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      crossAxisCount: 2,
+      crossAxisSpacing: 16,
+      mainAxisSpacing: 16,
+      childAspectRatio: 1.1,
+      children: [
+        AdminStatCard(
+          icon: Icons.people_rounded,
+          iconColor: const Color(0xFF6366F1),
+          label: 'TONG USER',
+          value: '${summary?.totalUsers ?? 0}',
+        ),
+        AdminStatCard(
+          icon: Icons.pending_actions_rounded,
+          iconColor: const Color(0xFFD97706),
+          label: 'KYC CHO DUYET',
+          value: '${summary?.totalPendingKyc ?? 0}',
+        ),
+        AdminStatCard(
+          icon: Icons.verified_user_rounded,
+          iconColor: const Color(0xFF16A34A),
+          label: 'KYC DA DUYET',
+          value: '${summary?.totalVerifiedKyc ?? 0}',
+        ),
+        AdminStatCard(
+          icon: Icons.cancel_rounded,
+          iconColor: const Color(0xFFDC2626),
+          label: 'KYC TU CHOI',
+          value: '${summary?.totalRejectedKyc ?? 0}',
+        ),
+      ],
     );
   }
 
@@ -141,7 +222,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         TextButton(
           onPressed: onTap,
           child: const Text(
-            'Xem tất cả',
+            'Xem tat ca',
             style: TextStyle(
               color: AppColors.primaryBlue,
               fontWeight: FontWeight.bold,
@@ -152,7 +233,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     );
   }
 
-  Widget _buildActivityList() {
+  Widget _buildActivityList(AdminDashboardSummaryModel? summary) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -161,25 +242,25 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       ),
       child: Column(
         children: [
-          _buildActivityItem('Nguyễn Văn A', 'đã xác minh KYC thành công.', '5 phút trước', Colors.blue),
+          _buildActivityItem(
+            'Tong user',
+            'hien tai la ${summary?.totalUsers ?? 0} tai khoan.',
+            'Cap nhat tu backend',
+            Colors.blue,
+          ),
           const SizedBox(height: 16),
-          _buildActivityItem('Yêu cầu phòng Đồng hồ cổ', 'từ Trần Thị B.', '12 phút trước', Colors.purple),
+          _buildActivityItem(
+            'KYC cho duyet',
+            'dang co ${summary?.totalPendingKyc ?? 0} ho so.',
+            'Can admin xu ly',
+            Colors.orange,
+          ),
           const SizedBox(height: 16),
-          _buildActivityItem('Cảnh báo: Đăng nhập lạ', 'từ IP Hà Nội.', '45 phút trước', Colors.redAccent),
-          const SizedBox(height: 24),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: const Color(0xFF1E293B),
-                elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: const Text('Xem tất cả nhật ký', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
+          _buildActivityItem(
+            'KYC da duyet',
+            'tong cong ${summary?.totalVerifiedKyc ?? 0} ho so.',
+            'Thong ke he thong',
+            Colors.green,
           ),
         ],
       ),
@@ -203,15 +284,28 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
             children: [
               RichText(
                 text: TextSpan(
-                  style: const TextStyle(color: Color(0xFF475569), fontSize: 13, height: 1.4),
+                  style: const TextStyle(
+                    color: Color(0xFF475569),
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
                   children: [
-                    TextSpan(text: main, style: const TextStyle(fontWeight: FontWeight.bold, color: Color(0xFF1E293B))),
+                    TextSpan(
+                      text: main,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1E293B),
+                      ),
+                    ),
                     TextSpan(text: ' $sub'),
                   ],
                 ),
               ),
               const SizedBox(height: 4),
-              Text(time, style: TextStyle(color: Colors.grey[400], fontSize: 11)),
+              Text(
+                time,
+                style: TextStyle(color: Colors.grey[400], fontSize: 11),
+              ),
             ],
           ),
         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../domain/entities/kyc_request_entity.dart';
 
 class KycRequestCard extends StatelessWidget {
@@ -64,7 +65,7 @@ class KycRequestCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Cập nhật ${_getTimeAgo(request.updatedAt)}',
+                    'Cap nhat ${_getTimeAgo(request.updatedAt)}',
                     style: TextStyle(
                       fontSize: 13,
                       color: Colors.grey[500],
@@ -91,17 +92,17 @@ class KycRequestCard extends StatelessWidget {
       case KycStatus.pending:
         bgColor = const Color(0xFFFEF9C3);
         textColor = const Color(0xFF854D0E);
-        text = 'Chờ duyệt';
+        text = 'Cho duyet';
         break;
-      case KycStatus.approved:
+      case KycStatus.verified:
         bgColor = const Color(0xFFDCFCE7);
         textColor = const Color(0xFF166534);
-        text = 'Đã duyệt';
+        text = 'Da duyet';
         break;
       case KycStatus.rejected:
         bgColor = const Color(0xFFFEE2E2);
         textColor = const Color(0xFF991B1B);
-        text = 'Từ chối';
+        text = 'Tu choi';
         break;
     }
 
@@ -124,16 +125,23 @@ class KycRequestCard extends StatelessWidget {
 
   Color _getStatusColor(KycStatus status) {
     switch (status) {
-      case KycStatus.pending: return Colors.orange;
-      case KycStatus.approved: return Colors.green;
-      case KycStatus.rejected: return Colors.red;
+      case KycStatus.pending:
+        return Colors.orange;
+      case KycStatus.verified:
+        return Colors.green;
+      case KycStatus.rejected:
+        return Colors.red;
     }
   }
 
   String _getTimeAgo(DateTime date) {
     final duration = DateTime.now().difference(date);
-    if (duration.inMinutes < 60) return '${duration.inMinutes} phút trước';
-    if (duration.inHours < 24) return '${duration.inHours} giờ trước';
-    return '${duration.inDays} ngày trước';
+    if (duration.inMinutes < 60) {
+      return '${duration.inMinutes} phut truoc';
+    }
+    if (duration.inHours < 24) {
+      return '${duration.inHours} gio truoc';
+    }
+    return '${duration.inDays} ngay truoc';
   }
 }

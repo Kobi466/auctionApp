@@ -1,24 +1,18 @@
 import 'package:flutter/material.dart';
+import '../../../auth/data/auth_session.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../data/models/product_model.dart';
 import '../../data/product_service.dart';
 import '../widgets/banner_slider.dart';
-import '../widgets/category_list.dart';
 import '../widgets/ending_soon_section.dart';
 import '../widgets/home_app_bar.dart';
 import '../widgets/home_search_bar.dart';
 import '../widgets/live_auction_section.dart';
 import '../widgets/trending_new_section.dart';
-import '../widgets/wishlist_section.dart';
 import '../widgets/custom_bottom_navigation.dart';
 
 class HomePage extends StatefulWidget {
-  final String? accessToken;
-
-  const HomePage({
-    super.key,
-    this.accessToken,
-  });
+  const HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -35,9 +29,11 @@ class _ProjectNameHomePageState extends State<HomePage> {
   }
 
   void _loadProducts() {
-    if (widget.accessToken != null && widget.accessToken!.isNotEmpty) {
+    final accessToken = AuthSession.instance.accessToken ?? '';
+
+    if (accessToken.isNotEmpty) {
       _productsFuture = _productService.getProducts(
-        accessToken: widget.accessToken!,
+        accessToken: accessToken,
       );
     } else {
       _productsFuture = Future.value([]);
@@ -71,17 +67,13 @@ class _ProjectNameHomePageState extends State<HomePage> {
                     const HomeAppBar(),
                     const HomeSearchBar(),
                     const SizedBox(height: 16),
-                    const CategoryList(),
-                    const SizedBox(height: 20),
-                    const BannerSlider(),
+                    BannerSlider(products: products),
                     const SizedBox(height: 24),
                     LiveAuctionSection(products: products),
                     const SizedBox(height: 24),
                     EndingSoonSection(products: products),
                     const SizedBox(height: 24),
                     TrendingNewSection(products: products),
-                    const SizedBox(height: 24),
-                    const WishlistSection(),
                     const SizedBox(height: 100),
                   ],
                 ),

@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -19,6 +20,13 @@ import java.util.UUID;
 public class KycDetailController {
 
     KycDetailService kycDetailService;
+
+    @GetMapping
+    public ApiResponse<List<KycDetailResponse>> getAllKycDetails() {
+        return ApiResponse.<List<KycDetailResponse>>builder()
+                .result(kycDetailService.getAllKycDetails())
+                .build();
+    }
 
     @GetMapping("/me")
     public ApiResponse<KycDetailResponse> getMyKycDetail() {

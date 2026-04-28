@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -41,6 +42,14 @@ public class KycDetailService {
         KycDetail kycDetail = kycDetailRepository.findTopByUserIdOrderByCreatedAtDesc(currentUser.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.KYC_DETAIL_NOT_FOUND));
         return kycDetailMapper.toKycDetailResponse(kycDetail);
+    }
+
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<KycDetailResponse> getAllKycDetails() {
+        return kycDetailRepository.findAllByOrderByUpdatedAtDesc().stream()
+                .map(kycDetailMapper::toKycDetailResponse)
+                .toList();
     }
 
     //User gửi hoặc cập nhật thông tin KYC

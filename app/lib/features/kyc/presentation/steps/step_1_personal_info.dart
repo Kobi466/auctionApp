@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
+import '../bloc/kyc_controller.dart';
 import '../widgets/kyc_text_field.dart';
 
 class Step1PersonalInfo extends StatefulWidget {
@@ -11,67 +14,198 @@ class Step1PersonalInfo extends StatefulWidget {
 }
 
 class _Step1PersonalInfoState extends State<Step1PersonalInfo> {
+  late final TextEditingController _idNumberController;
+  late final TextEditingController _fullNameController;
+  late final TextEditingController _dobController;
+  late final TextEditingController _genderController;
+  late final TextEditingController _nationalityController;
+  late final TextEditingController _placeOfOriginController;
+  late final TextEditingController _residentialAddressController;
+
+  @override
+  void initState() {
+    super.initState();
+    _idNumberController = TextEditingController();
+    _fullNameController = TextEditingController();
+    _dobController = TextEditingController();
+    _genderController = TextEditingController();
+    _nationalityController = TextEditingController();
+    _placeOfOriginController = TextEditingController();
+    _residentialAddressController = TextEditingController();
+  }
+
+  @override
+  void dispose() {
+    _idNumberController.dispose();
+    _fullNameController.dispose();
+    _dobController.dispose();
+    _genderController.dispose();
+    _nationalityController.dispose();
+    _placeOfOriginController.dispose();
+    _residentialAddressController.dispose();
+    super.dispose();
+  }
+
+  void _syncFromController(KycController controller) {
+    final data = controller.kycData;
+
+    _setIfNeeded(_idNumberController, data.idNumber);
+    _setIfNeeded(_fullNameController, data.fullName);
+    _setIfNeeded(_dobController, data.dob);
+    _setIfNeeded(_genderController, data.gender);
+    _setIfNeeded(_nationalityController, data.nationality);
+    _setIfNeeded(_placeOfOriginController, data.placeOfOrigin);
+    _setIfNeeded(_residentialAddressController, data.residentialAddress);
+  }
+
+  void _setIfNeeded(TextEditingController controller, String? value) {
+    final normalized = value ?? '';
+    if (controller.text != normalized) {
+      controller.text = normalized;
+    }
+  }
+
+  void _updateData(KycController controller) {
+    controller.updateData(
+      controller.kycData.copyWith(
+        idNumber: _idNumberController.text,
+        fullName: _fullNameController.text,
+        dob: _dobController.text,
+        gender: _genderController.text,
+        nationality: _nationalityController.text,
+        placeOfOrigin: _placeOfOriginController.text,
+        residentialAddress: _residentialAddressController.text,
+      ),
+    );
+  }
+
+  Future<void> _pickDate(KycController controller) async {
+    final initialDate =
+        DateTime.tryParse(_dobController.text) ?? DateTime(2000, 1, 1);
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now(),
+    );
+
+    if (pickedDate == null) {
+      return;
+    }
+
+    _dobController.text =
+        '${pickedDate.year.toString().padLeft(4, '0')}-'
+        '${pickedDate.month.toString().padLeft(2, '0')}-'
+        '${pickedDate.day.toString().padLeft(2, '0')}';
+    _updateData(controller);
+  }
+
+  Future<void> _pickGender(KycController controller) async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) {
+        const options = ['Nam', 'Nu', 'Khac'];
+
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: options
+                .map(
+                  (option) => ListTile(
+                    title: Text(option),
+                    onTap: () => Navigator.pop(context, option),
+                  ),
+                )
+                .toList(),
+          ),
+        );
+      },
+    );
+
+    if (selected == null) {
+      return;
+    }
+
+    _genderController.text = selected;
+    _updateData(controller);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final controller = context.watch<KycController>();
+    _syncFromController(controller);
+
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
           _buildInfoBox(),
           const SizedBox(height: 24),
           _buildSectionCard(
-            title: 'Giấy tờ định danh',
+            title: 'Giay to dinh danh',
             children: [
-              const KycTextField(
-                label: 'Số CMND/CCCD',
-                hintText: 'Nhập số thẻ của bạn',
+              KycTextField(
+                label: 'So CMND/CCCD',
+                hintText: 'Nhap so the cua ban',
+                controller: _idNumberController,
+                keyboardType: TextInputType.number,
+                onChanged: (_) => _updateData(controller),
               ),
               const SizedBox(height: 16),
-              const KycTextField(
-                label: 'Họ và tên đầy đủ',
-                hintText: 'VÍ DỤ: NGUYỄN VĂN A',
+              KycTextField(
+                label: 'Ho va ten day du',
+                hintText: 'Vi du: NGUYEN VAN A',
+                controller: _fullNameController,
+                onChanged: (_) => _updateData(controller),
               ),
             ],
           ),
           const SizedBox(height: 24),
           _buildSectionCard(
-            title: 'Chi tiết cá nhân',
+            title: 'Chi tiet ca nhan',
             children: [
               KycTextField(
-                label: 'Ngày sinh',
-                hintText: 'mm/dd/yyyy',
+                label: 'Ngay sinh',
+                hintText: 'yyyy-mm-dd',
+                controller: _dobController,
                 suffixIcon: const Icon(Icons.calendar_today_outlined, size: 20),
                 readOnly: true,
-                onTap: () {},
+                onTap: () => _pickDate(controller),
               ),
               const SizedBox(height: 16),
               KycTextField(
-                label: 'Giới tính',
-                hintText: 'Chọn giới tính',
+                label: 'Gioi tinh',
+                hintText: 'Chon gioi tinh',
+                controller: _genderController,
                 suffixIcon: const Icon(Icons.keyboard_arrow_down, size: 24),
                 readOnly: true,
-                onTap: () {},
+                onTap: () => _pickGender(controller),
               ),
               const SizedBox(height: 16),
-              const KycTextField(
-                label: 'Quốc tịch',
-                hintText: 'Việt Nam',
-                readOnly: true,
+              KycTextField(
+                label: 'Quoc tich',
+                hintText: 'Viet Nam',
+                controller: _nationalityController,
+                onChanged: (_) => _updateData(controller),
               ),
             ],
           ),
           const SizedBox(height: 24),
           _buildSectionCard(
-            title: 'Địa chỉ & Quê quán',
+            title: 'Dia chi va que quan',
             children: [
-              const KycTextField(
-                label: 'Quê quán',
-                hintText: 'Tỉnh/Thành phố, Quận/Huyện',
+              KycTextField(
+                label: 'Que quan',
+                hintText: 'Tinh/Thanh pho, Quan/Huyen',
+                controller: _placeOfOriginController,
+                onChanged: (_) => _updateData(controller),
               ),
               const SizedBox(height: 16),
-              const KycTextField(
-                label: 'Nơi thường trú',
-                hintText: 'Số nhà, tên đường, phường/xã...',
+              KycTextField(
+                label: 'Noi thuong tru',
+                hintText: 'So nha, ten duong, phuong/xa...',
+                controller: _residentialAddressController,
+                onChanged: (_) => _updateData(controller),
               ),
             ],
           ),
@@ -95,7 +229,7 @@ class _Step1PersonalInfoState extends State<Step1PersonalInfo> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Vui lòng cung cấp thông tin chính xác theo CMND/CCCD của bạn để đảm bảo quá trình xác minh diễn ra nhanh chóng.',
+              'Vui long cung cap thong tin chinh xac theo CMND/CCCD de qua trinh xac minh dien ra nhanh hon.',
               style: AppTextStyles.registerSubtitleLight.copyWith(
                 fontSize: 13,
                 color: AppColors.primaryBlue.withOpacity(0.8),
@@ -107,7 +241,10 @@ class _Step1PersonalInfoState extends State<Step1PersonalInfo> {
     );
   }
 
-  Widget _buildSectionCard({required String title, required List<Widget> children}) {
+  Widget _buildSectionCard({
+    required String title,
+    required List<Widget> children,
+  }) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -137,9 +274,7 @@ class _Step1PersonalInfoState extends State<Step1PersonalInfo> {
               const SizedBox(width: 10),
               Text(
                 title,
-                style: AppTextStyles.registerTitleLight.copyWith(
-                  fontSize: 18,
-                ),
+                style: AppTextStyles.registerTitleLight.copyWith(fontSize: 18),
               ),
             ],
           ),

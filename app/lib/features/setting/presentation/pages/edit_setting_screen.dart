@@ -4,16 +4,15 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
+import '../../../auth/data/auth_session.dart';
 import '../../data/models/profile_response.dart';
 import '../../domain/profile_repository_impl.dart';
 
 class EditSettingScreen extends StatefulWidget {
-  final String accessToken;
   final ProfileResponse setting;
 
   const EditSettingScreen({
     super.key,
-    required this.accessToken,
     required this.setting,
   });
 
@@ -96,11 +95,23 @@ class _EditSettingScreenState extends State<EditSettingScreen> {
   Future<void> _saveSetting() async {
     if (!_formKey.currentState!.validate()) return;
 
+    final accessToken = AuthSession.instance.accessToken;
+    if (accessToken == null || accessToken.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Không tìm thấy access token'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     setState(() => _isSaving = true);
 
     try {
       final updatedSetting = await _settingRepository.updateProfile(
-        accessToken: widget.accessToken,
+        accessToken: accessToken,
         fullName: _fullNameController.text.trim(),
         email: _emailController.text.trim(),
         phoneNumber: _phoneController.text.trim(),

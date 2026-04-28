@@ -10,6 +10,7 @@ class KycTextField extends StatelessWidget {
   final Widget? suffixIcon;
   final bool readOnly;
   final VoidCallback? onTap;
+  final ValueChanged<String>? onChanged;
 
   const KycTextField({
     super.key,
@@ -20,6 +21,7 @@ class KycTextField extends StatelessWidget {
     this.suffixIcon,
     this.readOnly = false,
     this.onTap,
+    this.onChanged,
   });
 
   @override
@@ -40,6 +42,7 @@ class KycTextField extends StatelessWidget {
           keyboardType: keyboardType,
           readOnly: readOnly,
           onTap: onTap,
+          onChanged: onChanged,
           style: AppTextStyles.registerInputLight,
           decoration: InputDecoration(
             hintText: hintText,

@@ -16,6 +16,7 @@ import java.util.UUID;
 public class KycDetailResponse {
     UUID id;
     UUID userId;
+    String email;
     String idNumber;
     String fullName;
     LocalDate dateOfBirth;

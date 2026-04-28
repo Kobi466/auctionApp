@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+import '../../../auth/data/auth_session.dart';
 import '../../../auth/data/auth_service.dart';
 import '../../../auth/domain/auth_repository.dart';
 import '../../../auth/presentation/pages/login_screen.dart';
@@ -16,14 +17,7 @@ import '../widgets/setting_tile_widget.dart';
 import '../widgets/switch_tile_widget.dart';
 
 class SettingScreen extends StatefulWidget {
-  final String accessToken;
-  final String refreshToken;
-
-  const SettingScreen({
-    super.key,
-    required this.accessToken,
-    required this.refreshToken,
-  });
+  const SettingScreen({super.key});
 
   @override
   State<SettingScreen> createState() => _SettingScreenState();
@@ -43,8 +37,13 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   Future<ProfileResponse> _loadSetting() async {
+    final accessToken = AuthSession.instance.accessToken;
+    if (accessToken == null || accessToken.isEmpty) {
+      throw Exception('Không tìm thấy access token');
+    }
+
     final setting = await _settingRepository.getProfile(
-      accessToken: widget.accessToken,
+      accessToken: accessToken,
     );
     _setting = setting;
     return setting;
@@ -52,9 +51,24 @@ class _SettingScreenState extends State<SettingScreen> {
 
   Future<void> _onLogoutPressed(BuildContext context) async {
     final authRepository = AuthRepository(AuthService(ApiClient()));
+    final refreshToken = AuthSession.instance.refreshToken;
+
+    if (refreshToken == null || refreshToken.isEmpty) {
+      AuthSession.instance.clear();
+      if (!context.mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const LoginScreen(),
+        ),
+        (route) => false,
+      );
+      return;
+    }
 
     try {
-      await authRepository.logout(token: widget.refreshToken);
+      await authRepository.logout(token: refreshToken);
+      AuthSession.instance.clear();
 
       if (!context.mounted) return;
 
@@ -117,10 +131,7 @@ class _SettingScreenState extends State<SettingScreen> {
   Future<void> _openEditSetting(ProfileResponse setting) async {
     final updatedSetting = await Navigator.of(context).push<ProfileResponse>(
       MaterialPageRoute(
-        builder: (_) => EditSettingScreen(
-          accessToken: widget.accessToken,
-          setting: setting,
-        ),
+        builder: (_) => EditSettingScreen(setting: setting),
       ),
     );
 

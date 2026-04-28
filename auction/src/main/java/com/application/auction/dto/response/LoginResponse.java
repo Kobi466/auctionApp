@@ -3,6 +3,8 @@ package com.application.auction.dto.response;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 
+import java.util.Set;
+
 @Builder
 @Data
 @NoArgsConstructor
@@ -15,4 +17,6 @@ public class LoginResponse {
     long accessTokenExpiresIn;
     long refreshTokenExpiresIn;
     boolean authenticated;
+    Set<String> roles;
+    boolean admin;
 }
