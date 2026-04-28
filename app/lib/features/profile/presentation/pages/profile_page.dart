@@ -9,6 +9,7 @@ import '../../../auth/presentation/pages/login_screen.dart';
 import '../../../home/presentation/widgets/custom_bottom_navigation.dart';
 import '../../../kyc/presentation/pages/kyc_main_page.dart';
 import '../widgets/wallet_card.dart';
+import 'edit_profile_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -38,7 +39,7 @@ class _ProfilePageState extends State<ProfilePage> {
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Dang xuat thanh cong')),
+        const SnackBar(content: Text('Đăng xuất thành công')),
       );
 
       _navigateToLogin();
@@ -78,7 +79,7 @@ class _ProfilePageState extends State<ProfilePage> {
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
-          'Ca nhan',
+          'Cá nhân',
           style: TextStyle(
             color: Color(0xFF1A1C1E),
             fontWeight: FontWeight.bold,
@@ -86,6 +87,18 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.edit_note_rounded, color: AppColors.primaryBlue, size: 28),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const EditProfilePage()),
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -97,25 +110,25 @@ class _ProfilePageState extends State<ProfilePage> {
             const WalletCard(balance: 45200000),
             const SizedBox(height: 32),
             _buildSection(
-              title: 'HOAT DONG DAU GIA',
+              title: 'HOẠT ĐỘNG ĐẤU GIÁ',
               children: [
-                _buildMenuItem(Icons.local_offer_outlined, 'Do toi dang ban'),
-                _buildMenuItem(Icons.gavel_outlined, 'Lich su dau gia'),
-                _buildMenuItem(Icons.emoji_events_outlined, 'San pham da thang'),
+                _buildMenuItem(Icons.local_offer_outlined, 'Đồ tôi đang bán'),
+                _buildMenuItem(Icons.gavel_outlined, 'Lịch sử đấu giá'),
+                _buildMenuItem(Icons.emoji_events_outlined, 'Sản phẩm đã thắng'),
                 _buildMenuItem(
                   Icons.favorite_border_rounded,
-                  'Danh sach yeu thich',
+                  'Danh sách yêu thích',
                 ),
               ],
             ),
             const SizedBox(height: 24),
             _buildSection(
-              title: 'BAO MAT VA DINH DANH',
+              title: 'BẢO MẬT VÀ ĐỊNH DANH',
               trailing: _buildVerifiedBadge(),
               children: [
                 _buildMenuItem(
                   Icons.badge_outlined,
-                  'Xac minh danh tinh',
+                  'Xác minh danh tính',
                   onTap: () {
                     Navigator.push(
                       context,
@@ -125,16 +138,16 @@ class _ProfilePageState extends State<ProfilePage> {
                     );
                   },
                 ),
-                _buildMenuItem(Icons.lock_outline_rounded, 'Doi mat khau'),
+                _buildMenuItem(Icons.lock_outline_rounded, 'Đổi mật khẩu'),
               ],
             ),
             const SizedBox(height: 24),
             _buildSection(
-              title: 'CAI DAT',
+              title: 'CÀI ĐẶT',
               children: [
                 _buildToggleItem(
                   Icons.notifications_none_rounded,
-                  'Thong bao',
+                  'Thông báo',
                   _isNotificationEnabled,
                   (value) {
                     setState(() => _isNotificationEnabled = value);
@@ -142,12 +155,12 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 _buildMenuItem(
                   Icons.language_rounded,
-                  'Ngon ngu',
-                  trailingText: 'Tieng Viet',
+                  'Ngôn ngữ',
+                  trailingText: 'Tiếng Việt',
                 ),
                 _buildToggleItem(
                   Icons.dark_mode_outlined,
-                  'Che do toi',
+                  'Chế độ tối',
                   _isDarkModeEnabled,
                   (value) {
                     setState(() => _isDarkModeEnabled = value);
@@ -200,7 +213,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         const SizedBox(height: 16),
         const Text(
-          'Le Anh Tuan',
+          'Lê Anh Tuấn',
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -370,7 +383,7 @@ class _ProfilePageState extends State<ProfilePage> {
         onPressed: _logout,
         icon: const Icon(Icons.logout, color: Colors.redAccent),
         label: const Text(
-          'Dang xuat',
+          'Đăng xuất',
           style: TextStyle(
             color: Colors.redAccent,
             fontWeight: FontWeight.bold,

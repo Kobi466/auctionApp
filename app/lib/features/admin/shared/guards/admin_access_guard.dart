@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-import '../../auth/data/auth_session.dart';
-import '../../auth/presentation/pages/login_screen.dart';
+import '../../../auth/data/auth_session.dart';
+import '../../../auth/presentation/pages/login_screen.dart';
 
 void ensureAdminAccess(BuildContext context) {
   final session = AuthSession.instance;

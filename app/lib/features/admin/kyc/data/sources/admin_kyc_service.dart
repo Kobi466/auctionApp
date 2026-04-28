@@ -1,43 +1,11 @@
-import '../../../core/network/api_client.dart';
-import '../../../core/network/api_response.dart';
-import 'models/admin_dashboard_summary_model.dart';
-import 'models/admin_kyc_request_model.dart';
+import '../../../../../core/network/api_client.dart';
+import '../../../../../core/network/api_response.dart';
+import '../models/admin_kyc_request_model.dart';
 
-class AdminService {
+class AdminKycService {
   final ApiClient apiClient;
 
-  AdminService(this.apiClient);
-
-  Future<AdminDashboardSummaryModel> getDashboardSummary({
-    required String accessToken,
-  }) async {
-    final response = await apiClient.get(
-      '/admin/dashboard-summary',
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-      },
-    );
-
-    final apiResponse = ApiResponse<AdminDashboardSummaryModel>.fromJson(
-      _responseBody(response),
-      (json) => AdminDashboardSummaryModel.fromJson(
-        json as Map<String, dynamic>,
-      ),
-    );
-
-    if (_isSuccessful(response) && apiResponse.isSuccess && apiResponse.data != null) {
-      return apiResponse.data!;
-    }
-
-    throw Exception(
-      _extractErrorMessage(
-        statusCode: _statusCode(response),
-        apiMessage: apiResponse.message,
-        rawBody: _rawBody(response),
-        fallbackMessage: 'Khong tai duoc thong ke admin',
-      ),
-    );
-  }
+  AdminKycService(this.apiClient);
 
   Future<List<AdminKycRequestModel>> getKycRequests({
     required String accessToken,

@@ -9,6 +9,7 @@ import '../widgets/home_app_bar.dart';
 import '../widgets/home_search_bar.dart';
 import '../widgets/live_auction_section.dart';
 import '../widgets/trending_new_section.dart';
+import '../widgets/wishlist_section.dart';
 import '../widgets/custom_bottom_navigation.dart';
 
 class HomePage extends StatefulWidget {
@@ -74,6 +75,8 @@ class _ProjectNameHomePageState extends State<HomePage> {
                     EndingSoonSection(products: products),
                     const SizedBox(height: 24),
                     TrendingNewSection(products: products),
+                    const SizedBox(height: 24),
+                    const WishlistSection(),
                     const SizedBox(height: 100),
                   ],
                 ),

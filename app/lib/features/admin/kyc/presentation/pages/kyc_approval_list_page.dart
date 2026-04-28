@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/network/api_client.dart';
 import '../../../../auth/data/auth_session.dart';
-import '../../../presentation/admin_access_guard.dart';
-import '../../../data/admin_service.dart';
-import '../../../data/models/admin_kyc_request_model.dart';
+import '../../../shared/guards/admin_access_guard.dart';
+import '../../data/sources/admin_kyc_service.dart';
 import '../../domain/entities/kyc_request_entity.dart';
-import '../../../overview/presentation/widgets/admin_app_bar.dart';
-import '../../../overview/presentation/widgets/admin_bottom_navigation.dart';
+import '../../../shared/widgets/admin_app_bar.dart';
+import '../../../shared/widgets/admin_bottom_navigation.dart';
 import '../widgets/kyc_request_card.dart';
 import 'kyc_approval_detail_page.dart';
 
@@ -19,7 +18,7 @@ class KycApprovalListPage extends StatefulWidget {
 }
 
 class _KycApprovalListPageState extends State<KycApprovalListPage> {
-  final AdminService _adminService = AdminService(ApiClient());
+  final AdminKycService _adminKycService = AdminKycService(ApiClient());
   final TextEditingController _searchController = TextEditingController();
   int _selectedIndex = 2;
   bool _isLoading = true;
@@ -63,7 +62,7 @@ class _KycApprovalListPageState extends State<KycApprovalListPage> {
     });
 
     try {
-      final models = await _adminService.getKycRequests(accessToken: accessToken);
+      final models = await _adminKycService.getKycRequests(accessToken: accessToken);
       if (!mounted) return;
       setState(() {
         _requests = models.map((model) => model.toEntity()).toList();
@@ -181,7 +180,7 @@ class _KycApprovalListPageState extends State<KycApprovalListPage> {
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: const Text(
-                          'Khong co ho so KYC nao.',
+                          'Không có yêu cầu nào.',
                           style: TextStyle(
                             color: Color(0xFF64748B),
                             fontWeight: FontWeight.w600,

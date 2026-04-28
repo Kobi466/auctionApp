@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/network/api_client.dart';
 import '../../../../auth/data/auth_session.dart';
-import '../../../presentation/admin_access_guard.dart';
-import '../../../data/admin_service.dart';
-import '../../../overview/presentation/widgets/admin_app_bar.dart';
-import '../../../overview/presentation/widgets/admin_bottom_navigation.dart';
+import '../../../shared/guards/admin_access_guard.dart';
+import '../../data/sources/admin_kyc_service.dart';
+import '../../../shared/widgets/admin_app_bar.dart';
+import '../../../shared/widgets/admin_bottom_navigation.dart';
 import '../../domain/entities/kyc_request_entity.dart';
 import '../widgets/kyc_detail_image_card.dart';
 import '../widgets/kyc_detail_section_card.dart';
@@ -24,7 +24,7 @@ class KycApprovalDetailPage extends StatefulWidget {
 }
 
 class _KycApprovalDetailPageState extends State<KycApprovalDetailPage> {
-  final AdminService _adminService = AdminService(ApiClient());
+  final AdminKycService _adminKycService = AdminKycService(ApiClient());
   final TextEditingController _reasonController = TextEditingController();
   bool _isSubmitting = false;
 
@@ -49,7 +49,7 @@ class _KycApprovalDetailPageState extends State<KycApprovalDetailPage> {
   }) async {
     final accessToken = AuthSession.instance.accessToken;
     if (accessToken == null || accessToken.isEmpty) {
-      _showError('Khong tim thay access token');
+      _showError('Không tìm thấy access token');
       return;
     }
 
@@ -58,7 +58,7 @@ class _KycApprovalDetailPageState extends State<KycApprovalDetailPage> {
     });
 
     try {
-      await _adminService.reviewKyc(
+      await _adminKycService.reviewKyc(
         accessToken: accessToken,
         kycDetailId: widget.request.id,
         status: status,
@@ -70,8 +70,8 @@ class _KycApprovalDetailPageState extends State<KycApprovalDetailPage> {
         SnackBar(
           content: Text(
             status == 'VERIFIED'
-                ? 'Da duyet ho so KYC'
-                : 'Da tu choi ho so KYC',
+                ? 'Đã duyệt hồ sơ KYC'
+                : 'Đã từ chối hồ sơ KYC',
           ),
         ),
       );
@@ -89,7 +89,7 @@ class _KycApprovalDetailPageState extends State<KycApprovalDetailPage> {
   void _submitRejection() {
     final reason = _reasonController.text.trim();
     if (reason.isEmpty) {
-      _showError('Nhap ly do truoc khi tu choi');
+      _showError('Nhập lý do trước khi từ chối');
       return;
     }
 
@@ -136,7 +136,7 @@ class _KycApprovalDetailPageState extends State<KycApprovalDetailPage> {
                         ),
                         SizedBox(width: 8),
                         Text(
-                          'Quay lai',
+                          'Quay lại',
                           style: TextStyle(
                             color: Color(0xFF1E293B),
                             fontSize: 15,
@@ -165,16 +165,16 @@ class _KycApprovalDetailPageState extends State<KycApprovalDetailPage> {
                   ),
                   const SizedBox(height: 32),
                   KycDetailSectionCard(
-                    title: 'THONG TIN CA NHAN',
+                    title: 'THÔNG TIN CÁ NHÂN',
                     children: [
-                      _buildInfoRow('So CCCD/ID', request.idNumber),
-                      _buildInfoRow('Ngay sinh', request.dob),
-                      _buildInfoRow('Dia chi thuong tru', request.address),
+                      _buildInfoRow('Số CCCD/ID', request.idNumber),
+                      _buildInfoRow('Ngày sinh', request.dob),
+                      _buildInfoRow('Địa chỉ thường trú', request.address),
                     ],
                   ),
                   const SizedBox(height: 24),
                   const Text(
-                    'TAI LIEU XAC THUC',
+                    'TÀI LIỆU XÁC THỰC',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -187,14 +187,14 @@ class _KycApprovalDetailPageState extends State<KycApprovalDetailPage> {
                     children: [
                       Expanded(
                         child: KycDetailImageCard(
-                          label: 'Mat truoc CCCD',
+                          label: 'Mặt trước CCCD',
                           imageValue: request.idFrontUrl,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: KycDetailImageCard(
-                          label: 'Mat sau CCCD',
+                          label: 'Mặt sau CCCD',
                           imageValue: request.idBackUrl,
                         ),
                       ),
@@ -202,7 +202,7 @@ class _KycApprovalDetailPageState extends State<KycApprovalDetailPage> {
                   ),
                   const SizedBox(height: 12),
                   KycDetailImageCard(
-                    label: 'Anh chan dung',
+                    label: 'Ảnh chân dung',
                     imageValue: request.faceImageUrl,
                     fullWidth: true,
                   ),
@@ -256,11 +256,11 @@ class _KycApprovalDetailPageState extends State<KycApprovalDetailPage> {
   String _getTimeAgo(DateTime date) {
     final duration = DateTime.now().difference(date);
     if (duration.inMinutes < 60) {
-      return '${duration.inMinutes} phut truoc';
+      return '${duration.inMinutes} phút trước';
     }
     if (duration.inHours < 24) {
-      return '${duration.inHours} gio truoc';
+      return '${duration.inHours} giờ trước';
     }
-    return '${duration.inDays} ngay truoc';
+    return '${duration.inDays} ngày trước';
   }
 }

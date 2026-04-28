@@ -34,26 +34,28 @@ class AuthService {
       statusCode: _statusCode(response),
       apiMessage: apiResponse.message,
       rawBody: _rawBody(response),
-      fallbackMessage: 'Dang nhap that bai',
+      fallbackMessage: 'Đăng nhập thất bại',
     ));
   }
 
   Future<ApiResponse<UserResponse>> register({
     required String email,
     required String password,
+    String? fullName,
+    String? phone,
   }) async {
     final response = await apiClient.post(
       '/users',
       body: {
         'email': email,
         'password': password,
+        if (fullName != null) 'fullName': fullName,
+        if (phone != null) 'phone': phone,
       },
     );
     final body = _responseBody(response);
 
     if (_isSuccessful(response)) {
-      // Backend register endpoint currently returns a plain UserResponse,
-      // while error cases are wrapped in ApiResponse.
       if (body.containsKey('result') || body.containsKey('code')) {
         return ApiResponse<UserResponse>.fromJson(
           body,
@@ -74,7 +76,7 @@ class AuthService {
       statusCode: _statusCode(response),
       apiMessage: apiResponse.message,
       rawBody: _rawBody(response),
-      fallbackMessage: 'Dang ky that bai',
+      fallbackMessage: 'Đăng ký thất bại',
     ));
   }
 
@@ -98,7 +100,7 @@ class AuthService {
       statusCode: _statusCode(response),
       apiMessage: apiResponse.message,
       rawBody: _rawBody(response),
-      fallbackMessage: 'Dang xuat that bai',
+      fallbackMessage: 'Đăng xuất thất bại',
     ));
   }
 

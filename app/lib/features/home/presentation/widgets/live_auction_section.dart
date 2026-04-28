@@ -38,7 +38,7 @@ class LiveAuctionSection extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
                   Text(
-                    'Dau gia truc tiep',
+                    'Đấu giá trực tiếp',
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
@@ -47,7 +47,7 @@ class LiveAuctionSection extends StatelessWidget {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    'Co hoi so huu ngay luc nay',
+                    'Cơ hội sở hữu ngay lúc này',
                     style: TextStyle(
                       fontSize: 12,
                       color: Color(0xFF94A3B8),
@@ -56,7 +56,7 @@ class LiveAuctionSection extends StatelessWidget {
                 ],
               ),
               const Text(
-                'Tat ca',
+                'Tất cả',
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -74,7 +74,7 @@ class LiveAuctionSection extends StatelessWidget {
               height: 80,
               child: Center(
                 child: Text(
-                  'Chua co san pham dau gia',
+                  'Chưa có sản phẩm đấu giá',
                   style: TextStyle(color: Color(0xFF64748B)),
                 ),
               ),
@@ -105,7 +105,7 @@ class LiveAuctionSection extends StatelessWidget {
 
   String _formatMoney(num? value) {
     if (value == null) {
-      return 'Dang cap nhat';
+      return 'Đang cập nhật';
     }
 
     final digits = value.round().toString();
@@ -129,7 +129,7 @@ class LiveAuctionSection extends StatelessWidget {
 
     final difference = endTime.difference(DateTime.now());
     if (difference.isNegative) {
-      return 'Da ket thuc';
+      return 'Đã kết thúc';
     }
 
     final hours = difference.inHours.toString().padLeft(2, '0');

@@ -22,6 +22,7 @@ class RegisterScreenState extends State<RegisterScreen> {
 
   final TextEditingController fullNameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController =
       TextEditingController();
@@ -42,6 +43,7 @@ class RegisterScreenState extends State<RegisterScreen> {
   void dispose() {
     fullNameController.dispose();
     emailController.dispose();
+    phoneController.dispose();
     passwordController.dispose();
     confirmPasswordController.dispose();
     super.dispose();
@@ -75,7 +77,7 @@ class RegisterScreenState extends State<RegisterScreen> {
     if (!acceptedTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Vui long dong y voi dieu khoan su dung'),
+          content: Text('Vui lòng đồng ý với điều khoản sử dụng'),
           backgroundColor: Colors.red,
         ),
       );
@@ -90,6 +92,8 @@ class RegisterScreenState extends State<RegisterScreen> {
       final response = await authRepository.register(
         email: emailController.text.trim(),
         password: passwordController.text,
+        fullName: fullNameController.text.trim(),
+        phone: phoneController.text.trim(),
       );
 
       if (!mounted) return;
@@ -97,7 +101,7 @@ class RegisterScreenState extends State<RegisterScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            response.message.isNotEmpty ? response.message : 'Dang ky thanh cong',
+            response.message.isNotEmpty ? response.message : 'Đăng ký thành công',
           ),
         ),
       );
@@ -156,6 +160,7 @@ class RegisterScreenState extends State<RegisterScreen> {
                       formKey: formKey,
                       fullNameController: fullNameController,
                       emailController: emailController,
+                      phoneController: phoneController,
                       passwordController: passwordController,
                       confirmPasswordController: confirmPasswordController,
                       obscurePassword: obscurePassword,

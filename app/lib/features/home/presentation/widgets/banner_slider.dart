@@ -60,7 +60,7 @@ class BannerSlider extends StatelessWidget {
           Text(
             featuredProduct != null
                 ? featuredProduct.name
-                : 'San dau gia hom nay',
+                : 'Sản phẩm đấu giá hôm nay',
             style: const TextStyle(
               color: Colors.white,
               fontSize: 20,
@@ -72,7 +72,7 @@ class BannerSlider extends StatelessWidget {
             featuredProduct != null
                 ? (featuredProduct.shortDescription?.trim().isNotEmpty ?? false)
                       ? featuredProduct.shortDescription!.trim()
-                      : 'Thuong hieu ${featuredProduct.brand}'
+                      : 'Thương hiệu ${featuredProduct.brand}'
                 : 'Danh sach san pham se hien thi ngay khi backend co du lieu.',
             style: TextStyle(
               color: Colors.white.withOpacity(0.72),
@@ -85,21 +85,21 @@ class BannerSlider extends StatelessWidget {
             children: [
               Expanded(
                 child: _buildMetric(
-                  label: 'Tong san pham',
+                  label: 'Tổng sản phẩm',
                   value: products.length.toString(),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildMetric(
-                  label: 'Dang live',
+                  label: 'Đang diễn ra',
                   value: liveCount.toString(),
                 ),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: _buildMetric(
-                  label: 'Sap mo',
+                  label: 'Sắp mở',
                   value: scheduledCount.toString(),
                 ),
               ),

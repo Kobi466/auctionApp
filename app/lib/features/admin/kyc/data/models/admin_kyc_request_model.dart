@@ -1,4 +1,4 @@
-import '../../kyc/domain/entities/kyc_request_entity.dart';
+import '../../domain/entities/kyc_request_entity.dart';
 
 class AdminKycRequestModel {
   final String id;

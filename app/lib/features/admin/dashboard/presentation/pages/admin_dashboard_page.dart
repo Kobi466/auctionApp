@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../../../presentation/admin_access_guard.dart';
+import '../../../shared/guards/admin_access_guard.dart';
 import '../../../../auth/data/auth_session.dart';
-import '../../../data/admin_service.dart';
-import '../../../data/models/admin_dashboard_summary_model.dart';
-import '../widgets/admin_app_bar.dart';
-import '../widgets/admin_auction_item.dart';
-import '../widgets/admin_bottom_navigation.dart';
-import '../widgets/admin_stat_card.dart';
+import '../../data/sources/admin_dashboard_service.dart';
+import '../../data/models/admin_dashboard_summary_model.dart';
+import '../../../shared/widgets/admin_app_bar.dart';
+import '../../../shared/widgets/admin_auction_item.dart';
+import '../../../shared/widgets/admin_bottom_navigation.dart';
+import '../../../shared/widgets/admin_stat_card.dart';
+import '../../../kyc/presentation/pages/kyc_approval_list_page.dart';
 
 class AdminDashboardPage extends StatefulWidget {
   const AdminDashboardPage({super.key});
@@ -19,7 +20,7 @@ class AdminDashboardPage extends StatefulWidget {
 }
 
 class _AdminDashboardPageState extends State<AdminDashboardPage> {
-  final AdminService _adminService = AdminService(ApiClient());
+  final AdminDashboardService _adminDashboardService = AdminDashboardService(ApiClient());
   int _selectedIndex = 0;
   AdminDashboardSummaryModel? _summary;
   bool _isLoading = true;
@@ -40,7 +41,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     if (accessToken == null || accessToken.isEmpty) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Khong tim thay access token';
+        _errorMessage = 'Không tìm thấy access token';
       });
       return;
     }
@@ -51,7 +52,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     });
 
     try {
-      final summary = await _adminService.getDashboardSummary(
+      final summary = await _adminDashboardService.getDashboardSummary(
         accessToken: accessToken,
       );
       if (!mounted) return;
@@ -88,7 +89,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 children: [
                   const SizedBox(height: 20),
                   const Text(
-                    'Chao buoi sang, Quan tri vien',
+                    'Chào mừng trở lại, Quản trị viên',
                     style: TextStyle(
                       color: Color(0xFF1E293B),
                       fontSize: 24,
@@ -97,7 +98,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'Tong quan he thong va cac ho so KYC can xu ly.',
+                    'Tổng quan hệ thống',
                     style: TextStyle(
                       color: Colors.grey[600],
                       fontSize: 14,
@@ -107,7 +108,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   const SizedBox(height: 32),
                   _buildStats(summary),
                   const SizedBox(height: 32),
-                  _buildSectionHeader('Phien noi bat', () {}),
+                  _buildSectionHeader('Phiên nổi bật', () {}),
                   const SizedBox(height: 16),
                   const AdminAuctionItem(
                     imageUrl: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49',
@@ -125,7 +126,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                   ),
                   const SizedBox(height: 32),
                   const Text(
-                    'Hoat dong gan day',
+                    'Hoạt động gần đây',
                     style: TextStyle(
                       color: Color(0xFF1E293B),
                       fontSize: 18,
@@ -133,7 +134,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  _buildActivityList(summary),
+                  // _buildActivityList(summary),
                   const SizedBox(height: 100),
                 ],
               ),
@@ -182,26 +183,32 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         AdminStatCard(
           icon: Icons.people_rounded,
           iconColor: const Color(0xFF6366F1),
-          label: 'TONG USER',
+          label: 'USER',
           value: '${summary?.totalUsers ?? 0}',
         ),
         AdminStatCard(
-          icon: Icons.pending_actions_rounded,
-          iconColor: const Color(0xFFD97706),
-          label: 'KYC CHO DUYET',
+          icon: Icons.cancel_rounded,
+          iconColor: const Color(0xFFDC2626),
+          label: 'ĐẤU GIÁ',
           value: '${summary?.totalPendingKyc ?? 0}',
         ),
         AdminStatCard(
           icon: Icons.verified_user_rounded,
           iconColor: const Color(0xFF16A34A),
-          label: 'KYC DA DUYET',
+          label: 'XÁC NHẬN',
           value: '${summary?.totalVerifiedKyc ?? 0}',
         ),
         AdminStatCard(
-          icon: Icons.cancel_rounded,
-          iconColor: const Color(0xFFDC2626),
-          label: 'KYC TU CHOI',
+          icon: Icons.pending_actions_rounded,
+          iconColor: const Color(0xFFD97706),
+          label: 'DUYỆT KYC',
           value: '${summary?.totalRejectedKyc ?? 0}',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const KycApprovalListPage()),
+            );
+          },
         ),
       ],
     );
@@ -222,91 +229,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         TextButton(
           onPressed: onTap,
           child: const Text(
-            'Xem tat ca',
+            'Xem tất cả',
             style: TextStyle(
               color: AppColors.primaryBlue,
               fontWeight: FontWeight.bold,
             ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildActivityList(AdminDashboardSummaryModel? summary) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9).withOpacity(0.5),
-        borderRadius: BorderRadius.circular(32),
-      ),
-      child: Column(
-        children: [
-          _buildActivityItem(
-            'Tong user',
-            'hien tai la ${summary?.totalUsers ?? 0} tai khoan.',
-            'Cap nhat tu backend',
-            Colors.blue,
-          ),
-          const SizedBox(height: 16),
-          _buildActivityItem(
-            'KYC cho duyet',
-            'dang co ${summary?.totalPendingKyc ?? 0} ho so.',
-            'Can admin xu ly',
-            Colors.orange,
-          ),
-          const SizedBox(height: 16),
-          _buildActivityItem(
-            'KYC da duyet',
-            'tong cong ${summary?.totalVerifiedKyc ?? 0} ho so.',
-            'Thong ke he thong',
-            Colors.green,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActivityItem(String main, String sub, String time, Color dotColor) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          margin: const EdgeInsets.only(top: 6),
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              RichText(
-                text: TextSpan(
-                  style: const TextStyle(
-                    color: Color(0xFF475569),
-                    fontSize: 13,
-                    height: 1.4,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: main,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF1E293B),
-                      ),
-                    ),
-                    TextSpan(text: ' $sub'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                time,
-                style: TextStyle(color: Colors.grey[400], fontSize: 11),
-              ),
-            ],
           ),
         ),
       ],

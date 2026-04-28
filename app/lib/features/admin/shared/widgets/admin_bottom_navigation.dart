@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 
-import '../../../../../core/theme/app_colors.dart';
-import '../pages/admin_dashboard_page.dart';
-import '../../../kyc/presentation/pages/kyc_approval_list_page.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../../dashboard/presentation/pages/admin_dashboard_page.dart';
+import '../../kyc/presentation/pages/kyc_approval_list_page.dart';
+import '../../auction/presentation/pages/admin_auction_list_page.dart';
 
 class AdminBottomNavigation extends StatelessWidget {
   final int selectedIndex;
@@ -21,7 +22,7 @@ class AdminBottomNavigation extends StatelessWidget {
         nextPage = const AdminDashboardPage();
         break;
       case 2:
-        nextPage = const KycApprovalListPage();
+        nextPage = const AdminAuctionListPage();
         break;
       default:
       // Placeholder for other pages
@@ -57,7 +58,7 @@ class AdminBottomNavigation extends StatelessWidget {
           children: [
             _buildNavItem(context, 0, Icons.dashboard_rounded, 'Dashboard'),
             _buildNavItem(context, 1, Icons.people_alt_rounded, 'Users'),
-            _buildNavItem(context, 2, Icons.verified_user_rounded, 'KYC'),
+            _buildNavItem(context, 2, Icons.verified_user_rounded, 'Đấu giá'),
             _buildNavItem(context, 3, Icons.gavel_rounded, 'Giao dịch'),
           ],
         ),

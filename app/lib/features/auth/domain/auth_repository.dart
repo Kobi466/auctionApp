@@ -21,10 +21,14 @@ class AuthRepository {
   Future<ApiResponse<UserResponse>> register({
     required String email,
     required String password,
+    String? fullName,
+    String? phone,
   }) async {
     return authService.register(
       email: email,
       password: password,
+      fullName: fullName,
+      phone: phone,
     );
   }
 

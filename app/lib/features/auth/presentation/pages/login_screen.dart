@@ -4,7 +4,7 @@ import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/utils/validators.dart';
-import '../../../admin/overview/presentation/pages/admin_dashboard_page.dart';
+import '../../../admin/dashboard/presentation/pages/admin_dashboard_page.dart';
 import '../../../home/presentation/pages/home_page.dart';
 import '../../data/auth_session.dart';
 import '../../data/auth_service.dart';

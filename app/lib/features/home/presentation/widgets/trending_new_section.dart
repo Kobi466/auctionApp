@@ -30,11 +30,11 @@ class TrendingNewSection extends StatelessWidget {
         children: [
           Expanded(
             child: _buildCard(
-              title: 'San pham xu huong',
+              title: 'Sản phẩm xu hướng',
               subtitle: trendingCount > 0
-                  ? '$trendingCount san pham dang duoc quan tam'
+                  ? '$trendingCount Sản phẩm đang được quan tâm'
                   : 'Danh sach duoc dong bo tu backend',
-              buttonText: 'Xem them',
+              buttonText: 'Xem thêm',
               icon: Icons.trending_up_rounded,
               bgColor: const Color(0xFFE9EFFF),
               iconColor: const Color(0xFF4F7DFF),
@@ -45,11 +45,11 @@ class TrendingNewSection extends StatelessWidget {
           const SizedBox(width: 16),
           Expanded(
             child: _buildCard(
-              title: 'Vua moi dang',
+              title: 'Vừa mới đăng',
               subtitle: latestProduct != null
                   ? latestProduct.name
-                  : 'Chua co san pham moi',
-              buttonText: 'Xem moi nhat',
+                  : 'Chưa có sản phẩm mới',
+              buttonText: 'Xem mới nhất',
               icon: Icons.verified_rounded,
               bgColor: const Color(0xFF262D55),
               iconColor: const Color(0xFF4F7DFF),

@@ -9,6 +9,7 @@ class RegisterFormWidget extends StatelessWidget {
   final GlobalKey<FormState> formKey;
   final TextEditingController fullNameController;
   final TextEditingController emailController;
+  final TextEditingController phoneController;
   final TextEditingController passwordController;
   final TextEditingController confirmPasswordController;
   final bool obscurePassword;
@@ -23,6 +24,7 @@ class RegisterFormWidget extends StatelessWidget {
     required this.formKey,
     required this.fullNameController,
     required this.emailController,
+    required this.phoneController,
     required this.passwordController,
     required this.confirmPasswordController,
     required this.obscurePassword,
@@ -62,6 +64,25 @@ class RegisterFormWidget extends StatelessWidget {
             keyboardType: TextInputType.emailAddress,
             prefixIcon: const Icon(
               Icons.email_outlined,
+              color: AppColors.lightSubText,
+            ),
+          ),
+          const SizedBox(height: 18),
+
+          const RegisterFieldLabel(text: 'Số điện thoại'),
+          const SizedBox(height: 10),
+          RegisterTextFieldWidget(
+            controller: phoneController,
+            hintText: 'Nhập số điện thoại',
+            keyboardType: TextInputType.phone,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Vui lòng nhập số điện thoại';
+              }
+              return null;
+            },
+            prefixIcon: const Icon(
+              Icons.phone_outlined,
               color: AppColors.lightSubText,
             ),
           ),
