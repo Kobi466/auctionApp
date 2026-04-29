@@ -3,6 +3,7 @@ import '../../../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/admin_app_bar.dart';
 import '../../../shared/widgets/admin_bottom_navigation.dart';
 import '../widgets/admin_auction_card.dart';
+import 'admin_create_auction_page.dart';
 
 class AdminAuctionListPage extends StatefulWidget {
   const AdminAuctionListPage({super.key});
@@ -32,7 +33,12 @@ class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          // TODO: Mở trang tạo phiên đấu giá
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AdminCreateAuctionPage(),
+            ),
+          );
         },
         backgroundColor: AppColors.primaryBlue,
         icon: const Icon(Icons.add, color: Colors.white),
@@ -41,7 +47,7 @@ class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
-      bottomNavigationBar: const AdminBottomNavigation(selectedIndex: 2),
+      bottomNavigationBar: const AdminBottomNavigation(selectedIndex: 3),
     );
   }
 
