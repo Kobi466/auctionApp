@@ -107,7 +107,7 @@ class AdminAddProductPage extends StatelessWidget {
                 ),
               ),
               child: const Text(
-                'Đăng sản phẩm',
+                'Thêm sản phẩm',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,

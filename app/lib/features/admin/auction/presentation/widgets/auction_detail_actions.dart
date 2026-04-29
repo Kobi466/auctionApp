@@ -21,29 +21,6 @@ class AuctionDetailActions extends StatelessWidget {
         top: false,
         child: Row(
           children: [
-            // Nút Chỉnh sửa
-            Expanded(
-              child: _buildActionButton(
-                icon: Icons.edit_note_rounded,
-                label: 'Chỉnh sửa',
-                color: const Color(0xFFE0E7FF),
-                textColor: const Color(0xFF4338CA),
-                onTap: () {},
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Nút Tạm dừng
-            Expanded(
-              child: _buildActionButton(
-                icon: Icons.pause_circle_outline_rounded,
-                label: 'Tạm dừng',
-                color: const Color(0xFFF1F5F9),
-                textColor: const Color(0xFF64748B),
-                onTap: () {},
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Nút Hủy phiên (Chiếm không gian rộng hơn một chút nếu cần)
             Expanded(
               flex: 1,
               child: GestureDetector(
