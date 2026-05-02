@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
 class CreateAuctionPriceForm extends StatelessWidget {
-  const CreateAuctionPriceForm({super.key});
+  final TextEditingController? minimumBidController;
+  final TextEditingController? depositAmountController;
+
+  const CreateAuctionPriceForm({
+    super.key,
+    this.minimumBidController,
+    this.depositAmountController,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +38,7 @@ class CreateAuctionPriceForm extends StatelessWidget {
                 label: 'Giá khởi điểm (VNĐ)',
                 prefixIcon: Icons.payments_outlined,
                 hintText: '150000000',
+                controller: minimumBidController,
               ),
               const SizedBox(height: 16),
               Row(
@@ -48,6 +56,7 @@ class CreateAuctionPriceForm extends StatelessWidget {
                       label: 'Tiền đặt cọc',
                       prefixIcon: Icons.account_balance_wallet_outlined,
                       hintText: '15000000',
+                      controller: depositAmountController,
                     ),
                   ),
                 ],
@@ -63,6 +72,7 @@ class CreateAuctionPriceForm extends StatelessWidget {
     required String label,
     required IconData prefixIcon,
     required String hintText,
+    TextEditingController? controller,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,6 +93,8 @@ class CreateAuctionPriceForm extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
           ),
           child: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,

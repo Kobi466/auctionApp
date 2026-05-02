@@ -46,16 +46,34 @@ public class UserService {
         if(userRepository.existsByEmail(userCreationRequest.getEmail()))
             throw new AppException(ErrorCode.EMAIL_ALREADY_EXISTS);
 
+        String normalizedPhone = normalize(userCreationRequest.getPhone());
+        if (normalizedPhone != null && userRepository.existsByPhone(normalizedPhone)) {
+            throw new AppException(ErrorCode.PHONE_NUMBER_ALREADY_EXISTS);
+        }
+
         var defaultRole = roleRepository.findByName(Role.USER.name())
                 .orElseThrow(() -> new AppException(ErrorCode.ROLE_NOT_FOUND));
 
         User user = userMapper.toUser(userCreationRequest);
         user.setUsername(userCreationRequest.getEmail());
+        user.setPhone(normalizedPhone);
         user.setPassword(passwordEncoder.encode(userCreationRequest.getPassword()));
         user.setRoles(new HashSet<>(List.of(defaultRole)));
         user = userRepository.save(user);
-        profileService.ensureProfileExists(user);
+        profileService.createRegistrationProfile(
+                user,
+                userCreationRequest.getFullName(),
+                userCreationRequest.getPhone()
+        );
         return userMapper.toUserResponse(user);
+    }
+
+    private String normalize(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     @PreAuthorize("hasRole('ADMIN')")

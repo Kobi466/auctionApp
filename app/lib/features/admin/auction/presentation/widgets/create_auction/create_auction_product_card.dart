@@ -4,12 +4,14 @@ class CreateAuctionProductCard extends StatelessWidget {
   final String imageUrl;
   final String title;
   final String sku;
+  final VoidCallback? onTap;
 
   const CreateAuctionProductCard({
     super.key,
     required this.imageUrl,
     required this.title,
     required this.sku,
+    this.onTap,
   });
 
   @override
@@ -27,14 +29,17 @@ class CreateAuctionProductCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: const Color(0xFFE2E8F0)),
-          ),
-          child: Row(
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(24),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Row(
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
@@ -88,6 +93,7 @@ class CreateAuctionProductCard extends StatelessWidget {
                 ),
               ),
             ],
+            ),
           ),
         ),
       ],

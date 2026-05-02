@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 
 class CreateAuctionTimeForm extends StatefulWidget {
-  const CreateAuctionTimeForm({super.key});
+  final ValueChanged<DateTime>? onStartTimeChanged;
+  final ValueChanged<DateTime>? onEndTimeChanged;
+
+  const CreateAuctionTimeForm({
+    super.key,
+    this.onStartTimeChanged,
+    this.onEndTimeChanged,
+  });
 
   @override
   State<CreateAuctionTimeForm> createState() => _CreateAuctionTimeFormState();
@@ -49,8 +56,10 @@ class _CreateAuctionTimeFormState extends State<CreateAuctionTimeForm> {
           );
           if (isStartDate) {
             _startTime = newDateTime;
+            widget.onStartTimeChanged?.call(_startTime);
           } else {
             _endTime = newDateTime;
+            widget.onEndTimeChanged?.call(_endTime);
           }
         });
       }

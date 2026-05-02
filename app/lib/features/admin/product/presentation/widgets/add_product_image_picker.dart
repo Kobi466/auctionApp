@@ -3,15 +3,31 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class AddProductImagePicker extends StatefulWidget {
-  const AddProductImagePicker({super.key});
+  final List<String> initialImageUrls;
+  final ValueChanged<List<String>>? onImagesChanged;
+
+  const AddProductImagePicker({
+    super.key,
+    this.initialImageUrls = const [],
+    this.onImagesChanged,
+  });
 
   @override
   State<AddProductImagePicker> createState() => _AddProductImagePickerState();
 }
 
 class _AddProductImagePickerState extends State<AddProductImagePicker> {
-  final List<XFile> _images = [];
+  late final List<String> _images;
   final ImagePicker _picker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    _images = List<String>.from(widget.initialImageUrls);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _notifyImagesChanged();
+    });
+  }
 
   Future<void> _pickImage() async {
     if (_images.length >= 10) {
@@ -29,8 +45,9 @@ class _AddProductImagePickerState extends State<AddProductImagePicker> {
 
       if (image != null) {
         setState(() {
-          _images.add(image);
+          _images.add(image.path);
         });
+        _notifyImagesChanged();
       }
     } catch (e) {
       debugPrint('Error picking image: \$e');
@@ -41,6 +58,11 @@ class _AddProductImagePickerState extends State<AddProductImagePicker> {
     setState(() {
       _images.removeAt(index);
     });
+    _notifyImagesChanged();
+  }
+
+  void _notifyImagesChanged() {
+    widget.onImagesChanged?.call(List<String>.from(_images));
   }
 
   @override
@@ -164,7 +186,7 @@ class _AddProductImagePickerState extends State<AddProductImagePicker> {
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(24),
               image: DecorationImage(
-                image: FileImage(File(_images[0].path)),
+                image: _buildImageProvider(_images[0]),
                 fit: BoxFit.cover,
               ),
             ),
@@ -211,7 +233,7 @@ class _AddProductImagePickerState extends State<AddProductImagePicker> {
     );
   }
 
-  Widget _buildSmallImage(XFile image, int index) {
+  Widget _buildSmallImage(String image, int index) {
     return Stack(
       clipBehavior: Clip.none,
       children: [
@@ -221,7 +243,7 @@ class _AddProductImagePickerState extends State<AddProductImagePicker> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             image: DecorationImage(
-              image: FileImage(File(image.path)),
+              image: _buildImageProvider(image),
               fit: BoxFit.cover,
             ),
           ),
@@ -243,5 +265,12 @@ class _AddProductImagePickerState extends State<AddProductImagePicker> {
         ),
       ],
     );
+  }
+
+  ImageProvider _buildImageProvider(String imageUrl) {
+    if (imageUrl.startsWith('http')) {
+      return NetworkImage(imageUrl);
+    }
+    return FileImage(File(imageUrl));
   }
 }

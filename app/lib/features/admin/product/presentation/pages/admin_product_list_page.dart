@@ -7,8 +7,15 @@ import '../widgets/product_search_bar.dart';
 import '../widgets/admin_product_list.dart';
 import 'admin_add_product_page.dart';
 
-class AdminProductListPage extends StatelessWidget {
+class AdminProductListPage extends StatefulWidget {
   const AdminProductListPage({super.key});
+
+  @override
+  State<AdminProductListPage> createState() => _AdminProductListPageState();
+}
+
+class _AdminProductListPageState extends State<AdminProductListPage> {
+  int _reloadKey = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -22,21 +29,26 @@ class AdminProductListPage extends StatelessWidget {
           const SizedBox(height: 16),
           const ProductSearchBar(),
           const SizedBox(height: 16),
-          const Expanded(
+          Expanded(
             child: SingleChildScrollView(
-              child: AdminProductList(),
+              child: AdminProductList(key: ValueKey(_reloadKey)),
             ),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final created = await Navigator.push<bool>(
             context,
             MaterialPageRoute(
               builder: (context) => const AdminAddProductPage(),
             ),
           );
+          if (created == true && mounted) {
+            setState(() {
+              _reloadKey++;
+            });
+          }
         },
         backgroundColor: AppColors.primaryBlue,
         icon: const Icon(Icons.add, color: Colors.white),

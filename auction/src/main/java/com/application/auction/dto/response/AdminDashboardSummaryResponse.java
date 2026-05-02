@@ -10,6 +10,8 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AdminDashboardSummaryResponse {
     long totalUsers;
+    long totalProducts;
+    long totalAuctionRooms;
     long totalPendingKyc;
     long totalVerifiedKyc;
     long totalRejectedKyc;

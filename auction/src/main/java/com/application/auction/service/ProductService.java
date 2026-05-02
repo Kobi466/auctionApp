@@ -1,12 +1,9 @@
 package com.application.auction.service;
 
 import com.application.auction.dto.request.ProductRequest;
-import com.application.auction.dto.response.AuctionRoomResponse;
 import com.application.auction.dto.response.ProductResponse;
-import com.application.auction.entity.AuctionRoom;
 import com.application.auction.entity.Product;
 import com.application.auction.entity.User;
-import com.application.auction.enums.AuctionRoomStatus;
 import com.application.auction.enums.ErrorCode;
 import com.application.auction.exception.AppException;
 import com.application.auction.mapper.AuctionRoomMapper;
@@ -22,11 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
-import java.util.Locale;
-import java.util.Random;
 import java.util.UUID;
 
 @Service
@@ -46,10 +39,7 @@ public class ProductService {
         Product product = productMapper.toProduct(sanitizeProductRequest(request));
         product.setCreatedByAdminId(getCurrentAdmin().getId());
         Product savedProduct = productRepository.save(product);
-
-        AuctionRoom auctionRoom = buildAuctionRoom(savedProduct.getId(), request);
-        AuctionRoom savedRoom = auctionRoomRepository.save(auctionRoom);
-        return toResponse(savedProduct, savedRoom);
+        return toResponse(savedProduct);
     }
 
     @Transactional
@@ -63,12 +53,7 @@ public class ProductService {
         product.setCreatedByAdminId(getCurrentAdmin().getId());
         Product savedProduct = productRepository.save(product);
 
-        AuctionRoom auctionRoom = auctionRoomRepository.findByProductId(productId)
-                .orElseThrow(() -> new AppException(ErrorCode.AUCTION_ROOM_NOT_FOUND));
-        updateAuctionRoom(auctionRoom, request, productId);
-        AuctionRoom savedRoom = auctionRoomRepository.save(auctionRoom);
-
-        return toResponse(savedProduct, savedRoom);
+        return toResponse(savedProduct);
     }
 
     @Transactional
@@ -84,19 +69,13 @@ public class ProductService {
     public ProductResponse getProduct(UUID productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
-        AuctionRoom auctionRoom = auctionRoomRepository.findByProductId(productId)
-                .orElseThrow(() -> new AppException(ErrorCode.AUCTION_ROOM_NOT_FOUND));
-        return toResponse(product, auctionRoom);
+        return toResponse(product);
     }
 
     @Transactional(readOnly = true)
     public List<ProductResponse> getProducts() {
         return productRepository.findAll().stream()
-                .map(product -> {
-                    AuctionRoom auctionRoom = auctionRoomRepository.findByProductId(product.getId())
-                            .orElseThrow(() -> new AppException(ErrorCode.AUCTION_ROOM_NOT_FOUND));
-                    return toResponse(product, auctionRoom);
-                })
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -119,69 +98,7 @@ public class ProductService {
                 .attributes(request.getAttributes() == null ? java.util.Map.of() : request.getAttributes())
                 .rarityRank(request.getRarityRank())
                 .status(request.getStatus() == null ? com.application.auction.enums.ProductStatus.DRAFT : request.getStatus())
-                .minimumBid(request.getMinimumBid())
-                .depositAmount(request.getDepositAmount())
-                .auctionStartTime(request.getAuctionStartTime())
-                .auctionEndTime(request.getAuctionEndTime())
                 .build();
-    }
-
-    private AuctionRoom buildAuctionRoom(UUID productId, ProductRequest request) {
-        validateAuctionRequest(request);
-        return AuctionRoom.builder()
-                .productId(productId)
-                .roomCode("ROOM-" + productId)
-                .roomPassword(generateRoomPassword())
-                .minimumBid(request.getMinimumBid())
-                .depositAmount(request.getDepositAmount())
-                .startTime(request.getAuctionStartTime())
-                .endTime(request.getAuctionEndTime())
-                .status(resolveAuctionRoomStatus(request.getAuctionStartTime(), request.getAuctionEndTime()))
-                .build();
-    }
-
-    private void updateAuctionRoom(AuctionRoom auctionRoom, ProductRequest request, UUID productId) {
-        validateAuctionRequest(request);
-        auctionRoom.setProductId(productId);
-        auctionRoom.setRoomCode("ROOM-" + productId);
-        if (auctionRoom.getRoomPassword() == null || auctionRoom.getRoomPassword().isBlank()) {
-            auctionRoom.setRoomPassword(generateRoomPassword());
-        }
-        auctionRoom.setMinimumBid(request.getMinimumBid());
-        auctionRoom.setDepositAmount(request.getDepositAmount());
-        auctionRoom.setStartTime(request.getAuctionStartTime());
-        auctionRoom.setEndTime(request.getAuctionEndTime());
-        auctionRoom.setStatus(resolveAuctionRoomStatus(request.getAuctionStartTime(), request.getAuctionEndTime()));
-    }
-
-    private void validateAuctionRequest(ProductRequest request) {
-        BigDecimal minimumBid = request.getMinimumBid();
-        BigDecimal depositAmount = request.getDepositAmount();
-        Instant startTime = request.getAuctionStartTime();
-        Instant endTime = request.getAuctionEndTime();
-
-        if (minimumBid == null || minimumBid.compareTo(BigDecimal.ZERO) <= 0) {
-            throw new AppException(ErrorCode.AUCTION_MINIMUM_BID_REQUIRED);
-        }
-
-        if (depositAmount == null || depositAmount.compareTo(minimumBid) < 0) {
-            throw new AppException(ErrorCode.AUCTION_DEPOSIT_INVALID);
-        }
-
-        if (startTime == null || endTime == null || !endTime.isAfter(startTime)) {
-            throw new AppException(ErrorCode.AUCTION_SCHEDULE_INVALID);
-        }
-    }
-
-    private AuctionRoomStatus resolveAuctionRoomStatus(Instant startTime, Instant endTime) {
-        Instant now = Instant.now();
-        if (now.isBefore(startTime)) {
-            return AuctionRoomStatus.SCHEDULED;
-        }
-        if (now.isAfter(endTime)) {
-            return AuctionRoomStatus.CLOSED;
-        }
-        return AuctionRoomStatus.LIVE;
     }
 
     private List<String> requireImageUrls(List<String> imageUrls) {
@@ -222,20 +139,12 @@ public class ProductService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 
-    private ProductResponse toResponse(Product product, AuctionRoom auctionRoom) {
+    private ProductResponse toResponse(Product product) {
         ProductResponse response = productMapper.toProductResponse(product);
-        response.setAuctionRoom(auctionRoomMapper.toAuctionRoomResponse(auctionRoom));
+        auctionRoomRepository.findByProductId(product.getId())
+                .map(auctionRoomMapper::toAuctionRoomResponse)
+                .ifPresent(response::setAuctionRoom);
         return response;
-    }
-
-    private String generateRoomPassword() {
-        String characters = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-        Random random = new Random();
-        StringBuilder builder = new StringBuilder(8);
-        for (int index = 0; index < 8; index++) {
-            builder.append(characters.charAt(random.nextInt(characters.length())));
-        }
-        return builder.toString().toUpperCase(Locale.ROOT);
     }
 
 }

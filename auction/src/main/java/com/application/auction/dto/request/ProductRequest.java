@@ -8,8 +8,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
-import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 @Data
@@ -32,8 +30,4 @@ public class ProductRequest {
     Map<String, Object> attributes;
     Integer rarityRank;
     ProductStatus status;
-    BigDecimal minimumBid;
-    BigDecimal depositAmount;
-    Instant auctionStartTime;
-    Instant auctionEndTime;
 }

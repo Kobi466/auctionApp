@@ -38,6 +38,9 @@ public class User {
     @EqualsAndHashCode.Include
     String email;
 
+    @Column(unique = true)
+    String phone;
+
     @Builder.Default
     @Column(nullable = false)
     boolean isActive = true;

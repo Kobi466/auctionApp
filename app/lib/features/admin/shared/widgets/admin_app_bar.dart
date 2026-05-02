@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../auth/data/auth_service.dart';
 import '../../../auth/data/auth_session.dart';
+import '../../../auth/domain/auth_repository.dart';
 import '../../../auth/presentation/pages/login_screen.dart';
 
 class AdminAppBar extends StatelessWidget {
@@ -18,18 +21,41 @@ class AdminAppBar extends StatelessWidget {
             child: const Text('Hủy'),
           ),
           TextButton(
-            onPressed: () {
-              AuthSession.instance.clear();
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (_) => const LoginScreen()),
-                (route) => false,
-              );
-            },
+            onPressed: () => _logout(context),
             child: const Text('Đăng xuất', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
+    );
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    navigator.pop();
+
+    final token =
+        AuthSession.instance.refreshToken ?? AuthSession.instance.accessToken;
+
+    try {
+      if (token != null && token.isNotEmpty) {
+        final authRepository = AuthRepository(AuthService(ApiClient()));
+        await authRepository.logout(token: token);
+      }
+    } catch (error) {
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    AuthSession.instance.clear();
+    navigator.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      (route) => false,
     );
   }
 

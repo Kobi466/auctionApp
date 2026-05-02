@@ -36,6 +36,29 @@ public class ProfileService {
                         .orElseGet(() -> createProfile(user)));
     }
 
+    @Transactional
+    public Profile createRegistrationProfile(User user, String fullName, String phone) {
+        Profile profile = ensureProfileExists(user);
+        String normalizedFullName = normalize(fullName);
+        String normalizedPhone = normalize(phone);
+
+        if (normalizedFullName != null) {
+            if (profileRepository.existsByFullNameAndUserIdNot(normalizedFullName, profile.getUserId())) {
+                throw new AppException(ErrorCode.FULL_NAME_ALREADY_EXISTS);
+            }
+            profile.setFullName(normalizedFullName);
+        }
+
+        if (normalizedPhone != null) {
+            if (profileRepository.existsByPhoneNumberAndUserIdNot(normalizedPhone, profile.getUserId())) {
+                throw new AppException(ErrorCode.PHONE_NUMBER_ALREADY_EXISTS);
+            }
+            profile.setPhoneNumber(normalizedPhone);
+        }
+
+        return profileRepository.save(profile);
+    }
+
     @Transactional(readOnly = true)
     public ProfileResponse getMyProfile() {
         User currentUser = getCurrentUser();

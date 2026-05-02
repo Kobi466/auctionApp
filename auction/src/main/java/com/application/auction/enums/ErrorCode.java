@@ -44,14 +44,15 @@ public enum ErrorCode {
     PRODUCT_CATEGORY_REQUIRED(438, "Product category is required", HttpStatus.BAD_REQUEST),
     PRODUCT_IMAGES_REQUIRED(440, "At least one product image is required", HttpStatus.BAD_REQUEST),
     AUCTION_MINIMUM_BID_REQUIRED(441, "Minimum bid must be greater than zero", HttpStatus.BAD_REQUEST),
-    AUCTION_DEPOSIT_INVALID(442, "Deposit amount must be at least the minimum bid", HttpStatus.BAD_REQUEST),
+    AUCTION_DEPOSIT_INVALID(442, "Deposit amount must be greater than zero", HttpStatus.BAD_REQUEST),
     AUCTION_SCHEDULE_INVALID(443, "Auction schedule is invalid", HttpStatus.BAD_REQUEST),
     AUCTION_PAYMENT_CONFIG_REQUIRED(444, "Auction payment configuration is required", HttpStatus.BAD_REQUEST),
     AUCTION_DEPOSIT_NOT_FOUND(445, "Auction deposit not found", HttpStatus.NOT_FOUND),
     AUCTION_DEPOSIT_REQUIRED(446, "Auction deposit is required", HttpStatus.BAD_REQUEST),
     AUCTION_DEPOSIT_APPROVAL_REQUIRED(447, "Auction deposit approval is required", HttpStatus.FORBIDDEN),
     AUCTION_DEPOSIT_STATUS_INVALID(448, "Auction deposit status is invalid", HttpStatus.BAD_REQUEST),
-    AUCTION_DEPOSIT_REVIEW_INVALID(449, "Auction deposit review status is invalid", HttpStatus.BAD_REQUEST);
+    AUCTION_DEPOSIT_REVIEW_INVALID(449, "Auction deposit review status is invalid", HttpStatus.BAD_REQUEST),
+    AUCTION_ROOM_ALREADY_EXISTS(450, "Auction room already exists for this product", HttpStatus.BAD_REQUEST);
 
     int code;
     String message;

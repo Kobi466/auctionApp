@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_colors.dart';
 
@@ -45,18 +47,7 @@ class AdminProductCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(20),
-            child: Image.network(
-              imageUrl,
-              width: 100,
-              height: 100,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                width: 100,
-                height: 100,
-                color: Colors.grey[200],
-                child: const Icon(Icons.image_not_supported, color: Colors.grey),
-              ),
-            ),
+            child: _buildImage(),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -111,6 +102,39 @@ class AdminProductCard extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildImage() {
+    if (imageUrl.startsWith('http')) {
+      return Image.network(
+        imageUrl,
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildImageFallback(),
+      );
+    }
+
+    if (imageUrl.isNotEmpty) {
+      return Image.file(
+        File(imageUrl),
+        width: 100,
+        height: 100,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => _buildImageFallback(),
+      );
+    }
+
+    return _buildImageFallback();
+  }
+
+  Widget _buildImageFallback() {
+    return Container(
+      width: 100,
+      height: 100,
+      color: Colors.grey[200],
+      child: const Icon(Icons.image_not_supported, color: Colors.grey),
     );
   }
 

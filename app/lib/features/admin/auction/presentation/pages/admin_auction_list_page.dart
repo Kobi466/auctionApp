@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../auth/data/auth_session.dart';
+import '../../../../home/data/models/product_model.dart';
+import '../../data/admin_auction_service.dart';
 import '../../../shared/widgets/admin_app_bar.dart';
 import '../../../shared/widgets/admin_bottom_navigation.dart';
 import '../widgets/admin_auction_card.dart';
@@ -13,7 +16,21 @@ class AdminAuctionListPage extends StatefulWidget {
 }
 
 class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
-  int _selectedTab = 1; // 0: Sắp diễn ra, 1: Đang diễn ra, 2: Đã kết thúc
+  int _selectedTab = 1;
+  final AdminAuctionService _auctionService = AdminAuctionService();
+  late Future<List<ProductModel>> _auctionRoomsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAuctionRooms();
+  }
+
+  void _loadAuctionRooms() {
+    _auctionRoomsFuture = _auctionService.getAuctionRooms(
+      accessToken: AuthSession.instance.accessToken ?? '',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +49,19 @@ class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          final created = await Navigator.push<bool>(
             context,
             MaterialPageRoute(
               builder: (context) => const AdminCreateAuctionPage(),
             ),
           );
+          if (created == true && mounted) {
+            setState(() {
+              _selectedTab = 0;
+              _loadAuctionRooms();
+            });
+          }
         },
         backgroundColor: AppColors.primaryBlue,
         icon: const Icon(Icons.add, color: Colors.white),
@@ -137,31 +160,61 @@ class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
   }
 
   Widget _buildAuctionList() {
-    return ListView(
-      padding: const EdgeInsets.all(20),
-      children: const [
-        AdminAuctionCard(
-          imageUrl: 'https://images.unsplash.com/photo-1523170335258-f5ed11844a49',
-          title: 'Rolex Cosmograph Daytona',
-          timeRemaining: '04:22:15',
-          currentBid: '\$42,500',
-          isLive: true,
-        ),
-        AdminAuctionCard(
-          imageUrl: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3',
-          title: 'Patek Philippe Nautilus 5711',
-          timeRemaining: '12:05:48',
-          currentBid: '\$118,200',
-          isLive: true,
-        ),
-        AdminAuctionCard(
-          imageUrl: 'https://images.unsplash.com/photo-1548036328-c9fa89d128fa',
-          title: 'Hermès Birkin 25 Emerald',
-          timeRemaining: '01:15:30',
-          currentBid: '\$24,900',
-          isLive: true,
-        ),
-      ],
+    return FutureBuilder<List<ProductModel>>(
+      future: _auctionRoomsFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError) {
+          return Center(child: Text(snapshot.error.toString()));
+        }
+
+        final products = _filterBySelectedTab(
+          snapshot.data ?? const <ProductModel>[],
+        );
+
+        if (products.isEmpty) {
+          return const Center(child: Text('Chưa có phiên đấu giá'));
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            final product = products[index];
+            final room = product.auctionRoom;
+            return AdminAuctionCard(
+              imageUrl: product.displayImage,
+              title: product.name,
+              timeRemaining: room?.status ?? '',
+              currentBid: _formatMoney(room?.minimumBid),
+              isLive: room?.status.toUpperCase() == 'LIVE',
+            );
+          },
+        );
+      },
     );
+  }
+
+  List<ProductModel> _filterBySelectedTab(List<ProductModel> products) {
+    return products.where((product) {
+      final status = product.auctionRoom?.status.toUpperCase();
+      if (_selectedTab == 0) {
+        return status == 'SCHEDULED';
+      }
+      if (_selectedTab == 2) {
+        return status == 'CLOSED';
+      }
+      return status == 'LIVE';
+    }).toList();
+  }
+
+  String _formatMoney(num? value) {
+    if (value == null) {
+      return '0 VND';
+    }
+    return '${value.toStringAsFixed(0)} VND';
   }
 }

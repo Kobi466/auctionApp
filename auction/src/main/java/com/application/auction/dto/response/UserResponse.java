@@ -17,6 +17,7 @@ import java.util.UUID;
 public class UserResponse {
     UUID id;
     String email;
+    String phone;
     boolean isActive;
     Set<RoleResponse> roles;
 
