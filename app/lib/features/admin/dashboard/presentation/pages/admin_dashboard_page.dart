@@ -170,29 +170,26 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         AdminStatCard(
           icon: Icons.people_rounded,
           iconColor: const Color(0xFF6366F1),
-          label: 'USERS',
+          label: 'Người dùng',
           value: '${summary?.totalUsers ?? 0}',
         ),
         AdminStatCard(
           icon: Icons.inventory_2_rounded,
           iconColor: const Color(0xFF2563EB),
-          label: 'SAN PHAM',
+          label: 'Sản phẩm',
           value: '${summary?.totalProducts ?? 0}',
-          onTap: _openProducts,
         ),
         AdminStatCard(
           icon: Icons.gavel_rounded,
           iconColor: const Color(0xFF16A34A),
-          label: 'PHIEN DAU GIA',
+          label: 'Xác nhận',
           value: '${summary?.totalAuctionRooms ?? 0}',
-          onTap: _openAuctions,
         ),
         AdminStatCard(
           icon: Icons.pending_actions_rounded,
           iconColor: const Color(0xFFD97706),
-          label: 'KYC CHO DUYET',
+          label: 'Duyệt KYC',
           value: '${summary?.totalPendingKyc ?? 0}',
-          onTap: _openKyc,
         ),
       ],
     );
@@ -214,15 +211,8 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       children: [
         _buildActionTile(
           icon: Icons.inventory_2_outlined,
-          title: 'Quan ly san pham',
-          subtitle: 'Them, sua, xem va xoa san pham dau gia',
-          onTap: _openProducts,
-        ),
-        const SizedBox(height: 12),
-        _buildActionTile(
-          icon: Icons.gavel_outlined,
-          title: 'Quan ly phien dau gia',
-          subtitle: 'Tao va theo doi cac phien dau gia',
+          title: 'Duyet vao phong dau gia',
+          subtitle: 'Xac nhan da thanh toan tien coc',
           onTap: _openAuctions,
         ),
         const SizedBox(height: 12),
@@ -300,13 +290,6 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
           ],
         ),
       ),
-    );
-  }
-
-  void _openProducts() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const AdminProductListPage()),
     );
   }
 

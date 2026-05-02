@@ -5,6 +5,8 @@ import '../../dashboard/presentation/pages/admin_dashboard_page.dart';
 import '../../kyc/presentation/pages/kyc_approval_list_page.dart';
 import '../../auction/presentation/pages/admin_auction_list_page.dart';
 import '../../product/presentation/pages/admin_product_list_page.dart';
+import '../../user_management/presentation/pages/admin_user_list_page.dart';
+import '../../winner_management/presentation/pages/admin_winner_list_page.dart';
 
 class AdminBottomNavigation extends StatelessWidget {
   final int selectedIndex;
@@ -22,14 +24,19 @@ class AdminBottomNavigation extends StatelessWidget {
       case 0:
         nextPage = const AdminDashboardPage();
         break;
+      case 1:
+        nextPage = const AdminUserListPage();
+        break;
       case 2:
         nextPage = const AdminProductListPage();
         break;
       case 3:
         nextPage = const AdminAuctionListPage();
         break;
+      case 4:
+        nextPage = const AdminWinnerListPage();
+        break;
       default:
-        // Placeholder for Users (1) and Transactions (4)
         return;
     }
 

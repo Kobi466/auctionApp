@@ -20,7 +20,6 @@ class KycApprovalListPage extends StatefulWidget {
 class _KycApprovalListPageState extends State<KycApprovalListPage> {
   final AdminKycService _adminKycService = AdminKycService(ApiClient());
   final TextEditingController _searchController = TextEditingController();
-  int _selectedIndex = 2;
   bool _isLoading = true;
   String? _errorMessage;
   List<KycRequestEntity> _requests = const [];
@@ -119,13 +118,29 @@ class _KycApprovalListPageState extends State<KycApprovalListPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Duyet KYC',
-                          style: TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w900,
-                            color: Color(0xFF1E293B),
+                        Row(
+                          children: [GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: const Row(
+                              children: [
+                                Icon(
+                                  Icons.arrow_back_ios_new_rounded,
+                                  size: 14,
+                                  color: Color(0xFF1E293B),
+                                ),
+                                SizedBox(width: 8),
+                              ],
+                            ),
                           ),
+                            const Text(
+                              'Duyet KYC',
+                              style: TextStyle(
+                                fontSize: 28,
+                                fontWeight: FontWeight.w900,
+                                color: Color(0xFF1E293B),
+                              ),
+                            ),
+                          ],
                         ),
                         Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -210,7 +225,6 @@ class _KycApprovalListPageState extends State<KycApprovalListPage> {
           ),
         ],
       ),
-      bottomNavigationBar: AdminBottomNavigation(selectedIndex: _selectedIndex),
     );
   }
 

@@ -7,7 +7,9 @@ import '../../../auth/data/auth_session.dart';
 import '../../../auth/domain/auth_repository.dart';
 import '../../../auth/presentation/pages/login_screen.dart';
 import '../../../home/presentation/widgets/custom_bottom_navigation.dart';
+import '../../../kyc/presentation/bloc/kyc_controller.dart';
 import '../../../kyc/presentation/pages/kyc_main_page.dart';
+import '../../../kyc/presentation/widgets/kyc_status_dialog.dart';
 import '../widgets/wallet_card.dart';
 import 'edit_profile_page.dart';
 
@@ -21,6 +23,20 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   bool _isNotificationEnabled = true;
   bool _isDarkModeEnabled = false;
+  late final KycController _kycController;
+
+  @override
+  void initState() {
+    super.initState();
+    _kycController = KycController();
+    _kycController.initialize(); // Lấy trạng thái KYC khi vào trang
+  }
+
+  @override
+  void dispose() {
+    _kycController.dispose();
+    super.dispose();
+  }
 
   Future<void> _logout() async {
     final refreshToken = AuthSession.instance.refreshToken;
@@ -67,6 +83,38 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  void _handleKycTap() {
+    final status = _kycController.status?.toUpperCase();
+
+    if (status == 'APPROVED') {
+      showDialog(
+        context: context,
+        builder: (context) => const KycStatusDialog(
+          title: 'Đã xác thực danh tính',
+          message: 'Quy trình xác minh đã hoàn thành',
+          isSuccess: true,
+        ),
+      );
+    } else if (status == 'PENDING') {
+      showDialog(
+        context: context,
+        builder: (context) => const KycStatusDialog(
+          title: 'Đang chờ xác thực',
+          message: 'Yêu cầu của bạn đang được xử lý',
+          isSuccess: false,
+        ),
+      );
+    } else {
+      // Trường hợp chưa gửi (null) hoặc bị từ chối (REJECTED)
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const KycMainPage(),
+        ),
+      ).then((_) => _kycController.initialize()); // Reload lại status sau khi quay về
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -74,10 +122,6 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1C1E)),
-          onPressed: () => Navigator.pop(context),
-        ),
         title: const Text(
           'Cá nhân',
           style: TextStyle(
@@ -100,84 +144,91 @@ class _ProfilePageState extends State<ProfilePage> {
           const SizedBox(width: 8),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        child: Column(
-          children: [
-            const SizedBox(height: 10),
-            _buildProfileHeader(),
-            const SizedBox(height: 24),
-            const WalletCard(balance: 45200000),
-            const SizedBox(height: 32),
-            _buildSection(
-              title: 'HOẠT ĐỘNG ĐẤU GIÁ',
+      body: ListenableBuilder(
+        listenable: _kycController,
+        builder: (context, child) {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Column(
               children: [
-                _buildMenuItem(Icons.local_offer_outlined, 'Đồ tôi đang bán'),
-                _buildMenuItem(Icons.gavel_outlined, 'Lịch sử đấu giá'),
-                _buildMenuItem(Icons.emoji_events_outlined, 'Sản phẩm đã thắng'),
-                _buildMenuItem(
-                  Icons.favorite_border_rounded,
-                  'Danh sách yêu thích',
+                const SizedBox(height: 10),
+                _buildProfileHeader(),
+                const SizedBox(height: 24),
+                const WalletCard(balance: 45200000),
+                const SizedBox(height: 32),
+                _buildSection(
+                  title: 'HOẠT ĐỘNG ĐẤU GIÁ',
+                  children: [
+                    _buildMenuItem(Icons.local_offer_outlined, 'Đồ tôi đang bán'),
+                    _buildMenuItem(Icons.gavel_outlined, 'Lịch sử đấu giá'),
+                    _buildMenuItem(Icons.emoji_events_outlined, 'Sản phẩm đã thắng'),
+                    _buildMenuItem(
+                      Icons.favorite_border_rounded,
+                      'Danh sách yêu thích',
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 24),
+                _buildSection(
+                  title: 'BẢO MẬT VÀ ĐỊNH DANH',
+                  trailing: _kycController.status?.toUpperCase() == 'APPROVED' ? _buildVerifiedBadge() : null,
+                  children: [
+                    _buildMenuItem(
+                      Icons.badge_outlined,
+                      'Xác minh danh tính',
+                      subtitle: _getKycSubtitle(),
+                      onTap: _handleKycTap,
+                    ),
+                    _buildMenuItem(Icons.lock_outline_rounded, 'Đổi mật khẩu'),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _buildSection(
+                  title: 'CÀI ĐẶT',
+                  children: [
+                    _buildToggleItem(
+                      Icons.notifications_none_rounded,
+                      'Thông báo',
+                      _isNotificationEnabled,
+                      (value) {
+                        setState(() => _isNotificationEnabled = value);
+                      },
+                    ),
+                    _buildMenuItem(
+                      Icons.language_rounded,
+                      'Ngôn ngữ',
+                      trailingText: 'Tiếng Việt',
+                    ),
+                    _buildToggleItem(
+                      Icons.dark_mode_outlined,
+                      'Chế độ tối',
+                      _isDarkModeEnabled,
+                      (value) {
+                        setState(() => _isDarkModeEnabled = value);
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+                _buildLogoutButton(),
+                const SizedBox(height: 120),
               ],
             ),
-            const SizedBox(height: 24),
-            _buildSection(
-              title: 'BẢO MẬT VÀ ĐỊNH DANH',
-              trailing: _buildVerifiedBadge(),
-              children: [
-                _buildMenuItem(
-                  Icons.badge_outlined,
-                  'Xác minh danh tính',
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const KycMainPage(),
-                      ),
-                    );
-                  },
-                ),
-                _buildMenuItem(Icons.lock_outline_rounded, 'Đổi mật khẩu'),
-              ],
-            ),
-            const SizedBox(height: 24),
-            _buildSection(
-              title: 'CÀI ĐẶT',
-              children: [
-                _buildToggleItem(
-                  Icons.notifications_none_rounded,
-                  'Thông báo',
-                  _isNotificationEnabled,
-                  (value) {
-                    setState(() => _isNotificationEnabled = value);
-                  },
-                ),
-                _buildMenuItem(
-                  Icons.language_rounded,
-                  'Ngôn ngữ',
-                  trailingText: 'Tiếng Việt',
-                ),
-                _buildToggleItem(
-                  Icons.dark_mode_outlined,
-                  'Chế độ tối',
-                  _isDarkModeEnabled,
-                  (value) {
-                    setState(() => _isDarkModeEnabled = value);
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 32),
-            _buildLogoutButton(),
-            const SizedBox(height: 120),
-          ],
-        ),
+          );
+        },
       ),
       bottomNavigationBar: const CustomBottomNavigation(
         selectedIndex: 4,
       ),
     );
+  }
+
+  String? _getKycSubtitle() {
+    final status = _kycController.status?.toUpperCase();
+    if (status == 'APPROVED') return 'Đã xác thực';
+    if (status == 'PENDING') return 'Đang chờ duyệt';
+    if (status == 'REJECTED') return 'Bị từ chối - Nhấn để thử lại';
+    return 'Chưa xác thực';
   }
 
   Widget _buildProfileHeader() {
@@ -197,18 +248,19 @@ class _ProfilePageState extends State<ProfilePage> {
                 backgroundImage: NetworkImage('https://i.pravatar.cc/300'),
               ),
             ),
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: AppColors.primaryBlue,
-                shape: BoxShape.circle,
+            if (_kycController.status?.toUpperCase() == 'APPROVED')
+              Container(
+                padding: const EdgeInsets.all(4),
+                decoration: const BoxDecoration(
+                  color: AppColors.primaryBlue,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check_circle,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
-              child: const Icon(
-                Icons.check_circle,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
           ],
         ),
         const SizedBox(height: 16),
@@ -298,7 +350,10 @@ class _ProfilePageState extends State<ProfilePage> {
       subtitle: subtitle != null
           ? Text(
               subtitle,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 12, 
+                color: subtitle.contains('từ chối') ? Colors.red : Colors.grey
+              ),
             )
           : null,
       trailing: Row(

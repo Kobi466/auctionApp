@@ -5,7 +5,6 @@ class AdminStatCard extends StatelessWidget {
   final Color iconColor;
   final String label;
   final String value;
-  final VoidCallback? onTap;
 
   const AdminStatCard({
     super.key,
@@ -13,13 +12,11 @@ class AdminStatCard extends StatelessWidget {
     required this.iconColor,
     required this.label,
     required this.value,
-    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(

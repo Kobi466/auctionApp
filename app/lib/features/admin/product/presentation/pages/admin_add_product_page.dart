@@ -160,8 +160,8 @@ class _AdminAddProductPageState extends State<AdminAddProductPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const SizedBox(height: 10),
-                    const Text(
-                      'Thêm sản phẩm mới',
+                    Text(
+                      _isEditing ? 'Cập nhật sản phẩm' : 'Thêm sản phẩm mới' ,
                       style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.w900,
@@ -265,8 +265,8 @@ class _AdminAddProductPageState extends State<AdminAddProductPage> {
                         color: Colors.white,
                       ),
                     )
-                  : const Text(
-                      'Thêm sản phẩm',
+                  : Text(
+                      _isEditing ? 'Cập nhật' : 'Thêm sản phẩm',
                       style: TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
