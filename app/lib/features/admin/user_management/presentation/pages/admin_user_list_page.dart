@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../../../core/theme/app_colors.dart';
+import '../../../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/admin_app_bar.dart';
 import '../../../shared/widgets/admin_bottom_navigation.dart';
 import '../../domain/entities/admin_user_entity.dart';
@@ -17,40 +17,36 @@ class _AdminUserListPageState extends State<AdminUserListPage> {
   final List<AdminUserEntity> _users = [
     const AdminUserEntity(
       id: '1',
-      name: 'Nguyễn Văn A',
-      role: 'Thành viên',
-      kycStatus: KycStatus.verified,
-      accountStatus: AccountStatus.active,
-      avatar: 'https://i.pravatar.cc/150?u=1',
-      email: 'nguyenvan.a@example.com',
-      phone: '090 123 4567',
-      cccd: '012345678910',
-      dob: '20/05/1992',
-      address: '123 Đường Lê Lợi, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh',
-    ),
-    const AdminUserEntity(
-      id: '2',
-      name: 'Trần Thị B',
-      role: 'Đại lý',
-      kycStatus: KycStatus.unverified,
-      accountStatus: AccountStatus.locked,
-      email: 'tranthib@example.com',
-      phone: '091 234 5678',
-      cccd: '098765432109',
-      dob: '15/08/1988',
-      address: '456 Đường Nguyễn Huệ, Quận 1, TP. Hồ Chí Minh',
-    ),
-    const AdminUserEntity(
-      id: '3',
-      name: 'Lê Huy',
+      name: 'Lê Minh Tuấn',
+      email: 'minhtuan.le@gmail.com',
       role: 'Thành viên',
       kycStatus: KycStatus.pending,
       accountStatus: AccountStatus.active,
-      email: 'lehuy@example.com',
-      phone: '092 345 6789',
-      cccd: '112233445566',
-      dob: '10/12/1995',
-      address: '789 Đường CMT8, Quận 3, TP. Hồ Chí Minh',
+      avatar: 'https://i.pravatar.cc/150?u=tuấn',
+    ),
+    const AdminUserEntity(
+      id: '2',
+      name: 'Nguyễn Hồng Hạnh',
+      email: 'hanh.nguyen@outlook.com',
+      role: 'Thành viên',
+      kycStatus: KycStatus.verified,
+      accountStatus: AccountStatus.active,
+    ),
+    const AdminUserEntity(
+      id: '3',
+      name: 'Trần Văn Hoàng',
+      email: 'hoang.tv92@company.com',
+      role: 'Thành viên',
+      kycStatus: KycStatus.unverified,
+      accountStatus: AccountStatus.locked,
+    ),
+    const AdminUserEntity(
+      id: '4',
+      name: 'Quách Thu Trang',
+      email: 'trang.qt_bidder@gmail.com',
+      role: 'Thành viên',
+      kycStatus: KycStatus.verified,
+      accountStatus: AccountStatus.active,
     ),
   ];
 
@@ -63,25 +59,17 @@ class _AdminUserListPageState extends State<AdminUserListPage> {
           const AdminAppBar(),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  const SizedBox(height: 24),
+                  _buildHeaderTitle(),
                   const SizedBox(height: 20),
                   _buildSearchBar(),
-                  const SizedBox(height: 24),
-                  const Text(
-                    '342 Người dùng',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E293B),
-                    ),
-                  ),
+                  const SizedBox(height: 32),
+                  _buildListHeader(),
                   const SizedBox(height: 16),
-                  _buildUserGrid(),
-                  const SizedBox(height: 24),
-                  _buildFullListButton(),
+                  _buildUserList(),
                   const SizedBox(height: 100),
                 ],
               ),
@@ -93,102 +81,25 @@ class _AdminUserListPageState extends State<AdminUserListPage> {
     );
   }
 
-  Widget _buildSearchBar() {
-    return Row(
-      children: [
-        Expanded(
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEEF2FF),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: const TextField(
-              decoration: InputDecoration(
-                hintText: 'Tìm kiếm người dùng...',
-                hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-                border: InputBorder.none,
-                icon: Icon(Icons.search, color: Color(0xFF94A3B8)),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFEEF2FF),
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: const Icon(Icons.tune_rounded, color: Color(0xFF4F46E5)),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildUserGrid() {
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-        childAspectRatio: 0.75,
-      ),
-      itemCount: _users.length + 1,
-      itemBuilder: (context, index) {
-        if (index < _users.length) {
-          final user = _users[index];
-          return AdminUserCard(
-            user: user,
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => AdminUserProfilePage(user: user),
-                ),
-              );
-            },
-          );
-        } else {
-          return _buildLoadMoreCard();
-        }
-      },
-    );
-  }
-
-  Widget _buildLoadMoreCard() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFF1F5F9), width: 2),
-      ),
+  Widget _buildHeaderTitle() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 20),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(
-              color: Color(0xFFF1F5F9),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.add, color: Color(0xFF94A3B8), size: 30),
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Xem thêm',
+          Text(
+            'Quản lý người dùng',
             style: TextStyle(
-              fontSize: 16,
+              fontSize: 26,
               fontWeight: FontWeight.bold,
               color: Color(0xFF1E293B),
             ),
           ),
-          const Text(
-            'Tải thêm 20 người dùng',
+          SizedBox(height: 4),
+          Text(
+            'Theo dõi và phê duyệt tài khoản hệ thống',
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 14,
               color: Color(0xFF64748B),
             ),
           ),
@@ -197,28 +108,98 @@ class _AdminUserListPageState extends State<AdminUserListPage> {
     );
   }
 
-  Widget _buildFullListButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: () {},
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0052FF),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              height: 52,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEEF2FF),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const TextField(
+                decoration: InputDecoration(
+                  hintText: 'Tìm theo tên hoặc email...',
+                  hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
+                  border: InputBorder.none,
+                  icon: Icon(Icons.search, color: Color(0xFF94A3B8)),
+                ),
+              ),
+            ),
           ),
-          elevation: 0,
-        ),
-        child: const Text(
-          'Xem toàn bộ danh sách',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
+          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEEF2FF),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(Icons.tune_rounded, color: Color(0xFF4F7DFF)),
           ),
-        ),
+        ],
       ),
+    );
+  }
+
+  Widget _buildListHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text(
+            'DANH SÁCH THÀNH VIÊN',
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF64748B),
+              letterSpacing: 0.5,
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFFDBEAFE),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Text(
+              '1,284 Users',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2563EB),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildUserList() {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _users.length,
+      itemBuilder: (context, index) {
+        final user = _users[index];
+        return AdminUserCard(
+          user: user,
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => AdminUserProfilePage(user: user),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }

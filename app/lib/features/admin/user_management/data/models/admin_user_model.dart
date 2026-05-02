@@ -8,6 +8,11 @@ class AdminUserModel extends AdminUserEntity {
     required super.kycStatus,
     required super.accountStatus,
     super.avatar,
+    super.email,
+    super.phone,
+    super.cccd,
+    super.dob,
+    super.address,
   });
 
   factory AdminUserModel.fromJson(Map<String, dynamic> json) {
@@ -18,6 +23,11 @@ class AdminUserModel extends AdminUserEntity {
       kycStatus: _parseKycStatus(json['kycStatus']),
       accountStatus: _parseAccountStatus(json['accountStatus']),
       avatar: json['avatar']?.toString(),
+      email: json['email']?.toString(),
+      phone: json['phone']?.toString(),
+      cccd: json['cccd']?.toString(),
+      dob: json['dob']?.toString(),
+      address: json['address']?.toString(),
     );
   }
 
@@ -35,7 +45,8 @@ class AdminUserModel extends AdminUserEntity {
   }
 
   static AccountStatus _parseAccountStatus(dynamic status) {
-    if (status?.toString().toLowerCase() == 'locked' || status?.toString().toLowerCase() == 'bị khóa') {
+    final s = status?.toString().toLowerCase();
+    if (s == 'locked' || s == 'bị khóa' || s == 'inactive') {
       return AccountStatus.locked;
     }
     return AccountStatus.active;
