@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../home/presentation/widgets/custom_bottom_navigation.dart';
 import '../../../home/presentation/widgets/home_app_bar.dart';
+import 'auction_room_page.dart';
 
 class JoinAuctionRoomPage extends StatefulWidget {
   final String? initialRoomCode;
@@ -121,7 +122,21 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
                           // Join Button with Gradient
                           GestureDetector(
                             onTap: () {
-                              // Logic vào phòng
+                              if (_roomCodeController.text.isNotEmpty &&
+                                  _passwordController.text.isNotEmpty) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const AuctionRoomPage(),
+                                  ),
+                                );
+                              } else {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Vui lòng nhập đầy đủ mã phòng và mật khẩu'),
+                                  ),
+                                );
+                              }
                             },
                             child: Container(
                               width: double.infinity,

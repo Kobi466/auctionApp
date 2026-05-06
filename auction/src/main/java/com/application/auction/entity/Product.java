@@ -56,9 +56,9 @@ public class Product {
     String description;
 
     @Lob
+    @Convert(converter = StringListJsonConverter.class)
     String shortDescription;
 
-    @Convert(converter = StringListJsonConverter.class)
     @Lob
     @Column(name = "image_urls", columnDefinition = "LONGTEXT")
     List<String> imageUrls;
