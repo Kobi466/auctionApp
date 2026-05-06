@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class CreateAuctionPriceForm extends StatelessWidget {
   final TextEditingController? minimumBidController;
   final TextEditingController? depositAmountController;
+  final bool lockMinimumBid;
 
   const CreateAuctionPriceForm({
     super.key,
     this.minimumBidController,
     this.depositAmountController,
+    this.lockMinimumBid = false,
   });
 
   @override
@@ -39,6 +41,7 @@ class CreateAuctionPriceForm extends StatelessWidget {
                 prefixIcon: Icons.payments_outlined,
                 hintText: '150000000',
                 controller: minimumBidController,
+                readOnly: lockMinimumBid,
               ),
               const SizedBox(height: 16),
               Row(
@@ -73,6 +76,7 @@ class CreateAuctionPriceForm extends StatelessWidget {
     required IconData prefixIcon,
     required String hintText,
     TextEditingController? controller,
+    bool readOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,6 +98,7 @@ class CreateAuctionPriceForm extends StatelessWidget {
           ),
           child: TextField(
             controller: controller,
+            readOnly: readOnly,
             keyboardType: TextInputType.number,
             style: const TextStyle(
               fontSize: 16,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 
 class UserProductCard extends StatelessWidget {
@@ -42,7 +43,6 @@ class UserProductCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Ảnh sản phẩm với Badge
           Stack(
             children: [
               ClipRRect(
@@ -66,7 +66,9 @@ class UserProductCard extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: isLive ? Colors.pink.withOpacity(0.9) : Colors.indigo.withOpacity(0.9),
+                    color: isLive
+                        ? Colors.pink.withOpacity(0.9)
+                        : Colors.indigo.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Text(
@@ -82,7 +84,6 @@ class UserProductCard extends StatelessWidget {
             ],
           ),
           const SizedBox(width: 12),
-          // Thông tin sản phẩm
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -106,12 +107,17 @@ class UserProductCard extends StatelessWidget {
                       color: isLive ? const Color(0xFF2563EB) : Colors.orange,
                     ),
                     const SizedBox(width: 4),
-                    Text(
-                      isLive ? time : 'Bắt đầu sau: $time',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: isLive ? const Color(0xFF2563EB) : Colors.orange,
-                        fontWeight: FontWeight.w600,
+                    Expanded(
+                      child: Text(
+                        isLive ? time : 'Bắt đầu sau: $time',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color:
+                              isLive ? const Color(0xFF2563EB) : Colors.orange,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -128,16 +134,23 @@ class UserProductCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Row(
                   children: [
-                    const Icon(Icons.people_outline_rounded, size: 16, color: Colors.grey),
+                    const Icon(
+                      Icons.people_outline_rounded,
+                      size: 16,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       '$participants',
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                     const Spacer(),
-                    const Icon(Icons.favorite_border_rounded, size: 20, color: Colors.grey),
+                    const Icon(
+                      Icons.favorite_border_rounded,
+                      size: 20,
+                      color: Colors.grey,
+                    ),
                     const SizedBox(width: 8),
-                    // Nút Chi tiết
                     SizedBox(
                       height: 32,
                       child: OutlinedButton(
@@ -160,13 +173,12 @@ class UserProductCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Nút Đấu giá / Thông báo
                     SizedBox(
                       height: 32,
                       child: ElevatedButton(
                         onPressed: onAction,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFF2563EB),
+                          backgroundColor: AppColors.primaryBlue,
                           foregroundColor: Colors.white,
                           elevation: 0,
                           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -174,9 +186,9 @@ class UserProductCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: Text(
-                          isLive ? 'Đấu giá' : 'Thông báo',
-                          style: const TextStyle(
+                        child: const Text(
+                          'Đấu giá',
+                          style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
                           ),

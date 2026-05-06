@@ -10,6 +10,7 @@ import lombok.experimental.FieldDefaults;
 
 import java.util.List;
 import java.util.Map;
+import java.math.BigDecimal;
 @Data
 @Builder
 @NoArgsConstructor
@@ -19,6 +20,7 @@ public class ProductRequest {
     String name;
     String subTitle;
     String brand;
+    BigDecimal startingPrice;
     String description;
     String shortDescription;
     List<String> imageUrls;

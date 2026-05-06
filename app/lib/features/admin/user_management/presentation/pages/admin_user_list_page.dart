@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import '../../../../../core/theme/app_colors.dart';
+
+import '../../../../../core/network/api_client.dart';
+import '../../../../auth/data/auth_session.dart';
 import '../../../shared/widgets/admin_app_bar.dart';
 import '../../../shared/widgets/admin_bottom_navigation.dart';
+import '../../data/sources/admin_user_service.dart';
 import '../../domain/entities/admin_user_entity.dart';
 import '../widgets/admin_user_card.dart';
 import 'admin_user_profile_page.dart';
@@ -14,41 +17,76 @@ class AdminUserListPage extends StatefulWidget {
 }
 
 class _AdminUserListPageState extends State<AdminUserListPage> {
-  final List<AdminUserEntity> _users = [
-    const AdminUserEntity(
-      id: '1',
-      name: 'Lê Minh Tuấn',
-      email: 'minhtuan.le@gmail.com',
-      role: 'Thành viên',
-      kycStatus: KycStatus.pending,
-      accountStatus: AccountStatus.active,
-      avatar: 'https://i.pravatar.cc/150?u=tuấn',
-    ),
-    const AdminUserEntity(
-      id: '2',
-      name: 'Nguyễn Hồng Hạnh',
-      email: 'hanh.nguyen@outlook.com',
-      role: 'Thành viên',
-      kycStatus: KycStatus.verified,
-      accountStatus: AccountStatus.active,
-    ),
-    const AdminUserEntity(
-      id: '3',
-      name: 'Trần Văn Hoàng',
-      email: 'hoang.tv92@company.com',
-      role: 'Thành viên',
-      kycStatus: KycStatus.unverified,
-      accountStatus: AccountStatus.locked,
-    ),
-    const AdminUserEntity(
-      id: '4',
-      name: 'Quách Thu Trang',
-      email: 'trang.qt_bidder@gmail.com',
-      role: 'Thành viên',
-      kycStatus: KycStatus.verified,
-      accountStatus: AccountStatus.active,
-    ),
-  ];
+  final AdminUserService _adminUserService = AdminUserService(ApiClient());
+  final TextEditingController _searchController = TextEditingController();
+
+  bool _isLoading = true;
+  String? _errorMessage;
+  List<AdminUserEntity> _users = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsers();
+    _searchController.addListener(() {
+      if (mounted) {
+        setState(() {});
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadUsers() async {
+    final accessToken = AuthSession.instance.accessToken;
+    if (accessToken == null || accessToken.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Khong tim thay access token';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final users = await _adminUserService.getUsers(accessToken: accessToken);
+      if (!mounted) return;
+      setState(() {
+        _users = users;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+      });
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  List<AdminUserEntity> get _filteredUsers {
+    final keyword = _searchController.text.trim().toLowerCase();
+    if (keyword.isEmpty) {
+      return _users;
+    }
+
+    return _users.where((user) {
+      return user.name.toLowerCase().contains(keyword) ||
+          (user.email ?? '').toLowerCase().contains(keyword) ||
+          (user.phone ?? '').toLowerCase().contains(keyword);
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,20 +96,24 @@ class _AdminUserListPageState extends State<AdminUserListPage> {
         children: [
           const AdminAppBar(),
           Expanded(
-            child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SizedBox(height: 24),
-                  _buildHeaderTitle(),
-                  const SizedBox(height: 20),
-                  _buildSearchBar(),
-                  const SizedBox(height: 32),
-                  _buildListHeader(),
-                  const SizedBox(height: 16),
-                  _buildUserList(),
-                  const SizedBox(height: 100),
-                ],
+            child: RefreshIndicator(
+              onRefresh: _loadUsers,
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 24),
+                    _buildHeaderTitle(),
+                    const SizedBox(height: 20),
+                    _buildSearchBar(),
+                    const SizedBox(height: 32),
+                    _buildListHeader(),
+                    const SizedBox(height: 16),
+                    _buildUserList(),
+                    const SizedBox(height: 100),
+                  ],
+                ),
               ),
             ),
           ),
@@ -88,7 +130,7 @@ class _AdminUserListPageState extends State<AdminUserListPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Quản lý người dùng',
+            'Quan ly nguoi dung',
             style: TextStyle(
               fontSize: 26,
               fontWeight: FontWeight.bold,
@@ -97,7 +139,7 @@ class _AdminUserListPageState extends State<AdminUserListPage> {
           ),
           SizedBox(height: 4),
           Text(
-            'Theo dõi và phê duyệt tài khoản hệ thống',
+            'Theo doi va phe duyet tai khoan he thong',
             style: TextStyle(
               fontSize: 14,
               color: Color(0xFF64748B),
@@ -121,9 +163,10 @@ class _AdminUserListPageState extends State<AdminUserListPage> {
                 color: const Color(0xFFEEF2FF),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const TextField(
-                decoration: InputDecoration(
-                  hintText: 'Tìm theo tên hoặc email...',
+              child: TextField(
+                controller: _searchController,
+                decoration: const InputDecoration(
+                  hintText: 'Tim theo ten, email hoac so dien thoai...',
                   hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
                   border: InputBorder.none,
                   icon: Icon(Icons.search, color: Color(0xFF94A3B8)),
@@ -152,7 +195,7 @@ class _AdminUserListPageState extends State<AdminUserListPage> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           const Text(
-            'DANH SÁCH THÀNH VIÊN',
+            'DANH SACH THANH VIEN',
             style: TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
@@ -166,9 +209,9 @@ class _AdminUserListPageState extends State<AdminUserListPage> {
               color: const Color(0xFFDBEAFE),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Text(
-              '1,284 Users',
-              style: TextStyle(
+            child: Text(
+              '${_users.length} Users',
+              style: const TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF2563EB),
@@ -181,22 +224,64 @@ class _AdminUserListPageState extends State<AdminUserListPage> {
   }
 
   Widget _buildUserList() {
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 48),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_errorMessage != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFEE2E2),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Text(
+            _errorMessage!,
+            style: const TextStyle(color: Color(0xFF991B1B)),
+          ),
+        ),
+      );
+    }
+
+    final users = _filteredUsers;
+    if (users.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+        child: Text(
+          'Khong co nguoi dung nao.',
+          style: TextStyle(
+            color: Color(0xFF64748B),
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: _users.length,
+      itemCount: users.length,
       itemBuilder: (context, index) {
-        final user = _users[index];
+        final user = users[index];
         return AdminUserCard(
           user: user,
-          onTap: () {
-            Navigator.push(
+          onTap: () async {
+            final updated = await Navigator.push<bool>(
               context,
               MaterialPageRoute(
                 builder: (context) => AdminUserProfilePage(user: user),
               ),
             );
+            if (updated == true) {
+              _loadUsers();
+            }
           },
         );
       },

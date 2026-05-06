@@ -22,6 +22,7 @@ class _AdminAddProductPageState extends State<AdminAddProductPage> {
   final ProductService _productService = ProductService();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _brandController = TextEditingController();
+  final TextEditingController _startingPriceController = TextEditingController();
   final TextEditingController _provenanceController = TextEditingController();
   final TextEditingController _authenticityController = TextEditingController();
   final TextEditingController _rarityRankController = TextEditingController();
@@ -39,6 +40,8 @@ class _AdminAddProductPageState extends State<AdminAddProductPage> {
 
     _nameController.text = product.name;
     _brandController.text = product.brand;
+    _startingPriceController.text =
+        product.startingPrice == 0 ? '' : product.startingPrice.toStringAsFixed(0);
     _provenanceController.text = product.provenance ?? '';
     _authenticityController.text = product.authenticity ?? '';
     _rarityRankController.text = product.rarityRank?.toString() ?? '';
@@ -49,6 +52,7 @@ class _AdminAddProductPageState extends State<AdminAddProductPage> {
   void dispose() {
     _nameController.dispose();
     _brandController.dispose();
+    _startingPriceController.dispose();
     _provenanceController.dispose();
     _authenticityController.dispose();
     _rarityRankController.dispose();
@@ -58,16 +62,19 @@ class _AdminAddProductPageState extends State<AdminAddProductPage> {
   Future<void> _saveProduct() async {
     final name = _nameController.text.trim();
     final brand = _brandController.text.trim();
+    final startingPrice = num.tryParse(
+      _startingPriceController.text.replaceAll(RegExp(r'[^0-9.]'), ''),
+    );
     final provenance = _provenanceController.text.trim();
     final authenticity = _authenticityController.text.trim();
     final rarityRankText = _rarityRankController.text.trim();
     final rarityRank =
         rarityRankText.isEmpty ? null : int.tryParse(rarityRankText);
 
-    if (name.isEmpty || brand.isEmpty || _imageUrls.isEmpty) {
+    if (name.isEmpty || brand.isEmpty || startingPrice == null || startingPrice <= 0 || _imageUrls.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Vui long nhap ten, thuong hieu va chon anh'),
+          content: Text('Vui long nhap ten, thuong hieu, gia khoi diem va chon anh'),
         ),
       );
       return;
@@ -96,6 +103,7 @@ class _AdminAddProductPageState extends State<AdminAddProductPage> {
       final body = {
         'name': name,
         'brand': brand,
+        'startingPrice': startingPrice,
         'imageUrls': _imageUrls,
         'categoryId': widget.product?.categoryId ?? 'auction',
         'status': widget.product?.status ?? 'DRAFT',
@@ -189,6 +197,7 @@ class _AdminAddProductPageState extends State<AdminAddProductPage> {
                     AddProductDetailsForm(
                       nameController: _nameController,
                       brandController: _brandController,
+                      startingPriceController: _startingPriceController,
                       provenanceController: _provenanceController,
                       authenticityController: _authenticityController,
                       rarityRankController: _rarityRankController,

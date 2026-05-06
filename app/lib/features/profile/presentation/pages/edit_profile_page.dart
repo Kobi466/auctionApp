@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../auth/data/auth_session.dart';
+import '../../../setting/data/models/profile_response.dart';
+import '../../../setting/data/profile_service.dart';
 import '../widgets/edit_profile_avatar.dart';
 import '../widgets/edit_profile_text_field.dart';
 
 class EditProfilePage extends StatefulWidget {
-  const EditProfilePage({super.key});
+  final ProfileResponse? profile;
+
+  const EditProfilePage({
+    super.key,
+    this.profile,
+  });
 
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
@@ -12,9 +20,18 @@ class EditProfilePage extends StatefulWidget {
 
 class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
-  final _fullNameController = TextEditingController(text: 'Lê Anh Tuấn');
-  final _phoneController = TextEditingController(text: '0987654321');
-  final _emailController = TextEditingController(text: 'tuana.le@rebid.luxury');
+  final _fullNameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
+  final ProfileService _profileService = ProfileService();
+  String _avatar = '';
+  bool _isSaving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fillForm(widget.profile);
+  }
 
   @override
   void dispose() {
@@ -52,9 +69,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
           child: Column(
             children: [
               EditProfileAvatar(
-                imageUrl: 'https://i.pravatar.cc/300',
+                imageUrl: _avatarUrl,
                 onCameraTap: () {
-                  // TODO: Implement image picker
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Chưa hỗ trợ đổi ảnh tại đây')),
+                  );
                 },
               ),
               const SizedBox(height: 32),
@@ -102,15 +121,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
-        onPressed: () {
-          if (_formKey.currentState!.validate()) {
-            // TODO: Call API to update profile
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Đã cập nhật thông tin thành công')),
-            );
-            Navigator.pop(context);
-          }
-        },
+        onPressed: _isSaving ? null : _saveProfile,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryBlue,
           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -119,8 +130,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
           elevation: 0,
         ),
-        child: const Text(
-          'Lưu thay đổi',
+        child: Text(
+          _isSaving ? 'Đang lưu...' : 'Lưu thay đổi',
           style: TextStyle(
             color: Colors.white,
             fontSize: 16,
@@ -128,6 +139,55 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
         ),
       ),
+    );
+  }
+
+  void _fillForm(ProfileResponse? profile) {
+    _fullNameController.text = profile?.fullName?.trim() ?? '';
+    _phoneController.text = profile?.phoneNumber?.trim() ?? '';
+    _emailController.text = profile?.email.trim() ?? '';
+    _avatar = profile?.avatar?.trim() ?? '';
+  }
+
+  String get _avatarUrl {
+    if (_avatar.isNotEmpty && !_avatar.startsWith('data:image/')) return _avatar;
+    return 'https://i.pravatar.cc/300?u=${widget.profile?.userId ?? 'profile'}';
+  }
+
+  Future<void> _saveProfile() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final accessToken = AuthSession.instance.accessToken;
+    if (accessToken == null || accessToken.isEmpty) {
+      _showError('Không tìm thấy access token');
+      return;
+    }
+
+    setState(() => _isSaving = true);
+    try {
+      final updatedProfile = await _profileService.updateProfile(
+        accessToken: accessToken,
+        fullName: _fullNameController.text.trim(),
+        email: _emailController.text.trim(),
+        phoneNumber: _phoneController.text.trim(),
+        avatar: _avatar,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Đã cập nhật thông tin thành công')),
+      );
+      Navigator.pop(context, updatedProfile);
+    } catch (error) {
+      if (!mounted) return;
+      _showError(error.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 class AddProductDetailsForm extends StatelessWidget {
   final TextEditingController? nameController;
   final TextEditingController? brandController;
+  final TextEditingController? startingPriceController;
   final TextEditingController? provenanceController;
   final TextEditingController? authenticityController;
   final TextEditingController? rarityRankController;
@@ -11,6 +12,7 @@ class AddProductDetailsForm extends StatelessWidget {
     super.key,
     this.nameController,
     this.brandController,
+    this.startingPriceController,
     this.provenanceController,
     this.authenticityController,
     this.rarityRankController,
@@ -29,14 +31,10 @@ class AddProductDetailsForm extends StatelessWidget {
         children: [
           const Row(
             children: [
-              Icon(
-                Icons.info_outline_rounded,
-                size: 20,
-                color: Color(0xFF2563EB),
-              ),
+              Icon(Icons.info_outline_rounded, size: 20, color: Color(0xFF2563EB)),
               SizedBox(width: 8),
               Text(
-                'THÔNG TIN CHI TIẾT',
+                'THONG TIN CHI TIET',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -48,26 +46,28 @@ class AddProductDetailsForm extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           _buildTextField(
-            label: 'Tên sản phẩm',
-            hint: 'VD: Đồng hồ Rolex Submariner 2023',
+            label: 'Ten san pham',
+            hint: 'VD: Dong ho Rolex Submariner 2023',
             controller: nameController,
           ),
           const SizedBox(height: 20),
           _buildTextField(
-            label: 'Thương hiệu',
+            label: 'Thuong hieu',
             hint: 'Rolex',
             controller: brandController,
           ),
           const SizedBox(height: 20),
           _buildTextField(
-            label: 'Giá khởi điểm',
-            hint: 'VND 0.000.000',
-            prefixText: 'VNĐ ',
+            label: 'Gia khoi diem',
+            hint: '150000000',
+            prefixText: 'VND ',
+            controller: startingPriceController,
+            keyboardType: TextInputType.number,
           ),
           const SizedBox(height: 20),
           _buildTextField(
-            label: 'Nguồn gốc (Provenance)',
-            hint: 'Lịch sử sở hữu, quốc gia xuất xứ...',
+            label: 'Nguon goc (Provenance)',
+            hint: 'Lich su so huu, quoc gia xuat xu...',
             maxLines: 3,
             controller: provenanceController,
           ),
@@ -120,19 +120,13 @@ class AddProductDetailsForm extends StatelessWidget {
             keyboardType: keyboardType,
             decoration: InputDecoration(
               hintText: hint,
-              hintStyle: const TextStyle(
-                color: Color(0xFF94A3B8),
-                fontSize: 14,
-              ),
+              hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
               prefixText: prefixText,
               prefixStyle: const TextStyle(
                 color: Color(0xFF4F46E5),
                 fontWeight: FontWeight.bold,
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               border: InputBorder.none,
             ),
           ),

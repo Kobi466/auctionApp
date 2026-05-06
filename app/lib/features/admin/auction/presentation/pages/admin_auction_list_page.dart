@@ -6,6 +6,7 @@ import '../../data/admin_auction_service.dart';
 import '../../../shared/widgets/admin_app_bar.dart';
 import '../../../shared/widgets/admin_bottom_navigation.dart';
 import '../widgets/admin_auction_card.dart';
+import 'admin_auction_detail_page.dart';
 import 'admin_create_auction_page.dart';
 
 class AdminAuctionListPage extends StatefulWidget {
@@ -191,6 +192,19 @@ class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
               timeRemaining: room?.status ?? '',
               currentBid: _formatMoney(room?.minimumBid),
               isLive: room?.status.toUpperCase() == 'LIVE',
+              onTap: () async {
+                final changed = await Navigator.push<bool>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => AdminAuctionDetailPage(
+                      product: product,
+                    ),
+                  ),
+                );
+                if (changed == true && mounted) {
+                  setState(_loadAuctionRooms);
+                }
+              },
             );
           },
         );
@@ -205,7 +219,7 @@ class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
         return status == 'SCHEDULED';
       }
       if (_selectedTab == 2) {
-        return status == 'CLOSED';
+        return status == 'CLOSED' || status == 'CANCELLED';
       }
       return status == 'LIVE';
     }).toList();

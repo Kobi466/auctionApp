@@ -1,13 +1,25 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
 
 class WalletCard extends StatelessWidget {
-  final double balance;
+  final num withdrawableBalance;
+  final num lockedDeposit;
+  final bool isLoading;
+  final VoidCallback? onWithdraw;
 
-  const WalletCard({super.key, required this.balance});
+  const WalletCard({
+    super.key,
+    required this.withdrawableBalance,
+    required this.lockedDeposit,
+    this.isLoading = false,
+    this.onWithdraw,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final canWithdraw = !isLoading && withdrawableBalance > 0;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -32,7 +44,7 @@ class WalletCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    'Tổng số dư',
+                    'Co the rut',
                     style: TextStyle(
                       color: Colors.white70,
                       fontSize: 14,
@@ -41,7 +53,7 @@ class WalletCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${balance.toStringAsFixed(0).replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]}.')}đ',
+                    isLoading ? 'Dang tai...' : _formatMoney(withdrawableBalance),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 28,
@@ -56,24 +68,65 @@ class WalletCard extends StatelessWidget {
                   color: Colors.white.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(Icons.account_balance_wallet, color: Colors.white, size: 28),
+                child: const Icon(
+                  Icons.account_balance_wallet,
+                  color: Colors.white,
+                  size: 28,
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Tien coc dang giu',
+                  style: TextStyle(
+                    color: Colors.white70,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  isLoading ? '...' : _formatMoney(lockedDeposit),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
           Row(
             children: [
               Expanded(
                 child: ElevatedButton(
-                  onPressed: () {},
+                  onPressed: canWithdraw ? onWithdraw : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: AppColors.primaryBlue,
+                    disabledBackgroundColor: Colors.white.withOpacity(0.4),
+                    disabledForegroundColor: AppColors.primaryBlue.withOpacity(0.5),
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text('Rút tiền', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'Rut tien',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -83,10 +136,15 @@ class WalletCard extends StatelessWidget {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white,
                     side: const BorderSide(color: Colors.white54),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text('Lịch sử', style: TextStyle(fontWeight: FontWeight.bold)),
+                  child: const Text(
+                    'Lich su',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ],
@@ -94,5 +152,14 @@ class WalletCard extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _formatMoney(num amount) {
+    final raw = amount.round().toString();
+    final formatted = raw.replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (match) => '${match[1]}.',
+    );
+    return '${formatted}d';
   }
 }

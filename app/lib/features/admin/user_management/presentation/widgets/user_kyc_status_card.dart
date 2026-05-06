@@ -26,28 +26,33 @@ class UserKycStatusCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Trạng thái xác thực',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
+              const Expanded(
+                child: Text(
+                  'Trang thai xac thuc',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF1E293B),
+                  ),
                 ),
               ),
+              const SizedBox(width: 12),
               _buildKycBadge(user.kycStatus),
             ],
           ),
           const SizedBox(height: 24),
           Row(
             children: [
-              Expanded(child: _buildInfoItem('SỐ CCCD', user.cccd ?? 'Chưa có')),
-              Expanded(child: _buildInfoItem('NGÀY SINH', user.dob ?? 'Chưa có')),
+              Expanded(child: _buildInfoItem('SO CCCD', user.cccd ?? 'Chua co')),
+              const SizedBox(width: 12),
+              Expanded(child: _buildInfoItem('NGAY SINH', user.dob ?? 'Chua co')),
             ],
           ),
           const SizedBox(height: 20),
-          _buildInfoItem('ĐỊA CHỈ', user.address ?? 'Chưa cập nhật'),
+          _buildInfoItem('DIA CHI', user.address ?? 'Chua cap nhat'),
         ],
       ),
     );
@@ -71,7 +76,7 @@ class UserKycStatusCard extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            isVerified ? 'Đã duyệt KYC' : 'Chưa xác thực',
+            isVerified ? 'Da duyet KYC' : 'Chua xac thuc',
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
@@ -99,6 +104,8 @@ class UserKycStatusCard extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
           style: const TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,

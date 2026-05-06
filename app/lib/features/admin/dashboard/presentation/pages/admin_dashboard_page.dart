@@ -4,6 +4,8 @@ import '../../../../../core/network/api_client.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../auth/data/auth_session.dart';
 import '../../../auction/presentation/pages/admin_auction_list_page.dart';
+import '../../../bank/presentation/pages/admin_bank_management_page.dart';
+import '../../../deposit/presentation/pages/admin_deposit_review_page.dart';
 import '../../../kyc/presentation/pages/kyc_approval_list_page.dart';
 import '../../../product/presentation/pages/admin_product_list_page.dart';
 import '../../../shared/guards/admin_access_guard.dart';
@@ -217,6 +219,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         ),
         const SizedBox(height: 12),
         _buildActionTile(
+          icon: Icons.account_balance_rounded,
+          title: 'Quan ly ngan hang',
+          subtitle: 'Them, sua, xoa tai khoan nhan tien',
+          onTap: _openBanks,
+        ),
+        const SizedBox(height: 12),
+        _buildActionTile(
           icon: Icons.verified_user_outlined,
           title: 'Duyet KYC',
           subtitle: 'Kiem tra ho so xac minh nguoi dung',
@@ -296,7 +305,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   void _openAuctions() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const AdminAuctionListPage()),
+      MaterialPageRoute(builder: (context) => const AdminDepositReviewPage()),
     );
   }
 
@@ -304,6 +313,13 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const KycApprovalListPage()),
+    );
+  }
+
+  void _openBanks() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const AdminBankManagementPage()),
     );
   }
 }

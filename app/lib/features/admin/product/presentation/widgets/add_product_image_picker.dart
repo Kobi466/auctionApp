@@ -1,6 +1,8 @@
-import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+
+import '../../../../../core/utils/image_provider_helper.dart';
 
 class AddProductImagePicker extends StatefulWidget {
   final List<String> initialImageUrls;
@@ -44,8 +46,16 @@ class _AddProductImagePickerState extends State<AddProductImagePicker> {
       );
 
       if (image != null) {
+        final bytes = await image.readAsBytes();
+        final extension = image.name.split('.').last.toLowerCase();
+        final mimeType = extension == 'png'
+            ? 'image/png'
+            : extension == 'webp'
+                ? 'image/webp'
+                : 'image/jpeg';
+        final encodedImage = 'data:$mimeType;base64,${base64Encode(bytes)}';
         setState(() {
-          _images.add(image.path);
+          _images.add(encodedImage);
         });
         _notifyImagesChanged();
       }
@@ -268,9 +278,6 @@ class _AddProductImagePickerState extends State<AddProductImagePicker> {
   }
 
   ImageProvider _buildImageProvider(String imageUrl) {
-    if (imageUrl.startsWith('http')) {
-      return NetworkImage(imageUrl);
-    }
-    return FileImage(File(imageUrl));
+    return appImageProvider(imageUrl);
   }
 }

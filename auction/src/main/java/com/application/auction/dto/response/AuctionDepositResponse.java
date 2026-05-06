@@ -21,7 +21,11 @@ public class AuctionDepositResponse {
     UUID id;
     UUID auctionRoomId;
     UUID productId;
+    String productName;
     UUID userId;
+    String username;
+    String userEmail;
+    String userFullName;
     BigDecimal requiredAmount;
     String transferContent;
     AuctionDepositStatus status;

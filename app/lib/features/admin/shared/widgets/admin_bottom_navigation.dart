@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../dashboard/presentation/pages/admin_dashboard_page.dart';
+import '../../deposit/presentation/pages/admin_deposit_review_page.dart';
 import '../../kyc/presentation/pages/kyc_approval_list_page.dart';
 import '../../auction/presentation/pages/admin_auction_list_page.dart';
 import '../../product/presentation/pages/admin_product_list_page.dart';
@@ -34,7 +35,7 @@ class AdminBottomNavigation extends StatelessWidget {
         nextPage = const AdminAuctionListPage();
         break;
       case 4:
-        nextPage = const AdminWinnerListPage();
+        nextPage = const AdminDepositReviewPage();
         break;
       default:
         return;

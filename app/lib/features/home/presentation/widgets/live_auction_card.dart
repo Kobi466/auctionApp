@@ -5,6 +5,7 @@ class LiveAuctionCard extends StatelessWidget {
   final String title;
   final String currentPrice;
   final String timeLeft;
+  final VoidCallback? onRegister;
 
   const LiveAuctionCard({
     super.key,
@@ -12,6 +13,7 @@ class LiveAuctionCard extends StatelessWidget {
     required this.title,
     required this.currentPrice,
     required this.timeLeft,
+    this.onRegister,
   });
 
   @override
@@ -35,7 +37,8 @@ class LiveAuctionCard extends StatelessWidget {
           Stack(
             children: [
               ClipRRect(
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
                 child: Image.network(
                   imageUrl,
                   height: 160,
@@ -52,13 +55,14 @@ class LiveAuctionCard extends StatelessWidget {
                 top: 12,
                 left: 12,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.pinkAccent.withOpacity(0.8),
                     borderRadius: BorderRadius.circular(20),
                   ),
-                  child: Row(
-                    children: const [
+                  child: const Row(
+                    children: [
                       CircleAvatar(radius: 3, backgroundColor: Colors.white),
                       SizedBox(width: 4),
                       Text(
@@ -77,14 +81,16 @@ class LiveAuctionCard extends StatelessWidget {
                 bottom: 12,
                 right: 12,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.6),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.access_time, color: Colors.white, size: 12),
+                      const Icon(Icons.access_time,
+                          color: Colors.white, size: 12),
                       const SizedBox(width: 4),
                       Text(
                         timeLeft,
@@ -140,25 +146,31 @@ class LiveAuctionCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF4F7DFF),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF4F7DFF).withOpacity(0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
+                    GestureDetector(
+                      onTap: onRegister,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF4F7DFF),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF4F7DFF).withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: const Text(
+                          'Đăng ký đấu giá',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
                           ),
-                        ],
-                      ),
-                      child: const Text(
-                        'Đăng ký đấu giá',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),

@@ -4,7 +4,14 @@ import '../../../home/presentation/widgets/custom_bottom_navigation.dart';
 import '../../../home/presentation/widgets/home_app_bar.dart';
 
 class JoinAuctionRoomPage extends StatefulWidget {
-  const JoinAuctionRoomPage({super.key});
+  final String? initialRoomCode;
+  final String? initialPassword;
+
+  const JoinAuctionRoomPage({
+    super.key,
+    this.initialRoomCode,
+    this.initialPassword,
+  });
 
   @override
   State<JoinAuctionRoomPage> createState() => _JoinAuctionRoomPageState();
@@ -14,6 +21,13 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
   final _roomCodeController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _roomCodeController.text = widget.initialRoomCode ?? '';
+    _passwordController.text = widget.initialPassword ?? '';
+  }
 
   @override
   void dispose() {

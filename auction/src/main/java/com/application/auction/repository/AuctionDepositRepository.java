@@ -11,5 +11,7 @@ import java.util.UUID;
 public interface AuctionDepositRepository extends JpaRepository<AuctionDeposit, UUID> {
     Optional<AuctionDeposit> findTopByAuctionRoomIdAndUserIdOrderByCreatedAtDesc(UUID auctionRoomId, UUID userId);
 
+    List<AuctionDeposit> findByUserIdOrderByCreatedAtDesc(UUID userId);
+
     List<AuctionDeposit> findByStatus(AuctionDepositStatus status);
 }

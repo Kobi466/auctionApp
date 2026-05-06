@@ -99,6 +99,31 @@ class ApiClient {
     }
   }
 
+  Future<Map<String, dynamic>> patch(
+    String endpoint, {
+    Map<String, dynamic>? body,
+    Map<String, String>? headers,
+  }) async {
+    final uri = Uri.parse('$baseUrl$endpoint');
+
+    try {
+      final response = await http
+          .patch(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              ...?headers,
+            },
+            body: jsonEncode(body ?? {}),
+          )
+          .timeout(const Duration(seconds: 15));
+
+      return _buildResponse(response);
+    } catch (_) {
+      throw Exception(_buildConnectionError(uri));
+    }
+  }
+
   Future<Map<String, dynamic>> delete(
     String endpoint, {
     Map<String, String>? headers,

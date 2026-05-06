@@ -1,8 +1,13 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
+import '../../../auction/presentation/widgets/auction_registration_flow.dart';
+import '../../../home/data/models/product_model.dart';
 
 class ProductDetailPage extends StatefulWidget {
-  const ProductDetailPage({super.key});
+  final ProductModel? product;
+
+  const ProductDetailPage({super.key, this.product});
 
   @override
   State<ProductDetailPage> createState() => _ProductDetailPageState();
@@ -12,12 +17,24 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
-  final List<String> _productImages = [
-    'https://images.unsplash.com/photo-1547996160-81dfa63595dd',
-    'https://images.unsplash.com/photo-1523170335258-f5ed11844a49',
-    'https://images.unsplash.com/photo-1614164185128-e4ec99c436d7',
-    'https://images.unsplash.com/photo-1587836374828-4dbaba94ee0e',
-  ];
+  ProductModel? get _product => widget.product;
+
+  List<String> get _productImages {
+    final product = _product;
+    if (product == null) {
+      return const [
+        'https://images.unsplash.com/photo-1547996160-81dfa63595dd',
+        'https://images.unsplash.com/photo-1523170335258-f5ed11844a49',
+      ];
+    }
+
+    final images = [
+      if ((product.mainImageUrl ?? '').trim().isNotEmpty)
+        product.mainImageUrl!.trim(),
+      ...product.imageUrls.where((url) => url.trim().isNotEmpty),
+    ];
+    return images.toSet().toList();
+  }
 
   @override
   void dispose() {
@@ -27,6 +44,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final product = _product;
+    final room = product?.auctionRoom;
+
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFF),
       body: Stack(
@@ -35,18 +55,19 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 1. Product Image Slider
                 _buildProductImageSlider(context),
-                
                 Padding(
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 2. Brand & Name
-                      const Text(
-                        'ROLEX • 126610LN',
-                        style: TextStyle(
+                      Text(
+                        product == null
+                            ? 'ROLEX'
+                            : '${product.brand} - ${product.categoryId}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
                           color: Color(0xFF6366F1),
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -54,9 +75,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Text(
-                        'Rolex Submariner Date 2023',
-                        style: TextStyle(
+                      Text(
+                        product?.name ?? 'Rolex Submariner Date 2023',
+                        style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF1E293B),
@@ -64,14 +85,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       ),
                       const SizedBox(height: 12),
                       Row(
-                        children: const [
-                          Text(
-                            'Giá khởi điểm: ',
-                            style: TextStyle(color: Color(0xFF64748B), fontSize: 16),
+                        children: [
+                          const Text(
+                            'Gia khoi diem: ',
+                            style: TextStyle(
+                              color: Color(0xFF64748B),
+                              fontSize: 16,
+                            ),
                           ),
                           Text(
-                            '18.500.000đ',
-                            style: TextStyle(
+                            _formatMoney(room?.minimumBid),
+                            style: const TextStyle(
                               color: Color(0xFF2563EB),
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -80,31 +104,22 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         ],
                       ),
                       const SizedBox(height: 24),
-
-                      // 3. Info Grid
                       _buildInfoGrid(),
                       const SizedBox(height: 24),
-
-                      // 4. Mô tả sản phẩm
                       _buildSection(
-                        title: 'MÔ TẢ SẢN PHẨM',
+                        title: 'MO TA SAN PHAM',
                         icon: Icons.info_outline,
-                        content: 'Phiên bản Rolex Submariner Date 2023 với kích thước 41mm, vỏ thép Oystersteel bền bỉ. Niềng xoay Cerachrom đen bóng sang trọng.\n\nBộ máy Calibre 3235 tiên tiến cung cấp khả năng dự trữ năng lượng lên đến 70 giờ, độ chính xác -2/+2 giây mỗi ngày.',
+                        content: _description,
                       ),
                       const SizedBox(height: 16),
-
-                      // 5. Thông số kỹ thuật
                       _buildSpecsSection(),
                       const SizedBox(height: 16),
-
-                      // 6. Nguồn gốc
                       _buildSection(
-                        title: 'NGUỒN GỐC & TÍNH MINH BẠCH',
+                        title: 'NGUON GOC & MINH BACH',
                         icon: Icons.verified_user_outlined,
-                        content: 'Sản phẩm được đấu giá trực tiếp từ đại lý ủy quyền tại Tokyo, Nhật Bản. Đã qua quy trình kiểm tra 12 bước nghiêm ngặt của đội ngũ chuyên gia ReBid.',
+                        content: _provenance,
                         footer: _buildNFTCertificate(),
                       ),
-                      
                       const SizedBox(height: 120),
                     ],
                   ),
@@ -112,15 +127,28 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               ],
             ),
           ),
-          
-          // Custom AppBar
           _buildAppBar(context),
-          
-          // Bottom Navigation Bar
           _buildStickyBottomBar(context),
         ],
       ),
     );
+  }
+
+  String get _description {
+    final product = _product;
+    final description = product?.description ?? product?.shortDescription;
+    if (description != null && description.trim().isNotEmpty) {
+      return description.trim();
+    }
+    return 'San pham dang duoc dau gia tren he thong ReBid.';
+  }
+
+  String get _provenance {
+    final provenance = _product?.provenance;
+    if (provenance != null && provenance.trim().isNotEmpty) {
+      return provenance.trim();
+    }
+    return 'San pham da duoc quan tri vien kiem tra thong tin truoc khi dua len san dau gia.';
   }
 
   Widget _buildAppBar(BuildContext context) {
@@ -159,6 +187,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _buildProductImageSlider(BuildContext context) {
+    final images = _productImages;
+
     return Stack(
       children: [
         Container(
@@ -171,54 +201,66 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               bottomRight: Radius.circular(32),
             ),
           ),
-          child: PageView.builder(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentPage = index;
-              });
-            },
-            itemCount: _productImages.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: const EdgeInsets.only(top: 60, bottom: 40),
-                child: Image.network(
-                  _productImages[index],
-                  fit: BoxFit.contain,
+          child: images.isEmpty
+              ? const Icon(
+                  Icons.inventory_2_outlined,
+                  color: AppColors.primaryBlue,
+                  size: 80,
+                )
+              : PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentPage = index;
+                    });
+                  },
+                  itemCount: images.length,
+                  itemBuilder: (context, index) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 60, bottom: 40),
+                      child: Image.network(
+                        images[index],
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => const Icon(
+                          Icons.image_not_supported_outlined,
+                          color: Color(0xFF94A3B8),
+                          size: 64,
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
-          ),
         ),
-        // Indicators
-        Positioned(
-          bottom: 20,
-          left: 0,
-          right: 0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: List.generate(
-              _productImages.length,
-              (index) => AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                height: 8,
-                width: _currentPage == index ? 24 : 8,
-                decoration: BoxDecoration(
-                  color: _currentPage == index 
-                      ? const Color(0xFF2563EB) 
-                      : const Color(0xFFCBD5E1),
-                  borderRadius: BorderRadius.circular(4),
+        if (images.length > 1)
+          Positioned(
+            bottom: 20,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                images.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  height: 8,
+                  width: _currentPage == index ? 24 : 8,
+                  decoration: BoxDecoration(
+                    color: _currentPage == index
+                        ? const Color(0xFF2563EB)
+                        : const Color(0xFFCBD5E1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
                 ),
               ),
             ),
           ),
-        ),
       ],
     );
   }
 
   Widget _buildInfoGrid() {
+    final product = _product;
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -227,10 +269,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       crossAxisSpacing: 12,
       childAspectRatio: 2.2,
       children: [
-        _buildInfoCard(Icons.check_circle_outline, 'TÌNH TRẠNG', 'Mới (Unworn)'),
-        _buildInfoCard(Icons.verified_outlined, 'KIỂM ĐỊNH', '100% Chính hãng'),
-        _buildInfoCard(Icons.public, 'XUẤT XỨ', 'Nhật Bản'),
-        _buildInfoCard(Icons.inventory_2_outlined, 'PHỤ KIỆN', 'Hộp, Sổ, Thẻ'),
+        _buildInfoCard(Icons.check_circle_outline, 'TRANG THAI', product?.status ?? 'LIVE'),
+        _buildInfoCard(Icons.verified_outlined, 'XAC THUC', product?.authenticity ?? 'Dang kiem tra'),
+        _buildInfoCard(Icons.business_rounded, 'THUONG HIEU', product?.brand ?? 'Rolex'),
+        _buildInfoCard(Icons.category_outlined, 'DANH MUC', product?.categoryId ?? 'Auction'),
       ],
     );
   }
@@ -252,8 +294,26 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(label, style: const TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
-                Text(value, style: const TextStyle(fontSize: 12, color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: Color(0xFF94A3B8),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  value,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: Color(0xFF1E293B),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ],
             ),
           ),
@@ -262,7 +322,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 
-  Widget _buildSection({required String title, required IconData icon, required String content, Widget? footer}) {
+  Widget _buildSection({
+    required String title,
+    required IconData icon,
+    required String content,
+    Widget? footer,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -277,11 +342,28 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             children: [
               Icon(icon, size: 18, color: const Color(0xFF64748B)),
               const SizedBox(width: 8),
-              Text(title, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF64748B), letterSpacing: 0.5)),
+              Expanded(
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF64748B),
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(content, style: const TextStyle(fontSize: 14, color: Color(0xFF334155), height: 1.5)),
+          Text(
+            content,
+            style: const TextStyle(
+              fontSize: 14,
+              color: Color(0xFF334155),
+              height: 1.5,
+            ),
+          ),
           if (footer != null) ...[
             const SizedBox(height: 16),
             footer,
@@ -292,12 +374,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _buildSpecsSection() {
+    final product = _product;
     final specs = {
-      'Thương hiệu': 'Rolex',
-      'Bộ sưu tập': 'Submariner',
-      'Mã máy': '126610LN-0001',
-      'Kích thước': '41 mm',
-      'Chống nước': '300m / 1000ft',
+      'Thuong hieu': product?.brand ?? 'Rolex',
+      'Danh muc': product?.categoryId ?? 'Auction',
+      'Do hiem': product?.rarityRank?.toString() ?? 'Chua cap nhat',
+      'Trang thai phong': product?.auctionRoom?.status ?? 'Chua co phong',
+      'Gia coc': _formatMoney(product?.auctionRoom?.depositAmount),
     };
 
     return Container(
@@ -309,24 +392,54 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: const [
+          const Row(
+            children: [
               Icon(Icons.list_alt, size: 18, color: Color(0xFF64748B)),
               SizedBox(width: 8),
-              Text('THÔNG SỐ KỸ THUẬT', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Color(0xFF64748B))),
+              Text(
+                'THONG SO SAN PHAM',
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF64748B),
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 16),
-          ...specs.entries.map((e) => Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(e.key, style: const TextStyle(color: Color(0xFF64748B), fontSize: 13)),
-                Text(e.value, style: const TextStyle(color: Color(0xFF1E293B), fontWeight: FontWeight.bold, fontSize: 13)),
-              ],
+          ...specs.entries.map(
+            (entry) => Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Text(
+                      entry.key,
+                      style: const TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      entry.value,
+                      textAlign: TextAlign.right,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF1E293B),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          )).toList(),
+          ),
         ],
       ),
     );
@@ -339,28 +452,54 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         color: const Color(0xFFF0F7FF),
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Row(
+      child: const Row(
         mainAxisSize: MainAxisSize.min,
-        children: const [
+        children: [
           Icon(Icons.verified, size: 16, color: Color(0xFF2563EB)),
           SizedBox(width: 6),
-          Text('CHỨNG CHỈ SỐ NFT ĐI KÈM', style: TextStyle(color: Color(0xFF2563EB), fontSize: 11, fontWeight: FontWeight.bold)),
+          Flexible(
+            child: Text(
+              'CHUNG CHI SO DI KEM',
+              style: TextStyle(
+                color: Color(0xFF2563EB),
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildStickyBottomBar(BuildContext context) {
+    final room = _product?.auctionRoom;
+    final isLive = room?.status.toUpperCase() == 'LIVE';
+
     return Positioned(
       bottom: 0,
       left: 0,
       right: 0,
       child: Container(
-        padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
+        padding: EdgeInsets.fromLTRB(
+          20,
+          16,
+          20,
+          MediaQuery.of(context).padding.bottom + 16,
+        ),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: const BorderRadius.only(topLeft: Radius.circular(32), topRight: Radius.circular(32)),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 20, offset: const Offset(0, -5))],
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(32),
+            topRight: Radius.circular(32),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 20,
+              offset: const Offset(0, -5),
+            ),
+          ],
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -370,18 +509,46 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text('ĐANG ĐẤU GIÁ', style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
-                    SizedBox(height: 4),
-                    Text('18.500.000đ', style: TextStyle(fontSize: 18, color: Color(0xFF2563EB), fontWeight: FontWeight.w900)),
+                  children: [
+                    const Text(
+                      'GIA KHOI DIEM',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF94A3B8),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatMoney(room?.minimumBid),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        color: Color(0xFF2563EB),
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
                   ],
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
-                  children: const [
-                    Text('KẾT THÚC SAU', style: TextStyle(fontSize: 10, color: Color(0xFF94A3B8), fontWeight: FontWeight.bold)),
-                    SizedBox(height: 4),
-                    Text('02h : 14p : 55s', style: TextStyle(fontSize: 14, color: Color(0xFF1E293B), fontWeight: FontWeight.bold)),
+                  children: [
+                    const Text(
+                      'TRANG THAI',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Color(0xFF94A3B8),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      room?.status ?? 'Chua co phong',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        color: Color(0xFF1E293B),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -391,18 +558,44 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: room == null || _product == null
+                    ? null
+                    : () => AuctionRegistrationFlow.start(
+                          context,
+                          product: _product!,
+                        ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2563EB),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  disabledBackgroundColor: const Color(0xFFCBD5E1),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   elevation: 0,
                 ),
-                child: const Text('Tham gia phòng đấu giá', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                child: Text(
+                  isLive ? 'Tham gia phong dau gia' : 'Theo doi san pham',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  String _formatMoney(num? amount) {
+    final value = amount ?? 0;
+    final raw = value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 2);
+    final parts = raw.split('.');
+    final whole = parts.first.replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (match) => '${match[1]}.',
+    );
+    return parts.length == 1 ? '${whole}d' : '$whole,${parts.last}d';
   }
 }

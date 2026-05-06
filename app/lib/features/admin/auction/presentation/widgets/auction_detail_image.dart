@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/utils/image_provider_helper.dart';
+
 class AuctionDetailImage extends StatelessWidget {
   final String imageUrl;
   final bool isLive;
@@ -19,10 +21,21 @@ class AuctionDetailImage extends StatelessWidget {
           height: 300,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(32),
-            image: DecorationImage(
-              image: NetworkImage(imageUrl),
-              fit: BoxFit.cover,
-            ),
+            color: const Color(0xFFE2E8F0),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Image(
+            image: appImageProvider(imageUrl),
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return const Center(
+                child: Icon(
+                  Icons.image_not_supported_outlined,
+                  color: Color(0xFF94A3B8),
+                  size: 48,
+                ),
+              );
+            },
           ),
         ),
         if (isLive)

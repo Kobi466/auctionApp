@@ -39,7 +39,11 @@ class UserProfileHeader extends StatelessWidget {
                   child: user.avatar == null
                       ? Text(
                           user.name[0].toUpperCase(),
-                          style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Color(0xFF4F46E5)),
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF4F46E5),
+                          ),
                         )
                       : null,
                 ),
@@ -62,6 +66,9 @@ class UserProfileHeader extends StatelessWidget {
           const SizedBox(height: 16),
           Text(
             user.name,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w900,
@@ -77,6 +84,8 @@ class UserProfileHeader extends StatelessWidget {
             ),
             child: Text(
               user.role.toUpperCase(),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
@@ -86,9 +95,9 @@ class UserProfileHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _buildInfoRow(Icons.email_outlined, 'EMAIL', user.email ?? 'Chưa cập nhật'),
+          _buildInfoRow(Icons.email_outlined, 'EMAIL', user.email ?? 'Chua cap nhat'),
           const SizedBox(height: 12),
-          _buildInfoRow(Icons.phone_outlined, 'SỐ ĐIỆN THOẠI', user.phone ?? 'Chưa cập nhật'),
+          _buildInfoRow(Icons.phone_outlined, 'SO DIEN THOAI', user.phone ?? 'Chua cap nhat'),
         ],
       ),
     );
@@ -112,18 +121,32 @@ class UserProfileHeader extends StatelessWidget {
             child: Icon(icon, color: const Color(0xFF2563EB), size: 20),
           ),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Color(0xFF94A3B8)),
-              ),
-              Text(
-                value,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: Color(0xFF1E293B)),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF94A3B8),
+                  ),
+                ),
+                Text(
+                  value,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1E293B),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

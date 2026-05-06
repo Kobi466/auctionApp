@@ -2,8 +2,10 @@ package com.application.auction.service;
 
 import com.application.auction.dto.request.ProductRequest;
 import com.application.auction.dto.response.ProductResponse;
+import com.application.auction.entity.AuctionRoom;
 import com.application.auction.entity.Product;
 import com.application.auction.entity.User;
+import com.application.auction.enums.AuctionRoomStatus;
 import com.application.auction.enums.ErrorCode;
 import com.application.auction.exception.AppException;
 import com.application.auction.mapper.AuctionRoomMapper;
@@ -19,6 +21,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -52,6 +56,7 @@ public class ProductService {
         productMapper.updateProduct(product, sanitizedRequest);
         product.setCreatedByAdminId(getCurrentAdmin().getId());
         Product savedProduct = productRepository.save(product);
+        syncAuctionRoomMinimumBid(savedProduct);
 
         return toResponse(savedProduct);
     }
@@ -84,6 +89,7 @@ public class ProductService {
                 .name(requireText(request.getName(), ErrorCode.PRODUCT_NAME_REQUIRED))
                 .subTitle(normalize(request.getSubTitle()))
                 .brand(requireText(request.getBrand(), ErrorCode.PRODUCT_BRAND_REQUIRED))
+                .startingPrice(requirePositiveAmount(request.getStartingPrice()))
                 .description(normalize(request.getDescription()))
                 .shortDescription(normalize(request.getShortDescription()))
                 .imageUrls(requireImageUrls(request.getImageUrls()))
@@ -101,6 +107,7 @@ public class ProductService {
                 .build();
     }
 
+    //validate image urls
     private List<String> requireImageUrls(List<String> imageUrls) {
         if (imageUrls == null) {
             throw new AppException(ErrorCode.PRODUCT_IMAGES_REQUIRED);
@@ -116,7 +123,7 @@ public class ProductService {
         }
         return normalizedImages;
     }
-
+    //validate text
     private String requireText(String value, ErrorCode errorCode) {
         String normalized = normalize(value);
         if (normalized == null) {
@@ -124,7 +131,14 @@ public class ProductService {
         }
         return normalized;
     }
-
+    //validate positive amount
+    private BigDecimal requirePositiveAmount(BigDecimal value) {
+        if (value == null || value.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new AppException(ErrorCode.AUCTION_MINIMUM_BID_REQUIRED);
+        }
+        return value;
+    }
+    //normalize string (làm sạch)
     private String normalize(String value) {
         if (value == null) {
             return null;
@@ -132,19 +146,46 @@ public class ProductService {
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
     }
-
+    //get current admin
     private User getCurrentAdmin() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
-
+    //convert product to response
     private ProductResponse toResponse(Product product) {
         ProductResponse response = productMapper.toProductResponse(product);
         auctionRoomRepository.findByProductId(product.getId())
+                .map(this::applyCurrentAuctionRoomStatus)
                 .map(auctionRoomMapper::toAuctionRoomResponse)
                 .ifPresent(response::setAuctionRoom);
         return response;
+    }
+    //sync auction room minimum bid
+    private void syncAuctionRoomMinimumBid(Product product) {
+        auctionRoomRepository.findByProductId(product.getId()).ifPresent(room -> {
+            room.setMinimumBid(product.getStartingPrice());
+            auctionRoomRepository.save(room);
+        });
+    }
+    //cập nhật trạng thái phòng đấu giá
+    private AuctionRoom applyCurrentAuctionRoomStatus(AuctionRoom auctionRoom) {
+        auctionRoom.setStatus(resolveAuctionRoomStatus(
+                auctionRoom.getStartTime(),
+                auctionRoom.getEndTime()
+        ));
+        return auctionRoom;
+    }
+    //xác định trạng thái phòng đấu giá
+    private AuctionRoomStatus resolveAuctionRoomStatus(Instant startTime, Instant endTime) {
+        Instant now = Instant.now();
+        if (now.isBefore(startTime)) {
+            return AuctionRoomStatus.SCHEDULED;
+        }
+        if (now.isAfter(endTime)) {
+            return AuctionRoomStatus.CLOSED;
+        }
+        return AuctionRoomStatus.LIVE;
     }
 
 }

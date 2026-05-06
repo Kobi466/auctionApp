@@ -44,6 +44,13 @@ public class AuctionRoomController {
                 .build();
     }
 
+    @PutMapping("/{roomId}/cancel")
+    public ApiResponse<ProductResponse> cancelAuctionRoom(@PathVariable UUID roomId) {
+        return ApiResponse.<ProductResponse>builder()
+                .result(auctionRoomService.cancelAuctionRoom(roomId))
+                .build();
+    }
+
     @GetMapping
     public ApiResponse<List<ProductResponse>> getProductsWithAuctionRooms() {
         return ApiResponse.<List<ProductResponse>>builder()

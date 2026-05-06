@@ -10,7 +10,6 @@ class AdminUserService {
   Future<List<AdminUserModel>> getUsers({
     required String accessToken,
   }) async {
-    // Giả định API endpoint là /admin/users
     final response = await _apiClient.get(
       '/admin/users',
       headers: {
@@ -18,8 +17,9 @@ class AdminUserService {
       },
     );
 
-    final int statusCode = response['statusCode'] as int;
-    final Map<String, dynamic> body = response['body'] as Map<String, dynamic>;
+    final int statusCode = response['statusCode'] as int? ?? 0;
+    final Map<String, dynamic> body =
+        response['body'] as Map<String, dynamic>? ?? <String, dynamic>{};
 
     final apiResponse = ApiResponse<List<AdminUserModel>>.fromJson(
       body,
@@ -32,6 +32,85 @@ class AdminUserService {
       return apiResponse.data ?? const [];
     }
 
-    throw Exception(apiResponse.message.isNotEmpty ? apiResponse.message : 'Không thể tải danh sách người dùng');
+    throw Exception(
+      apiResponse.message.isNotEmpty
+          ? apiResponse.message
+          : 'Khong the tai danh sach nguoi dung',
+    );
+  }
+
+  Future<AdminUserModel> updateUserStatus({
+    required String accessToken,
+    required String userId,
+    required bool active,
+    String? reason,
+  }) async {
+    final response = await _apiClient.patch(
+      '/admin/users/$userId/status',
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+      body: {
+        'active': active,
+        'reason': reason,
+      },
+    );
+
+    final int statusCode = response['statusCode'] as int? ?? 0;
+    final Map<String, dynamic> body =
+        response['body'] as Map<String, dynamic>? ?? <String, dynamic>{};
+
+    final apiResponse = ApiResponse<AdminUserModel>.fromJson(
+      body,
+      (json) => AdminUserModel.fromJson(json as Map<String, dynamic>),
+    );
+
+    if (statusCode >= 200 &&
+        statusCode < 300 &&
+        apiResponse.isSuccess &&
+        apiResponse.data != null) {
+      return apiResponse.data!;
+    }
+
+    throw Exception(
+      apiResponse.message.isNotEmpty
+          ? apiResponse.message
+          : 'Khong cap nhat duoc trang thai tai khoan',
+    );
+  }
+
+  Future<void> sendNotification({
+    required String accessToken,
+    required String userId,
+    required String title,
+    required String message,
+    String type = 'ADMIN_MESSAGE',
+  }) async {
+    final response = await _apiClient.post(
+      '/admin/users/$userId/notifications',
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+      },
+      body: {
+        'title': title,
+        'message': message,
+        'type': type,
+      },
+    );
+
+    final int statusCode = response['statusCode'] as int? ?? 0;
+    final Map<String, dynamic> body =
+        response['body'] as Map<String, dynamic>? ?? <String, dynamic>{};
+    final apiResponse = ApiResponse<void>.fromJson(body, null);
+
+    if (statusCode >= 200 && statusCode < 300 && apiResponse.isSuccess) {
+      return;
+    }
+
+    throw Exception(
+      apiResponse.message.isNotEmpty
+          ? apiResponse.message
+          : 'Khong gui duoc thong bao',
+    );
   }
 }

@@ -54,6 +54,13 @@ public class AuctionParticipationController {
                 .build();
     }
 
+    @GetMapping("/deposits/me")
+    public ApiResponse<List<AuctionDepositResponse>> getMyDeposits() {
+        return ApiResponse.<List<AuctionDepositResponse>>builder()
+                .result(auctionParticipationService.getMyDeposits())
+                .build();
+    }
+
     @GetMapping("/deposits")
     public ApiResponse<List<AuctionDepositResponse>> getDeposits(
             @RequestParam(required = false) String status

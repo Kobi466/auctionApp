@@ -8,10 +8,15 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/auction-payment-config")
@@ -33,5 +38,35 @@ public class AuctionPaymentConfigController {
         return ApiResponse.<AuctionPaymentConfigResponse>builder()
                 .result(auctionPaymentConfigService.getActive())
                 .build();
+    }
+
+    @GetMapping("/all")
+    public ApiResponse<List<AuctionPaymentConfigResponse>> getAll() {
+        return ApiResponse.<List<AuctionPaymentConfigResponse>>builder()
+                .result(auctionPaymentConfigService.getAll())
+                .build();
+    }
+
+    @PostMapping
+    public ApiResponse<AuctionPaymentConfigResponse> create(@RequestBody AuctionPaymentConfigRequest request) {
+        return ApiResponse.<AuctionPaymentConfigResponse>builder()
+                .result(auctionPaymentConfigService.create(request))
+                .build();
+    }
+
+    @PutMapping("/{id}")
+    public ApiResponse<AuctionPaymentConfigResponse> update(
+            @PathVariable Long id,
+            @RequestBody AuctionPaymentConfigRequest request
+    ) {
+        return ApiResponse.<AuctionPaymentConfigResponse>builder()
+                .result(auctionPaymentConfigService.update(id, request))
+                .build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ApiResponse<Void> delete(@PathVariable Long id) {
+        auctionPaymentConfigService.delete(id);
+        return ApiResponse.<Void>builder().build();
     }
 }

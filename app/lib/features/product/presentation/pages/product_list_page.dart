@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
+import '../../../auction/presentation/widgets/auction_registration_flow.dart';
+import '../../../auth/data/auth_session.dart';
+import '../../../home/data/models/product_model.dart';
+import '../../../home/data/product_service.dart';
 import '../../../home/presentation/widgets/custom_bottom_navigation.dart';
+import '../../../home/presentation/widgets/home_app_bar.dart';
 import '../widgets/user_product_card.dart';
 import 'product_detail_page.dart';
-import '../../../home/presentation/widgets/home_app_bar.dart';
 
 class ProductListPage extends StatefulWidget {
   const ProductListPage({super.key});
@@ -12,19 +17,49 @@ class ProductListPage extends StatefulWidget {
   State<ProductListPage> createState() => _ProductListPageState();
 }
 
-class _ProductListPageState extends State<ProductListPage> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _ProductListPageState extends State<ProductListPage>
+    with SingleTickerProviderStateMixin {
+  final ProductService _productService = ProductService();
+  final TextEditingController _searchController = TextEditingController();
+
+  late final TabController _tabController;
+  late Future<List<ProductModel>> _productsFuture;
+  String _keyword = '';
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _productsFuture = _loadProducts();
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
+  }
+
+  Future<List<ProductModel>> _loadProducts() {
+    final accessToken = AuthSession.instance.accessToken ?? '';
+    if (accessToken.isEmpty) {
+      return Future.error('Vui lòng đăng nhập để xem sản phẩm');
+    }
+
+    return _productService.getProducts(accessToken: accessToken);
+  }
+
+  Future<void> _refreshProducts() async {
+    setState(() {
+      _productsFuture = _loadProducts();
+    });
+    await _productsFuture;
+  }
+
+  void _retryLoadProducts() {
+    setState(() {
+      _productsFuture = _loadProducts();
+    });
   }
 
   @override
@@ -34,20 +69,34 @@ class _ProductListPageState extends State<ProductListPage> with SingleTickerProv
       body: SafeArea(
         child: Column(
           children: [
-            HomeAppBar(),
+            const HomeAppBar(),
             const SizedBox(height: 16),
             _buildSearchBar(),
             const SizedBox(height: 16),
             _buildTabs(),
             const SizedBox(height: 16),
             Expanded(
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _buildProductList(), // Tất cả
-                  _buildProductList(onlyLive: true), // Đang diễn ra
-                  _buildProductList(onlyUpcoming: true), // Sắp diễn ra
-                ],
+              child: FutureBuilder<List<ProductModel>>(
+                future: _productsFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (snapshot.hasError) {
+                    return _buildErrorState(snapshot.error.toString());
+                  }
+
+                  final products = snapshot.data ?? const <ProductModel>[];
+                  return TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildProductList(products),
+                      _buildProductList(products, onlyLive: true),
+                      _buildProductList(products, onlyUpcoming: true),
+                    ],
+                  );
+                },
               ),
             ),
           ],
@@ -76,8 +125,14 @@ class _ProductListPageState extends State<ProductListPage> with SingleTickerProv
                   ),
                 ],
               ),
-              child: const TextField(
-                decoration: InputDecoration(
+              child: TextField(
+                controller: _searchController,
+                onChanged: (value) {
+                  setState(() {
+                    _keyword = value.trim().toLowerCase();
+                  });
+                },
+                decoration: const InputDecoration(
                   hintText: 'Tìm kiếm sản phẩm...',
                   hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
                   prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8)),
@@ -133,63 +188,153 @@ class _ProductListPageState extends State<ProductListPage> with SingleTickerProv
     );
   }
 
-  Widget _buildProductList({bool onlyLive = false, bool onlyUpcoming = false}) {
-    final allItems = [
-      {
-        'title': 'MacBook Pro M3 Max 64GB',
-        'image': 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8',
-        'time': '00:45:12',
-        'price': '64.200kđ',
-        'participants': 45,
-        'isLive': true,
-      },
-      {
-        'title': 'Hermès Birkin 25 – Blue Nuit',
-        'image': 'https://images.unsplash.com/photo-1584917865442-de89df76afd3',
-        'time': '1h 20m',
-        'price': '450.000kđ',
-        'participants': 0,
-        'isLive': false,
-      },
-      {
-        'title': 'Eames Lounge Chair & ...',
-        'image': 'https://images.unsplash.com/photo-1567538096630-e0c55bd6374c',
-        'time': '2h 45m',
-        'price': '112.000kđ',
-        'participants': 0,
-        'isLive': false,
-      },
-    ];
+  Widget _buildProductList(
+    List<ProductModel> products, {
+    bool onlyLive = false,
+    bool onlyUpcoming = false,
+  }) {
+    final auctionProducts = products.where((product) {
+      return product.auctionRoom != null;
+    });
 
-    final items = allItems.where((item) {
-      if (onlyLive) return item['isLive'] == true;
-      if (onlyUpcoming) return item['isLive'] == false;
-      return true;
+    final items = auctionProducts.where((product) {
+      final status = product.auctionRoom?.status.toUpperCase() ?? '';
+      final matchesTab = onlyLive
+          ? status == 'LIVE'
+          : onlyUpcoming
+              ? status == 'SCHEDULED'
+              : true;
+      final matchesKeyword = _keyword.isEmpty ||
+          product.name.toLowerCase().contains(_keyword) ||
+          product.brand.toLowerCase().contains(_keyword) ||
+          product.categoryId.toLowerCase().contains(_keyword);
+
+      return matchesTab && matchesKeyword;
     }).toList();
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(20),
-      itemCount: items.length,
-      itemBuilder: (context, index) {
-        final item = items[index];
-        return UserProductCard(
-          title: item['title'] as String,
-          imageUrl: item['image'] as String,
-          time: item['time'] as String,
-          price: item['price'] as String,
-          participants: item['participants'] as int,
-          isLive: item['isLive'] as bool,
-          onDetails: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const ProductDetailPage()),
-            );
-          },
-          onAction: () {
-            // Xử lý đấu giá
-          },
-        );
-      },
+    if (items.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: _refreshProducts,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(32),
+          children: const [
+            SizedBox(height: 120),
+            Icon(Icons.inventory_2_outlined, size: 56, color: Color(0xFF94A3B8)),
+            SizedBox(height: 12),
+            Center(
+              child: Text(
+                'Không có sản phẩm phù hợp',
+                style: TextStyle(
+                  color: Color(0xFF64748B),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _refreshProducts,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.all(20),
+        itemCount: items.length,
+        itemBuilder: (context, index) {
+          final product = items[index];
+          final room = product.auctionRoom;
+          final isLive = room?.status.toUpperCase() == 'LIVE';
+
+          return UserProductCard(
+            title: product.name,
+            imageUrl: product.displayImage,
+            time: _formatAuctionTime(product),
+            price: _formatMoney(room?.minimumBid),
+            participants: 0,
+            isLive: isLive,
+            onDetails: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ProductDetailPage(product: product),
+                ),
+              );
+            },
+            onAction: () {
+              AuctionRegistrationFlow.start(context, product: product);
+            },
+          );
+        },
+      ),
     );
+  }
+
+  Widget _buildErrorState(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.wifi_off_rounded, size: 52, color: Color(0xFF94A3B8)),
+            const SizedBox(height: 12),
+            Text(
+              message.replaceFirst('Exception: ', ''),
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _retryLoadProducts,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryBlue,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Thử lại'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String _formatAuctionTime(ProductModel product) {
+    final room = product.auctionRoom;
+    if (room == null) return 'Chưa có phòng';
+
+    final now = DateTime.now();
+    final status = room.status.toUpperCase();
+    final target = status == 'LIVE' ? room.endTime : room.startTime;
+    if (target == null) return status;
+
+    final diff = target.difference(now);
+    if (diff.isNegative) {
+      return status == 'LIVE' ? 'Sắp kết thúc' : 'Đã bắt đầu';
+    }
+
+    final hours = diff.inHours;
+    final minutes = diff.inMinutes.remainder(60);
+    final seconds = diff.inSeconds.remainder(60);
+
+    if (hours > 0) {
+      return '${hours}h ${minutes}m';
+    }
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  String _formatMoney(num? amount) {
+    final value = amount ?? 0;
+    final raw = value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 2);
+    final parts = raw.split('.');
+    final whole = parts.first.replaceAllMapped(
+      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+      (match) => '${match[1]}.',
+    );
+    return parts.length == 1 ? '${whole}đ' : '$whole,${parts.last}đ';
   }
 }

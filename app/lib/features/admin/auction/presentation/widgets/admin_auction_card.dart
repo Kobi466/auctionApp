@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_colors.dart';
-import '../pages/admin_auction_detail_page.dart';
+import '../../../../../core/utils/image_provider_helper.dart';
 
 class AdminAuctionCard extends StatelessWidget {
   final String imageUrl;
@@ -8,6 +8,7 @@ class AdminAuctionCard extends StatelessWidget {
   final String timeRemaining;
   final String currentBid;
   final bool isLive;
+  final VoidCallback? onTap;
 
   const AdminAuctionCard({
     super.key,
@@ -16,19 +17,13 @@ class AdminAuctionCard extends StatelessWidget {
     required this.timeRemaining,
     required this.currentBid,
     this.isLive = false,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const AdminAuctionDetailPage(),
-          ),
-        );
-      },
+      onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.all(12),
@@ -49,8 +44,8 @@ class AdminAuctionCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(20),
-                  child: Image.network(
-                    imageUrl,
+                  child: Image(
+                    image: appImageProvider(imageUrl),
                     width: 100,
                     height: 100,
                     fit: BoxFit.cover,

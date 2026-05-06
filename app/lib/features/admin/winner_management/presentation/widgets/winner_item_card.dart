@@ -93,7 +93,12 @@ class WinnerItemCard extends StatelessWidget {
         height: 80,
         color: const Color(0xFFF1F5F9),
         child: winner.imageUrl != null
-            ? Image.network(winner.imageUrl!, fit: BoxFit.cover)
+            ? Image.network(
+                winner.imageUrl!,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) =>
+                    const Icon(Icons.inventory_2_outlined, color: AppColors.primaryBlue),
+              )
             : const Icon(Icons.inventory_2_outlined, color: AppColors.primaryBlue),
       ),
     );

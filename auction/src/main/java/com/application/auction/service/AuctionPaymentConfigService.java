@@ -14,6 +14,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -27,18 +29,37 @@ public class AuctionPaymentConfigService {
     public AuctionPaymentConfigResponse upsert(AuctionPaymentConfigRequest request) {
         AuctionPaymentConfig config = auctionPaymentConfigRepository.findById(1L)
                 .orElse(AuctionPaymentConfig.builder().id(1L).build());
-        AuctionPaymentConfigRequest sanitizedRequest = AuctionPaymentConfigRequest.builder()
-                .bankName(requireText(request.getBankName(), ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED))
-                .accountNumber(requireText(request.getAccountNumber(), ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED))
-                .accountHolderName(requireText(request.getAccountHolderName(), ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED))
-                .qrImageUrl(requireText(request.getQrImageUrl(), ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED))
-                .branchName(normalize(request.getBranchName()))
-                .transferNotePrefix(normalize(request.getTransferNotePrefix()))
-                .active(request.getActive() == null || request.getActive())
-                .build();
+        return saveConfig(config, request);
+    }
 
-        auctionPaymentConfigMapper.updateAuctionPaymentConfig(config, sanitizedRequest);
-        return auctionPaymentConfigMapper.toAuctionPaymentConfigResponse(auctionPaymentConfigRepository.save(config));
+    @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<AuctionPaymentConfigResponse> getAll() {
+        return auctionPaymentConfigRepository.findAll().stream()
+                .map(auctionPaymentConfigMapper::toAuctionPaymentConfigResponse)
+                .toList();
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public AuctionPaymentConfigResponse create(AuctionPaymentConfigRequest request) {
+        return saveConfig(AuctionPaymentConfig.builder().build(), request);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public AuctionPaymentConfigResponse update(Long id, AuctionPaymentConfigRequest request) {
+        AuctionPaymentConfig config = auctionPaymentConfigRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED));
+        return saveConfig(config, request);
+    }
+
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public void delete(Long id) {
+        AuctionPaymentConfig config = auctionPaymentConfigRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED));
+        auctionPaymentConfigRepository.delete(config);
     }
 
     @Transactional(readOnly = true)
@@ -51,6 +72,33 @@ public class AuctionPaymentConfigService {
     AuctionPaymentConfig getActiveEntity() {
         return auctionPaymentConfigRepository.findFirstByActiveTrue()
                 .orElseThrow(() -> new AppException(ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED));
+    }
+
+    private AuctionPaymentConfigResponse saveConfig(
+            AuctionPaymentConfig config,
+            AuctionPaymentConfigRequest request
+    ) {
+        AuctionPaymentConfigRequest sanitizedRequest = AuctionPaymentConfigRequest.builder()
+                .bankName(requireText(request.getBankName(), ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED))
+                .accountNumber(requireText(request.getAccountNumber(), ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED))
+                .accountHolderName(requireText(request.getAccountHolderName(), ErrorCode.AUCTION_PAYMENT_CONFIG_REQUIRED))
+                .qrImageUrl(normalize(request.getQrImageUrl()) == null ? "" : normalize(request.getQrImageUrl()))
+                .branchName(normalize(request.getBranchName()))
+                .transferNotePrefix(normalize(request.getTransferNotePrefix()))
+                .active(request.getActive() == null || request.getActive())
+                .build();
+
+        if (sanitizedRequest.getActive() == null || sanitizedRequest.getActive()) {
+            auctionPaymentConfigRepository.findAll().forEach(existing -> {
+                if (config.getId() == null || !existing.getId().equals(config.getId())) {
+                    existing.setActive(false);
+                    auctionPaymentConfigRepository.save(existing);
+                }
+            });
+        }
+
+        auctionPaymentConfigMapper.updateAuctionPaymentConfig(config, sanitizedRequest);
+        return auctionPaymentConfigMapper.toAuctionPaymentConfigResponse(auctionPaymentConfigRepository.save(config));
     }
 
     private String requireText(String value, ErrorCode errorCode) {

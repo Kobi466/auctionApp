@@ -68,6 +68,8 @@ public class LoginService {
         User user = userRepository.findWithRolesByEmail(request.getEmail())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
+        ensureUserActive(user);
+
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
         boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
 
@@ -84,6 +86,7 @@ public class LoginService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        ensureUserActive(user);
 
         RefreshToken refreshToken = refreshTokenRepository.findByToken(request.getRefreshToken())
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_REFRESH_TOKEN));
@@ -94,6 +97,7 @@ public class LoginService {
     }
 
     private LoginResponse buildLoginResponse(User user) {
+        ensureUserActive(user);
         profileService.ensureProfileExists(user);
 
         String accessToken = generateToken(user, ACCESS_TOKEN_TYPE);
@@ -191,6 +195,11 @@ public class LoginService {
             }
         }
 
+        String email = signedJWT.getJWTClaimsSet().getSubject();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        ensureUserActive(user);
+
         return signedJWT;
     }
 
@@ -226,6 +235,12 @@ public class LoginService {
             user.getRoles().forEach(role -> roleNames.add(role.getName()));
         }
         return roleNames;
+    }
+
+    private void ensureUserActive(User user) {
+        if (!user.isActive()) {
+            throw new AppException(ErrorCode.ACCOUNT_LOCKED);
+        }
     }
 
     public void logout(LogoutRequest request) throws ParseException, JOSEException {

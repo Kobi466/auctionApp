@@ -13,13 +13,12 @@ import com.application.auction.entity.AuctionRoom;
 import com.application.auction.entity.User;
 import com.application.auction.enums.AuctionDepositStatus;
 import com.application.auction.enums.ErrorCode;
+import com.application.auction.enums.KycStatus;
 import com.application.auction.exception.AppException;
 import com.application.auction.mapper.AuctionDepositMapper;
 import com.application.auction.mapper.AuctionPaymentConfigMapper;
 import com.application.auction.mapper.AuctionRoomMapper;
-import com.application.auction.repository.AuctionDepositRepository;
-import com.application.auction.repository.AuctionRoomRepository;
-import com.application.auction.repository.UserRepository;
+import com.application.auction.repository.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -50,9 +49,12 @@ public class AuctionParticipationService {
     AuctionDepositRepository auctionDepositRepository;
     AuctionPaymentConfigService auctionPaymentConfigService;
     KycDetailService kycDetailService;
+    KycDetailRepository kycDetailRepository;
+    ProfileRepository profileRepository;
     UserRepository userRepository;
     AuctionDepositMapper auctionDepositMapper;
     AuctionPaymentConfigMapper auctionPaymentConfigMapper;
+    ProductRepository productRepository;
     AuctionRoomMapper auctionRoomMapper;
 
     @Transactional(readOnly = true)
@@ -96,10 +98,13 @@ public class AuctionParticipationService {
                     .auctionRoomId(room.getId())
                     .productId(productId)
                     .userId(currentUser.getId())
-                    .requiredAmount(room.getDepositAmount())
+                    .requiredAmount(room.getMinimumBid())
                     .transferContent(buildTransferContent(config, room, currentUser))
                     .status(AuctionDepositStatus.PENDING_PAYMENT)
                     .build();
+        } else if (deposit.getStatus() == AuctionDepositStatus.PENDING_PAYMENT) {
+            deposit.setRequiredAmount(room.getMinimumBid());
+            deposit.setTransferContent(buildTransferContent(config, room, currentUser));
         }
 
         AuctionDeposit savedDeposit = auctionDepositRepository.save(deposit);
@@ -136,6 +141,14 @@ public class AuctionParticipationService {
     }
 
     @Transactional(readOnly = true)
+    public List<AuctionDepositResponse> getMyDeposits() {
+        User currentUser = getCurrentUser();
+        return auctionDepositRepository.findByUserIdOrderByCreatedAtDesc(currentUser.getId()).stream()
+                .map(this::toDepositResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN')")
     public List<AuctionDepositResponse> getDeposits(String status) {
         if (status == null || status.isBlank()) {
@@ -159,15 +172,27 @@ public class AuctionParticipationService {
                 .orElseThrow(() -> new AppException(ErrorCode.AUCTION_DEPOSIT_NOT_FOUND));
 
         if (request.getStatus() != AuctionDepositStatus.APPROVED
-                && request.getStatus() != AuctionDepositStatus.REJECTED) {
+                && request.getStatus() != AuctionDepositStatus.REJECTED
+                && request.getStatus() != AuctionDepositStatus.REFUNDED) {
             throw new AppException(ErrorCode.AUCTION_DEPOSIT_REVIEW_INVALID);
+        }
+
+        if (request.getStatus() == AuctionDepositStatus.REFUNDED) {
+            if (deposit.getStatus() != AuctionDepositStatus.APPROVED) {
+                throw new AppException(ErrorCode.AUCTION_DEPOSIT_REVIEW_INVALID);
+            }
+            AuctionRoom room = auctionRoomRepository.findById(deposit.getAuctionRoomId())
+                    .orElseThrow(() -> new AppException(ErrorCode.AUCTION_ROOM_NOT_FOUND));
+            if (room.getEndTime().isAfter(Instant.now())) {
+                throw new AppException(ErrorCode.AUCTION_DEPOSIT_REVIEW_INVALID);
+            }
         }
 
         deposit.setStatus(request.getStatus());
         deposit.setAdminNote(normalize(request.getAdminNote()));
         if (request.getStatus() == AuctionDepositStatus.APPROVED) {
             deposit.setApprovedAt(Instant.now());
-        } else {
+        } else if (request.getStatus() == AuctionDepositStatus.REJECTED) {
             deposit.setApprovedAt(null);
         }
         return toDepositResponse(auctionDepositRepository.save(deposit));
@@ -207,15 +232,11 @@ public class AuctionParticipationService {
     }
 
     private boolean isKycVerified() {
-        try {
-            kycDetailService.ensureCurrentUserVerifiedForAuction();
-            return true;
-        } catch (AppException exception) {
-            if (exception.getErrorCode() == ErrorCode.KYC_VERIFICATION_REQUIRED) {
-                return false;
-            }
-            throw exception;
-        }
+        User currentUser = getCurrentUser();
+        return kycDetailRepository
+                .findTopByUserIdOrderByCreatedAtDesc(currentUser.getId())
+                .map(kycDetail -> kycDetail.getStatus() == KycStatus.VERIFIED)
+                .orElse(false);
     }
 
     private AuctionPaymentConfig getActivePaymentConfigOrNull() {
@@ -241,7 +262,20 @@ public class AuctionParticipationService {
         if (deposit == null) {
             return null;
         }
-        return auctionDepositMapper.toAuctionDepositResponse(deposit);
+        AuctionDepositResponse response = auctionDepositMapper.toAuctionDepositResponse(deposit);
+        productRepository.findById(deposit.getProductId())
+                .ifPresent(product -> response.setProductName(product.getName()));
+        userRepository.findById(deposit.getUserId()).ifPresent(user -> {
+            response.setUsername(user.getUsername());
+            response.setUserEmail(user.getEmail());
+        });
+        profileRepository.findById(deposit.getUserId()).ifPresent(profile -> {
+            response.setUserFullName(profile.getFullName());
+            if (response.getUserEmail() == null || response.getUserEmail().isBlank()) {
+                response.setUserEmail(profile.getEmail());
+            }
+        });
+        return response;
     }
 
     private AuctionPaymentConfigResponse toPaymentConfigResponse(AuctionPaymentConfig config) {

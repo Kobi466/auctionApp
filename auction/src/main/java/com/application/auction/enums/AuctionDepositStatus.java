@@ -4,5 +4,6 @@ public enum AuctionDepositStatus {
     PENDING_PAYMENT,
     PENDING_APPROVAL,
     APPROVED,
-    REJECTED
+    REJECTED,
+    REFUNDED
 }

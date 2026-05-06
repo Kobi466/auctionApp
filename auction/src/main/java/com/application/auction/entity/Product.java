@@ -23,6 +23,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -47,6 +48,9 @@ public class Product {
 
     @Column(nullable = false)
     String brand;
+
+    @Column(nullable = false, precision = 19, scale = 2)
+    BigDecimal startingPrice;
 
     @Lob
     String description;

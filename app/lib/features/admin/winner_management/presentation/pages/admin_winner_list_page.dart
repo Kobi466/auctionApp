@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../dashboard/presentation/pages/admin_dashboard_page.dart';
 import '../../../shared/widgets/admin_bottom_navigation.dart';
 import '../../domain/entities/winner_entity.dart';
 import '../widgets/winner_item_card.dart';
@@ -60,7 +61,7 @@ class _AdminWinnerListPageState extends State<AdminWinnerListPage> {
       price: 12500000000,
       winningTime: DateTime.now().subtract(const Duration(hours: 3)),
       status: WinnerStatus.completed,
-      imageUrl: 'https://images.unsplash.com/photo-1520050206274-a1af4463d8c4?w=500&q=80',
+      imageUrl: 'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=500&q=80',
     ),
     WinnerEntity(
       id: '5',
@@ -134,7 +135,17 @@ class _AdminWinnerListPageState extends State<AdminWinnerListPage> {
       child: Row(
         children: [
           IconButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              final navigator = Navigator.of(context);
+              if (navigator.canPop()) {
+                navigator.pop();
+                return;
+              }
+
+              navigator.pushReplacement(
+                MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
+              );
+            },
             icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
           ),
           const Text('Quản lý người thắng',

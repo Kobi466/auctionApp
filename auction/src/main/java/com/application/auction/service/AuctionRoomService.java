@@ -49,6 +49,7 @@ public class AuctionRoomService {
         }
 
         AuctionRoom auctionRoom = auctionRoomMapper.toAuctionRoom(sanitizedRequest);
+        auctionRoom.setMinimumBid(product.getStartingPrice());
         applyAuctionRoomBusinessFields(auctionRoom);
         AuctionRoom savedRoom = auctionRoomRepository.save(auctionRoom);
         product.setStatus(resolveProductStatus(savedRoom.getStatus()));
@@ -73,6 +74,7 @@ public class AuctionRoomService {
 
         UUID previousProductId = auctionRoom.getProductId();
         auctionRoomMapper.updateAuctionRoom(auctionRoom, sanitizedRequest);
+        auctionRoom.setMinimumBid(product.getStartingPrice());
         applyAuctionRoomBusinessFields(auctionRoom);
         AuctionRoom savedRoom = auctionRoomRepository.save(auctionRoom);
         resetPreviousProductStatus(previousProductId, product.getId());
@@ -85,6 +87,7 @@ public class AuctionRoomService {
     public List<ProductResponse> getProductsWithAuctionRooms() {
         return auctionRoomRepository.findAll().stream()
                 .map(room -> {
+                    applyCurrentAuctionRoomStatus(room);
                     Product product = productRepository.findById(room.getProductId())
                             .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
                     return toProductResponse(product, room);
@@ -96,13 +99,43 @@ public class AuctionRoomService {
     public AuctionRoomResponse getAuctionRoom(UUID roomId) {
         AuctionRoom auctionRoom = auctionRoomRepository.findById(roomId)
                 .orElseThrow(() -> new AppException(ErrorCode.AUCTION_ROOM_NOT_FOUND));
+        applyCurrentAuctionRoomStatus(auctionRoom);
         return auctionRoomMapper.toAuctionRoomResponse(auctionRoom);
     }
 
+    @Transactional
+    @PreAuthorize("hasRole('ADMIN')")
+    public ProductResponse cancelAuctionRoom(UUID roomId) {
+        AuctionRoom auctionRoom = auctionRoomRepository.findById(roomId)
+                .orElseThrow(() -> new AppException(ErrorCode.AUCTION_ROOM_NOT_FOUND));
+        if (auctionRoom.getStatus() == AuctionRoomStatus.CLOSED
+                || auctionRoom.getStatus() == AuctionRoomStatus.CANCELLED) {
+            throw new AppException(ErrorCode.AUCTION_SCHEDULE_INVALID);
+        }
+
+        auctionRoom.setStatus(AuctionRoomStatus.CANCELLED);
+        AuctionRoom savedRoom = auctionRoomRepository.save(auctionRoom);
+        Product product = productRepository.findById(savedRoom.getProductId())
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+        product.setStatus(ProductStatus.CANCELLED);
+        Product savedProduct = productRepository.save(product);
+        return toProductResponse(savedProduct, savedRoom);
+    }
+
     private void applyAuctionRoomBusinessFields(AuctionRoom auctionRoom) {
-        auctionRoom.setRoomCode("ROOM-" + auctionRoom.getProductId());
+        if (auctionRoom.getRoomCode() == null || auctionRoom.getRoomCode().isBlank()
+                || auctionRoom.getRoomCode().startsWith("ROOM-")) {
+            auctionRoom.setRoomCode(generateNumericRoomCode());
+        }
         if (auctionRoom.getRoomPassword() == null || auctionRoom.getRoomPassword().isBlank()) {
             auctionRoom.setRoomPassword(generateRoomPassword());
+        }
+        auctionRoom.setStatus(resolveAuctionRoomStatus(auctionRoom.getStartTime(), auctionRoom.getEndTime()));
+    }
+
+    private void applyCurrentAuctionRoomStatus(AuctionRoom auctionRoom) {
+        if (auctionRoom.getStatus() == AuctionRoomStatus.CANCELLED) {
+            return;
         }
         auctionRoom.setStatus(resolveAuctionRoomStatus(auctionRoom.getStartTime(), auctionRoom.getEndTime()));
     }
@@ -150,6 +183,9 @@ public class AuctionRoomService {
     }
 
     private ProductStatus resolveProductStatus(AuctionRoomStatus roomStatus) {
+        if (roomStatus == AuctionRoomStatus.CANCELLED) {
+            return ProductStatus.CANCELLED;
+        }
         if (roomStatus == AuctionRoomStatus.LIVE) {
             return ProductStatus.ACTIVE;
         }
@@ -183,5 +219,14 @@ public class AuctionRoomService {
             builder.append(characters.charAt(random.nextInt(characters.length())));
         }
         return builder.toString().toUpperCase(Locale.ROOT);
+    }
+
+    private String generateNumericRoomCode() {
+        Random random = new Random();
+        String roomCode;
+        do {
+            roomCode = String.valueOf(100000 + random.nextInt(900000));
+        } while (auctionRoomRepository.existsByRoomCode(roomCode));
+        return roomCode;
     }
 }

@@ -6,10 +6,13 @@ import '../../../auth/data/auth_service.dart';
 import '../../../auth/data/auth_session.dart';
 import '../../../auth/domain/auth_repository.dart';
 import '../../../auth/presentation/pages/login_screen.dart';
+import '../../../auction/data/auction_participation_service.dart';
 import '../../../home/presentation/widgets/custom_bottom_navigation.dart';
 import '../../../kyc/presentation/bloc/kyc_controller.dart';
 import '../../../kyc/presentation/pages/kyc_main_page.dart';
 import '../../../kyc/presentation/widgets/kyc_status_dialog.dart';
+import '../../../setting/data/models/profile_response.dart';
+import '../../../setting/data/profile_service.dart';
 import '../widgets/wallet_card.dart';
 import 'edit_profile_page.dart';
 
@@ -24,18 +27,89 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _isNotificationEnabled = true;
   bool _isDarkModeEnabled = false;
   late final KycController _kycController;
+  final ProfileService _profileService = ProfileService();
+  final AuctionParticipationService _auctionService = AuctionParticipationService();
+  ProfileResponse? _profile;
+  bool _isProfileLoading = true;
+  bool _isWalletLoading = true;
+  num _withdrawableBalance = 0;
+  num _lockedDeposit = 0;
 
   @override
   void initState() {
     super.initState();
     _kycController = KycController();
     _kycController.initialize(); // Lấy trạng thái KYC khi vào trang
+    _loadProfile();
+    _loadWalletSummary();
   }
 
   @override
   void dispose() {
     _kycController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadProfile() async {
+    final accessToken = AuthSession.instance.accessToken;
+    if (accessToken == null || accessToken.isEmpty) {
+      setState(() => _isProfileLoading = false);
+      return;
+    }
+
+    try {
+      final profile = await _profileService.getProfile(accessToken: accessToken);
+      if (!mounted) return;
+      setState(() {
+        _profile = profile;
+        _isProfileLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() => _isProfileLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _loadWalletSummary() async {
+    final accessToken = AuthSession.instance.accessToken;
+    if (accessToken == null || accessToken.isEmpty) {
+      setState(() => _isWalletLoading = false);
+      return;
+    }
+
+    try {
+      final deposits = await _auctionService.getMyDeposits(
+        accessToken: accessToken,
+      );
+      num withdrawable = 0;
+      num locked = 0;
+      for (final deposit in deposits) {
+        switch (deposit.status) {
+          case 'REFUNDED':
+            withdrawable += deposit.requiredAmount;
+            break;
+          case 'APPROVED':
+          case 'PENDING_APPROVAL':
+            locked += deposit.requiredAmount;
+            break;
+        }
+      }
+      if (!mounted) return;
+      setState(() {
+        _withdrawableBalance = withdrawable;
+        _lockedDeposit = locked;
+        _isWalletLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _isWalletLoading = false);
+    }
   }
 
   Future<void> _logout() async {
@@ -86,7 +160,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void _handleKycTap() {
     final status = _kycController.status?.toUpperCase();
 
-    if (status == 'APPROVED') {
+    if (_isKycVerified) {
       showDialog(
         context: context,
         builder: (context) => const KycStatusDialog(
@@ -115,6 +189,14 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  void _handleWithdraw() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Chuc nang rut tien se chi dung so du co the rut'),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,11 +216,15 @@ class _ProfilePageState extends State<ProfilePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_note_rounded, color: AppColors.primaryBlue, size: 28),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              final updatedProfile = await Navigator.push<ProfileResponse>(
                 context,
-                MaterialPageRoute(builder: (context) => const EditProfilePage()),
+                MaterialPageRoute(
+                  builder: (context) => EditProfilePage(profile: _profile),
+                ),
               );
+              if (updatedProfile == null || !mounted) return;
+              setState(() => _profile = updatedProfile);
             },
           ),
           const SizedBox(width: 8),
@@ -154,7 +240,12 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 10),
                 _buildProfileHeader(),
                 const SizedBox(height: 24),
-                const WalletCard(balance: 45200000),
+                WalletCard(
+                  withdrawableBalance: _withdrawableBalance,
+                  lockedDeposit: _lockedDeposit,
+                  isLoading: _isWalletLoading,
+                  onWithdraw: _handleWithdraw,
+                ),
                 const SizedBox(height: 32),
                 _buildSection(
                   title: 'HOẠT ĐỘNG ĐẤU GIÁ',
@@ -171,7 +262,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 const SizedBox(height: 24),
                 _buildSection(
                   title: 'BẢO MẬT VÀ ĐỊNH DANH',
-                  trailing: _kycController.status?.toUpperCase() == 'APPROVED' ? _buildVerifiedBadge() : null,
+                  trailing: _isKycVerified ? _buildVerifiedBadge() : null,
                   children: [
                     _buildMenuItem(
                       Icons.badge_outlined,
@@ -225,13 +316,21 @@ class _ProfilePageState extends State<ProfilePage> {
 
   String? _getKycSubtitle() {
     final status = _kycController.status?.toUpperCase();
-    if (status == 'APPROVED') return 'Đã xác thực';
+    if (_isKycVerified) return 'Đã xác thực';
     if (status == 'PENDING') return 'Đang chờ duyệt';
     if (status == 'REJECTED') return 'Bị từ chối - Nhấn để thử lại';
     return 'Chưa xác thực';
   }
 
+  bool get _isKycVerified =>
+      _kycController.status?.toUpperCase() == 'VERIFIED';
+
   Widget _buildProfileHeader() {
+    final profile = _profile;
+    final name = _profileName(profile);
+    final email = profile?.email.trim() ?? '';
+    final avatar = _profileAvatar(profile);
+
     return Column(
       children: [
         Stack(
@@ -243,12 +342,12 @@ class _ProfilePageState extends State<ProfilePage> {
                 shape: BoxShape.circle,
                 border: Border.all(color: AppColors.primaryBlue, width: 2),
               ),
-              child: const CircleAvatar(
+              child: CircleAvatar(
                 radius: 50,
-                backgroundImage: NetworkImage('https://i.pravatar.cc/300'),
+                backgroundImage: NetworkImage(avatar),
               ),
             ),
-            if (_kycController.status?.toUpperCase() == 'APPROVED')
+            if (_isKycVerified)
               Container(
                 padding: const EdgeInsets.all(4),
                 decoration: const BoxDecoration(
@@ -264,8 +363,8 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
         const SizedBox(height: 16),
-        const Text(
-          'Lê Anh Tuấn',
+        Text(
+          _isProfileLoading ? 'Đang tải...' : name,
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -273,12 +372,26 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
-          'tuana.le@rebid.luxury',
+        Text(
+          email.isEmpty ? 'Chưa cập nhật email' : email,
           style: TextStyle(fontSize: 14, color: Colors.grey),
         ),
       ],
     );
+  }
+
+  String _profileName(ProfileResponse? profile) {
+    final fullName = profile?.fullName?.trim() ?? '';
+    if (fullName.isNotEmpty) return fullName;
+    final email = profile?.email.trim() ?? '';
+    if (email.isNotEmpty) return email.split('@').first;
+    return 'Người dùng';
+  }
+
+  String _profileAvatar(ProfileResponse? profile) {
+    final avatar = profile?.avatar?.trim() ?? '';
+    if (avatar.isNotEmpty && !avatar.startsWith('data:image/')) return avatar;
+    return 'https://i.pravatar.cc/300?u=${profile?.userId ?? 'profile'}';
   }
 
   Widget _buildSection({

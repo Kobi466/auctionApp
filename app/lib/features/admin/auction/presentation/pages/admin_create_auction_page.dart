@@ -56,6 +56,7 @@ class _AdminCreateAuctionPageState extends State<AdminCreateAuctionPage> {
         _products = availableProducts;
         _selectedProduct =
             availableProducts.isNotEmpty ? availableProducts.first : null;
+        _syncPriceFromSelectedProduct();
         _loadingProducts = false;
       });
     } catch (error) {
@@ -101,8 +102,14 @@ class _AdminCreateAuctionPageState extends State<AdminCreateAuctionPage> {
     if (selected != null) {
       setState(() {
         _selectedProduct = selected;
+        _syncPriceFromSelectedProduct();
       });
     }
+  }
+
+  void _syncPriceFromSelectedProduct() {
+    final price = _selectedProduct?.startingPrice ?? 0;
+    _minimumBidController.text = price <= 0 ? '' : price.toStringAsFixed(0);
   }
 
   Future<void> _createAuctionRoom() async {
@@ -114,7 +121,7 @@ class _AdminCreateAuctionPageState extends State<AdminCreateAuctionPage> {
       _depositAmountController.text.replaceAll(RegExp(r'[^0-9.]'), ''),
     );
 
-    if (product == null || minimumBid == null || depositAmount == null) {
+    if (product == null || depositAmount == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui long chon san pham va nhap gia')),
       );
@@ -134,7 +141,7 @@ class _AdminCreateAuctionPageState extends State<AdminCreateAuctionPage> {
       await _auctionService.createAuctionRoom(
         accessToken: token,
         productId: product.id,
-        minimumBid: minimumBid,
+        minimumBid: product.startingPrice,
         depositAmount: depositAmount,
         startTime: _startTime,
         endTime: _endTime,
@@ -207,6 +214,7 @@ class _AdminCreateAuctionPageState extends State<AdminCreateAuctionPage> {
                   CreateAuctionPriceForm(
                     minimumBidController: _minimumBidController,
                     depositAmountController: _depositAmountController,
+                    lockMinimumBid: true,
                   ),
                   const SizedBox(height: 24),
                   CreateAuctionTimeForm(

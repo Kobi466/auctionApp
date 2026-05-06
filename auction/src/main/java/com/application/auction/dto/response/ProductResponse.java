@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -23,6 +24,7 @@ public class ProductResponse {
     String name;
     String subTitle;
     String brand;
+    BigDecimal startingPrice;
     String description;
     String shortDescription;
     List<String> imageUrls;

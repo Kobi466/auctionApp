@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../auction/presentation/widgets/auction_registration_flow.dart';
 import '../../data/models/product_model.dart';
 import 'live_auction_card.dart';
 
@@ -95,6 +96,10 @@ class LiveAuctionSection extends StatelessWidget {
                   title: product.name,
                   currentPrice: _formatMoney(product.auctionRoom?.minimumBid),
                   timeLeft: _formatTimeLeft(product.auctionRoom?.endTime),
+                  onRegister: () => AuctionRegistrationFlow.start(
+                    context,
+                    product: product,
+                  ),
                 );
               },
             ),

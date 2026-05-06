@@ -52,7 +52,11 @@ public enum ErrorCode {
     AUCTION_DEPOSIT_APPROVAL_REQUIRED(447, "Auction deposit approval is required", HttpStatus.FORBIDDEN),
     AUCTION_DEPOSIT_STATUS_INVALID(448, "Auction deposit status is invalid", HttpStatus.BAD_REQUEST),
     AUCTION_DEPOSIT_REVIEW_INVALID(449, "Auction deposit review status is invalid", HttpStatus.BAD_REQUEST),
-    AUCTION_ROOM_ALREADY_EXISTS(450, "Auction room already exists for this product", HttpStatus.BAD_REQUEST);
+    AUCTION_ROOM_ALREADY_EXISTS(450, "Auction room already exists for this product", HttpStatus.BAD_REQUEST),
+    ACCOUNT_LOCKED(451, "Account is locked", HttpStatus.FORBIDDEN),
+    USER_STATUS_REQUIRED(452, "User status is required", HttpStatus.BAD_REQUEST),
+    CANNOT_LOCK_SELF(453, "Admin cannot lock own account", HttpStatus.BAD_REQUEST),
+    NOTIFICATION_NOT_FOUND(454, "Notification not found", HttpStatus.NOT_FOUND);
 
     int code;
     String message;

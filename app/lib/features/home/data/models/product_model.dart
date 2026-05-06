@@ -5,6 +5,7 @@ class ProductModel {
   final String name;
   final String? subTitle;
   final String brand;
+  final num startingPrice;
   final String? description;
   final String? shortDescription;
   final List<String> imageUrls;
@@ -23,6 +24,7 @@ class ProductModel {
     required this.id,
     required this.name,
     required this.brand,
+    required this.startingPrice,
     required this.imageUrls,
     required this.categoryId,
     required this.tags,
@@ -45,6 +47,9 @@ class ProductModel {
       name: json['name']?.toString() ?? '',
       subTitle: json['subTitle']?.toString(),
       brand: json['brand']?.toString() ?? '',
+      startingPrice: json['startingPrice'] is num
+          ? json['startingPrice'] as num
+          : num.tryParse('${json['startingPrice']}') ?? 0,
       description: json['description']?.toString(),
       shortDescription: json['shortDescription']?.toString(),
       imageUrls: (json['imageUrls'] as List<dynamic>? ?? const [])
