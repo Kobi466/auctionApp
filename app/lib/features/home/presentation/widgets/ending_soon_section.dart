@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../data/models/product_model.dart';
 import 'ending_soon_card.dart';
 
@@ -12,7 +13,9 @@ class EndingSoonSection extends StatelessWidget {
 
   List<ProductModel> get _endingSoonProducts {
     final items = products
-        .where((product) => product.auctionRoom?.endTime != null)
+        .where((product) =>
+            _effectiveRoomStatus(product) == 'LIVE' &&
+            product.auctionRoom?.endTime != null)
         .toList()
       ..sort((first, second) {
         final firstEndTime = first.auctionRoom!.endTime!;
@@ -90,7 +93,9 @@ class EndingSoonSection extends StatelessWidget {
                 return EndingSoonCard(
                   imageUrl: product.displayImage,
                   title: product.name,
-                  price: _formatMoney(product.auctionRoom?.minimumBid),
+                  price: product.auctionRoom?.minimumBid == null
+                      ? 'Dang cap nhat'
+                      : formatVnd(product.auctionRoom?.minimumBid),
                   timeLeft: _formatTimeLeft(product.auctionRoom?.endTime),
                 );
               },
@@ -98,25 +103,6 @@ class EndingSoonSection extends StatelessWidget {
           ),
       ],
     );
-  }
-
-  String _formatMoney(num? value) {
-    if (value == null) {
-      return 'Dang cap nhat';
-    }
-
-    final digits = value.round().toString();
-    final buffer = StringBuffer();
-
-    for (int index = 0; index < digits.length; index++) {
-      final reverseIndex = digits.length - index;
-      buffer.write(digits[index]);
-      if (reverseIndex > 1 && reverseIndex % 3 == 1) {
-        buffer.write('.');
-      }
-    }
-
-    return '${buffer.toString()} d';
   }
 
   String _formatTimeLeft(DateTime? endTime) {
@@ -139,5 +125,23 @@ class EndingSoonSection extends StatelessWidget {
     }
 
     return '${difference.inSeconds.clamp(0, 59)} GIAY';
+  }
+
+  String _effectiveRoomStatus(ProductModel product) {
+    final room = product.auctionRoom;
+    if (room == null) return '';
+
+    final now = DateTime.now();
+    final endTime = room.endTime;
+    if (endTime != null && !now.isBefore(endTime)) {
+      return 'CLOSED';
+    }
+
+    final startTime = room.startTime;
+    if (startTime != null && now.isBefore(startTime)) {
+      return 'SCHEDULED';
+    }
+
+    return room.status.toUpperCase();
   }
 }

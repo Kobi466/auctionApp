@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/currency_formatter.dart';
 import '../../../../auth/data/auth_session.dart';
 import '../../../../home/data/models/product_model.dart';
 import '../../../../home/data/product_service.dart';
@@ -27,6 +28,7 @@ class _AdminAddProductPageState extends State<AdminAddProductPage> {
   final TextEditingController _authenticityController = TextEditingController();
   final TextEditingController _rarityRankController = TextEditingController();
   List<String> _imageUrls = const [];
+  DateTime? _plannedStartTime;
   bool _isSubmitting = false;
   bool get _isEditing => widget.product != null;
 
@@ -40,12 +42,12 @@ class _AdminAddProductPageState extends State<AdminAddProductPage> {
 
     _nameController.text = product.name;
     _brandController.text = product.brand;
-    _startingPriceController.text =
-        product.startingPrice == 0 ? '' : product.startingPrice.toStringAsFixed(0);
+    _startingPriceController.text = formatMoneyInput(product.startingPrice);
     _provenanceController.text = product.provenance ?? '';
     _authenticityController.text = product.authenticity ?? '';
     _rarityRankController.text = product.rarityRank?.toString() ?? '';
     _imageUrls = product.imageUrls;
+    _plannedStartTime = product.plannedStartTime;
   }
 
   @override
@@ -110,6 +112,7 @@ class _AdminAddProductPageState extends State<AdminAddProductPage> {
         if (provenance.isNotEmpty) 'provenance': provenance,
         if (authenticity.isNotEmpty) 'authenticity': authenticity,
         if (rarityRank != null) 'rarityRank': rarityRank,
+        'plannedStartTime': _plannedStartTime?.toUtc().toIso8601String(),
       };
 
       if (_isEditing) {
@@ -201,6 +204,13 @@ class _AdminAddProductPageState extends State<AdminAddProductPage> {
                       provenanceController: _provenanceController,
                       authenticityController: _authenticityController,
                       rarityRankController: _rarityRankController,
+                      plannedStartTime: _plannedStartTime,
+                      onPickPlannedStartTime: _pickPlannedStartTime,
+                      onClearPlannedStartTime: () {
+                        setState(() {
+                          _plannedStartTime = null;
+                        });
+                      },
                     ),
                     const SizedBox(height: 32),
                     _buildActionButtons(),
@@ -213,6 +223,40 @@ class _AdminAddProductPageState extends State<AdminAddProductPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _pickPlannedStartTime() async {
+    final initial =
+        _plannedStartTime ?? DateTime.now().add(const Duration(hours: 1));
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: initial,
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2101),
+    );
+
+    if (pickedDate == null || !mounted) {
+      return;
+    }
+
+    final pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(initial),
+    );
+
+    if (pickedTime == null || !mounted) {
+      return;
+    }
+
+    setState(() {
+      _plannedStartTime = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
+      );
+    });
   }
 
   Widget _buildCustomHeader(BuildContext context) {

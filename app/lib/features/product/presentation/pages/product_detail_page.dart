@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
+import '../../../../core/utils/image_provider_helper.dart';
 import '../../../auction/presentation/widgets/auction_registration_flow.dart';
 import '../../../home/data/models/product_model.dart';
 
@@ -94,7 +96,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             ),
                           ),
                           Text(
-                            _formatMoney(room?.minimumBid),
+                            formatVnd(room?.minimumBid ?? product?.startingPrice),
                             style: const TextStyle(
                               color: Color(0xFF2563EB),
                               fontSize: 18,
@@ -103,6 +105,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 24),
+                      _buildStartTimeNotice(),
                       const SizedBox(height: 24),
                       _buildInfoGrid(),
                       const SizedBox(height: 24),
@@ -218,8 +222,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   itemBuilder: (context, index) {
                     return Padding(
                       padding: const EdgeInsets.only(top: 60, bottom: 40),
-                      child: Image.network(
-                        images[index],
+                      child: Image(
+                        image: appImageProvider(images[index]),
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) => const Icon(
                           Icons.image_not_supported_outlined,
@@ -380,7 +384,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       'Danh muc': product?.categoryId ?? 'Auction',
       'Do hiem': product?.rarityRank?.toString() ?? 'Chua cap nhat',
       'Trang thai phong': product?.auctionRoom?.status ?? 'Chua co phong',
-      'Gia coc': _formatMoney(product?.auctionRoom?.depositAmount),
+      'Bat dau': _formatStartTime(product?.effectiveStartTime),
+      'Gia coc': formatVnd(product?.auctionRoom?.depositAmount),
     };
 
     return Container(
@@ -474,7 +479,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   Widget _buildStickyBottomBar(BuildContext context) {
     final room = _product?.auctionRoom;
-    final isLive = room?.status.toUpperCase() == 'LIVE';
+    final roomStatus = _effectiveRoomStatus;
+    final isLive = roomStatus == 'LIVE';
+    final isScheduled = roomStatus == 'SCHEDULED';
 
     return Positioned(
       bottom: 0,
@@ -520,7 +527,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _formatMoney(room?.minimumBid),
+                      formatVnd(room?.minimumBid ?? _product?.startingPrice),
                       style: const TextStyle(
                         fontSize: 18,
                         color: Color(0xFF2563EB),
@@ -542,7 +549,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      room?.status ?? 'Chua co phong',
+                      _roomStatusLabel(roomStatus),
                       style: const TextStyle(
                         fontSize: 14,
                         color: Color(0xFF1E293B),
@@ -573,7 +580,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   elevation: 0,
                 ),
                 child: Text(
-                  isLive ? 'Tham gia phong dau gia' : 'Theo doi san pham',
+                  isLive
+                      ? 'Vao phong dau gia'
+                      : isScheduled
+                          ? 'Dang ky dat coc'
+                          : 'Phien da ket thuc',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -588,14 +599,92 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 
-  String _formatMoney(num? amount) {
-    final value = amount ?? 0;
-    final raw = value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 2);
-    final parts = raw.split('.');
-    final whole = parts.first.replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (match) => '${match[1]}.',
-    );
-    return parts.length == 1 ? '${whole}d' : '$whole,${parts.last}d';
+  String get _effectiveRoomStatus {
+    final room = _product?.auctionRoom;
+    if (room == null) return '';
+
+    final now = DateTime.now();
+    final endTime = room.endTime;
+    if (endTime != null && !now.isBefore(endTime)) {
+      return 'CLOSED';
+    }
+
+    final startTime = room.startTime;
+    if (startTime != null && now.isBefore(startTime)) {
+      return 'SCHEDULED';
+    }
+
+    return room.status.toUpperCase();
   }
+
+  String _roomStatusLabel(String status) {
+    switch (status) {
+      case 'LIVE':
+        return 'Dang dien ra';
+      case 'SCHEDULED':
+        return 'Sap dien ra';
+      case 'CLOSED':
+        return 'Da ket thuc';
+      case 'CANCELLED':
+        return 'Da huy';
+      default:
+        return 'Chua co phong';
+    }
+  }
+
+  Widget _buildStartTimeNotice() {
+    final startTime = _product?.effectiveStartTime;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFDBEAFE)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.event_available_outlined, color: Color(0xFF2563EB)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'NGAY GIO BAT DAU',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Color(0xFF94A3B8),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  _formatStartTime(startTime),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF1E293B),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatStartTime(DateTime? value) {
+    if (value == null) {
+      return 'Chua co ngay bat dau';
+    }
+    final local = value.toLocal();
+    final day = local.day.toString().padLeft(2, '0');
+    final month = local.month.toString().padLeft(2, '0');
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
+    return '$day/$month/${local.year} $hour:$minute';
+  }
+
 }

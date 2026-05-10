@@ -1,15 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
 import '../../../../core/theme/app_colors.dart';
+import '../../../auth/data/auth_session.dart';
 import '../../../home/presentation/widgets/custom_bottom_navigation.dart';
 import '../../../home/presentation/widgets/home_app_bar.dart';
+import '../../data/auction_room_service.dart';
 import 'auction_room_page.dart';
 
 class JoinAuctionRoomPage extends StatefulWidget {
+  final String? initialRoomId;
   final String? initialRoomCode;
   final String? initialPassword;
 
   const JoinAuctionRoomPage({
     super.key,
+    this.initialRoomId,
     this.initialRoomCode,
     this.initialPassword,
   });
@@ -19,9 +25,12 @@ class JoinAuctionRoomPage extends StatefulWidget {
 }
 
 class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
+  final AuctionRoomService _auctionRoomService = AuctionRoomService();
   final _roomCodeController = TextEditingController();
   final _passwordController = TextEditingController();
+  bool _isRoomCodeVisible = false;
   bool _isPasswordVisible = false;
+  bool _isJoining = false;
 
   @override
   void initState() {
@@ -37,6 +46,61 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
     super.dispose();
   }
 
+  Future<void> _joinRoom() async {
+    final roomCode = _roomCodeController.text.trim();
+    final password = _passwordController.text.trim();
+    if (roomCode.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Nhap day du ma phong va mat khau')),
+      );
+      return;
+    }
+
+    if ((widget.initialRoomId ?? '').isNotEmpty) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AuctionRoomPage(roomId: widget.initialRoomId!),
+        ),
+      );
+      return;
+    }
+
+    final accessToken = AuthSession.instance.accessToken ?? '';
+    if (accessToken.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui long dang nhap')),
+      );
+      return;
+    }
+
+    setState(() => _isJoining = true);
+    try {
+      final access = await _auctionRoomService.joinAuctionRoom(
+        accessToken: accessToken,
+        roomCode: roomCode,
+        roomPassword: password,
+      );
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => AuctionRoomPage(roomId: access.roomId),
+        ),
+      );
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Exception: ', '')),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isJoining = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,7 +108,7 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
       body: SafeArea(
         child: Column(
           children: [
-            HomeAppBar(),
+            const HomeAppBar(),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -69,7 +133,7 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
                         children: [
                           const Center(
                             child: Text(
-                              'Nhập mã phòng và mật khẩu được cung cấp để tham gia.',
+                              'Nhap ma phong va mat khau duoc cung cap de tham gia.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: Color(0xFF64748B),
@@ -80,38 +144,48 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
                           ),
                           const SizedBox(height: 32),
                           const Text(
-                            'MÃ PHÒNG',
+                            'MA PHONG',
                             style: TextStyle(
                               color: Color(0xFF1E293B),
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
                             ),
                           ),
                           const SizedBox(height: 12),
                           _buildTextField(
                             controller: _roomCodeController,
-                            hintText: 'Ví dụ: BID-8899',
-                            suffixIcon: Icons.door_front_door_outlined,
+                            hintText: 'Vi du: 889900',
+                            isSecret: true,
+                            isVisible: _isRoomCodeVisible,
+                            suffixIcon: _isRoomCodeVisible
+                                ? Icons.visibility_outlined
+                                : Icons.visibility_off_outlined,
+                            copyLabel: 'mã phòng',
+                            onSuffixIconTap: () {
+                              setState(() {
+                                _isRoomCodeVisible = !_isRoomCodeVisible;
+                              });
+                            },
                           ),
                           const SizedBox(height: 24),
                           const Text(
-                            'MẬT KHẨU',
+                            'MAT KHAU',
                             style: TextStyle(
                               color: Color(0xFF1E293B),
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              letterSpacing: 0.5,
                             ),
                           ),
                           const SizedBox(height: 12),
                           _buildTextField(
                             controller: _passwordController,
-                            hintText: '••••••••',
-                            isPassword: true,
+                            hintText: '********',
+                            isSecret: true,
+                            isVisible: _isPasswordVisible,
                             suffixIcon: _isPasswordVisible
                                 ? Icons.visibility_outlined
                                 : Icons.visibility_off_outlined,
+                            copyLabel: 'mật khẩu',
                             onSuffixIconTap: () {
                               setState(() {
                                 _isPasswordVisible = !_isPasswordVisible;
@@ -119,55 +193,30 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
                             },
                           ),
                           const SizedBox(height: 40),
-                          // Join Button with Gradient
-                          GestureDetector(
-                            onTap: () {
-                              if (_roomCodeController.text.isNotEmpty &&
-                                  _passwordController.text.isNotEmpty) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => const AuctionRoomPage(),
-                                  ),
-                                );
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Vui lòng nhập đầy đủ mã phòng và mật khẩu'),
-                                  ),
-                                );
-                              }
-                            },
-                            child: Container(
-                              width: double.infinity,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Color(0xFF4F7DFF), Color(0xFF3B82F6)],
-                                ),
-                                borderRadius: BorderRadius.circular(28),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF3B82F6).withOpacity(0.3),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 6),
-                                  ),
-                                ],
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton.icon(
+                              onPressed: _isJoining ? null : _joinRoom,
+                              icon: _isJoining
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: Colors.white,
+                                      ),
+                                    )
+                                  : const Icon(Icons.login_rounded),
+                              label: Text(
+                                _isJoining ? 'Dang vao...' : 'Vao phong ngay',
                               ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: const [
-                                  Text(
-                                    'Vào phòng ngay',
-                                    style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8),
-                                  Icon(Icons.login_rounded, color: Colors.white),
-                                ],
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryBlue,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(28),
+                                ),
                               ),
                             ),
                           ),
@@ -175,19 +224,18 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
                       ),
                     ),
                     const SizedBox(height: 40),
-                    Row(
+                    const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Icon(Icons.verified_user_outlined,
                             color: Color(0xFF94A3B8), size: 18),
                         SizedBox(width: 8),
                         Text(
-                          'GIAO DỊCH BẢO MẬT 256-BIT SSL',
+                          'GIAO DICH BAO MAT',
                           style: TextStyle(
                             color: Color(0xFF94A3B8),
                             fontSize: 11,
                             fontWeight: FontWeight.bold,
-                            letterSpacing: 0.5,
                           ),
                         ),
                       ],
@@ -203,12 +251,13 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
     );
   }
 
-
   Widget _buildTextField({
     required TextEditingController controller,
     required String hintText,
     required IconData suffixIcon,
-    bool isPassword = false,
+    bool isSecret = false,
+    bool isVisible = true,
+    String? copyLabel,
     VoidCallback? onSuffixIconTap,
   }) {
     return Container(
@@ -219,15 +268,41 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
       ),
       child: TextField(
         controller: controller,
-        obscureText: isPassword && !_isPasswordVisible,
+        obscureText: isSecret && !isVisible,
         decoration: InputDecoration(
           hintText: hintText,
           hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 16),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           border: InputBorder.none,
-          suffixIcon: GestureDetector(
-            onTap: onSuffixIconTap,
-            child: Icon(suffixIcon, color: const Color(0xFF94A3B8)),
+          suffixIcon: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                tooltip: copyLabel == null ? null : 'Sao chép $copyLabel',
+                onPressed: copyLabel == null
+                    ? null
+                    : () async {
+                        await Clipboard.setData(
+                          ClipboardData(text: controller.text.trim()),
+                        );
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Đã sao chép $copyLabel')),
+                        );
+                      },
+                icon: const Icon(
+                  Icons.copy_rounded,
+                  color: Color(0xFF94A3B8),
+                ),
+              ),
+              IconButton(
+                tooltip: isVisible ? 'Ẩn' : 'Hiện',
+                onPressed: onSuffixIconTap,
+                icon: Icon(suffixIcon, color: const Color(0xFF94A3B8)),
+              ),
+              const SizedBox(width: 6),
+            ],
           ),
         ),
       ),

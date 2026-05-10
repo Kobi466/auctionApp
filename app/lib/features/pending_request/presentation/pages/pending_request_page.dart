@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../auction/data/auction_participation_service.dart';
 import '../../../auction/data/models/auction_deposit_model.dart';
 import '../../../auction/data/models/auction_room_access_model.dart';
-import '../../../auction/presentation/pages/join_auction_room_page.dart';
+import '../../../auction/presentation/pages/auction_room_page.dart';
 import '../../../auth/data/auth_session.dart';
 import '../../../home/presentation/widgets/custom_bottom_navigation.dart';
 import '../../../home/presentation/widgets/home_app_bar.dart';
@@ -262,7 +263,7 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
           return PendingRequestCard(
             title: _productTitle(deposit),
             time: _formatDate(deposit.paymentSubmittedAt ?? deposit.createdAt),
-            amount: _formatCurrency(deposit.requiredAmount),
+            amount: formatVnd(deposit.requiredAmount),
             status: deposit.status,
             transferContent: deposit.transferContent,
             adminNote: deposit.adminNote,
@@ -286,10 +287,7 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) => JoinAuctionRoomPage(
-          initialRoomCode: roomAccess.roomCode,
-          initialPassword: roomAccess.roomPassword,
-        ),
+        builder: (_) => AuctionRoomPage(roomId: roomAccess.roomId),
       ),
     );
   }
@@ -304,19 +302,6 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
     final local = value.toLocal();
     return '${_twoDigits(local.hour)}:${_twoDigits(local.minute)}, '
         '${_twoDigits(local.day)}/${_twoDigits(local.month)}/${local.year}';
-  }
-
-  String _formatCurrency(num value) {
-    final raw = value.round().toString();
-    final buffer = StringBuffer();
-    for (var i = 0; i < raw.length; i++) {
-      final reverseIndex = raw.length - i;
-      buffer.write(raw[i]);
-      if (reverseIndex > 1 && reverseIndex % 3 == 1) {
-        buffer.write('.');
-      }
-    }
-    return '$buffer đ';
   }
 
   String _twoDigits(int value) => value.toString().padLeft(2, '0');

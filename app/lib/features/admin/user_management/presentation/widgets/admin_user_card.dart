@@ -85,15 +85,23 @@ class AdminUserCard extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        user.name,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
+                      Expanded(
+                        child: Text(
+                          user.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E293B),
+                          ),
                         ),
                       ),
-                      const Icon(Icons.chevron_right_rounded, color: Color(0xFFCBD5E1)),
+                      const SizedBox(width: 8),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: Color(0xFFCBD5E1),
+                      ),
                     ],
                   ),
                   Text(
@@ -104,14 +112,15 @@ class AdminUserCard extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
-                  Row(
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 6,
                     children: [
                       _buildStatusBadge(
                         text: _getKycText(user.kycStatus),
                         color: _getKycColor(user.kycStatus),
                         isKyc: true,
                       ),
-                      const SizedBox(width: 8),
                       _buildStatusBadge(
                         text: user.accountStatus == AccountStatus.active ? 'HOẠT ĐỘNG' : 'BỊ KHÓA',
                         color: user.accountStatus == AccountStatus.active 

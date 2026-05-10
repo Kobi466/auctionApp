@@ -56,10 +56,10 @@ public class Product {
     String description;
 
     @Lob
-    @Convert(converter = StringListJsonConverter.class)
     String shortDescription;
 
     @Lob
+    @Convert(converter = StringListJsonConverter.class)
     @Column(name = "image_urls", columnDefinition = "LONGTEXT")
     List<String> imageUrls;
 
@@ -87,6 +87,8 @@ public class Product {
     Map<String, Object> attributes;
 
     Integer rarityRank;
+
+    Instant plannedStartTime;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)

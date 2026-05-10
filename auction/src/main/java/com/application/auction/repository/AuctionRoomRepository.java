@@ -8,6 +8,7 @@ import java.util.UUID;
 
 public interface AuctionRoomRepository extends JpaRepository<AuctionRoom, UUID> {
     Optional<AuctionRoom> findByProductId(UUID productId);
+    Optional<AuctionRoom> findByRoomCode(String roomCode);
     boolean existsByRoomCode(String roomCode);
     void deleteByProductId(UUID productId);
 }

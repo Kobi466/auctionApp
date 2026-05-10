@@ -36,6 +36,7 @@ public class ProductResponse {
     String provenance;
     Map<String, Object> attributes;
     Integer rarityRank;
+    Instant plannedStartTime;
     ProductStatus status;
     Instant createdAt;
     Instant updatedAt;

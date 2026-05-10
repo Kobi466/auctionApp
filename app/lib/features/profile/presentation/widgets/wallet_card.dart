@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
 
 class WalletCard extends StatelessWidget {
   final num withdrawableBalance;
   final num lockedDeposit;
   final bool isLoading;
   final VoidCallback? onWithdraw;
+  final VoidCallback? onHistory;
 
   const WalletCard({
     super.key,
@@ -14,6 +16,7 @@ class WalletCard extends StatelessWidget {
     required this.lockedDeposit,
     this.isLoading = false,
     this.onWithdraw,
+    this.onHistory,
   });
 
   @override
@@ -53,7 +56,7 @@ class WalletCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    isLoading ? 'Dang tai...' : _formatMoney(withdrawableBalance),
+                    isLoading ? 'Dang tai...' : formatVnd(withdrawableBalance),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 28,
@@ -96,7 +99,7 @@ class WalletCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  isLoading ? '...' : _formatMoney(lockedDeposit),
+                  isLoading ? '...' : formatVnd(lockedDeposit),
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 14,
@@ -132,7 +135,7 @@ class WalletCard extends StatelessWidget {
               const SizedBox(width: 16),
               Expanded(
                 child: OutlinedButton(
-                  onPressed: () {},
+                  onPressed: onHistory,
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.white,
                     side: const BorderSide(color: Colors.white54),
@@ -154,12 +157,4 @@ class WalletCard extends StatelessWidget {
     );
   }
 
-  String _formatMoney(num amount) {
-    final raw = amount.round().toString();
-    final formatted = raw.replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (match) => '${match[1]}.',
-    );
-    return '${formatted}d';
-  }
 }

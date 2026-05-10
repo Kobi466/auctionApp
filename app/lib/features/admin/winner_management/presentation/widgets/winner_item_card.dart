@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/currency_formatter.dart';
 import '../../domain/entities/winner_entity.dart';
 import '../pages/admin_winner_detail_page.dart';
 
@@ -67,7 +68,7 @@ class WinnerItemCard extends StatelessWidget {
                   _buildWinnerInfo(),
                   const SizedBox(height: 8),
                   Text(
-                    _formatCurrency(winner.price),
+                    formatVnd(winner.price),
                     style: const TextStyle(
                       color: AppColors.primaryBlue,
                       fontSize: 16,
@@ -185,10 +186,6 @@ class WinnerItemCard extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  String _formatCurrency(num amount) {
-    return '${amount.toString().replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (Match m) => "${m[1]}.")} đ';
   }
 
   String _formatDateTime(DateTime dt) {

@@ -114,6 +114,10 @@ class _AdminProductListState extends State<AdminProductList> {
               _buildInfoRow('Thuong hieu', product.brand),
               _buildInfoRow('Danh muc', product.categoryId),
               _buildInfoRow('Trang thai', product.status),
+              _buildInfoRow(
+                'Ngay gio bat dau',
+                _formatStartTime(product.effectiveStartTime),
+              ),
               if ((product.provenance ?? '').isNotEmpty)
                 _buildInfoRow('Nguon goc', product.provenance!),
               if ((product.authenticity ?? '').isNotEmpty)
@@ -149,6 +153,16 @@ class _AdminProductListState extends State<AdminProductList> {
         ),
       ),
     );
+  }
+
+  String _formatStartTime(DateTime? value) {
+    if (value == null) return 'Chua co ngay bat dau';
+    final local = value.toLocal();
+    final day = local.day.toString().padLeft(2, '0');
+    final month = local.month.toString().padLeft(2, '0');
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
+    return '$day/$month/${local.year} $hour:$minute';
   }
 
   @override

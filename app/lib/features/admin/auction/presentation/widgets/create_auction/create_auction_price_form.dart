@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../../core/utils/currency_formatter.dart';
 
 class CreateAuctionPriceForm extends StatelessWidget {
   final TextEditingController? minimumBidController;
@@ -39,7 +40,7 @@ class CreateAuctionPriceForm extends StatelessWidget {
               _buildInputField(
                 label: 'Giá khởi điểm (VNĐ)',
                 prefixIcon: Icons.payments_outlined,
-                hintText: '150000000',
+                hintText: '150,000,000',
                 controller: minimumBidController,
                 readOnly: lockMinimumBid,
               ),
@@ -50,7 +51,7 @@ class CreateAuctionPriceForm extends StatelessWidget {
                     child: _buildInputField(
                       label: 'Bước giá',
                       prefixIcon: Icons.trending_up_rounded,
-                      hintText: '5000000',
+                      hintText: '5,000,000',
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -58,7 +59,7 @@ class CreateAuctionPriceForm extends StatelessWidget {
                     child: _buildInputField(
                       label: 'Tiền đặt cọc',
                       prefixIcon: Icons.account_balance_wallet_outlined,
-                      hintText: '15000000',
+                      hintText: '15,000,000',
                       controller: depositAmountController,
                     ),
                   ),
@@ -100,6 +101,7 @@ class CreateAuctionPriceForm extends StatelessWidget {
             controller: controller,
             readOnly: readOnly,
             keyboardType: TextInputType.number,
+            inputFormatters: const [ThousandsSeparatorInputFormatter()],
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,

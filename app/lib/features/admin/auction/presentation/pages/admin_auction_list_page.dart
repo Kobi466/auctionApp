@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/currency_formatter.dart';
 import '../../../../auth/data/auth_session.dart';
 import '../../../../home/data/models/product_model.dart';
 import '../../data/admin_auction_service.dart';
@@ -190,7 +191,7 @@ class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
               imageUrl: product.displayImage,
               title: product.name,
               timeRemaining: room?.status ?? '',
-              currentBid: _formatMoney(room?.minimumBid),
+              currentBid: formatVnd(room?.minimumBid),
               isLive: room?.status.toUpperCase() == 'LIVE',
               onTap: () async {
                 final changed = await Navigator.push<bool>(
@@ -225,10 +226,4 @@ class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
     }).toList();
   }
 
-  String _formatMoney(num? value) {
-    if (value == null) {
-      return '0 VND';
-    }
-    return '${value.toStringAsFixed(0)} VND';
-  }
 }

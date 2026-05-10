@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/currency_formatter.dart';
 import '../../domain/entities/winner_entity.dart';
 
 class WinnerDetailProductCard extends StatelessWidget {
@@ -96,7 +97,7 @@ class WinnerDetailProductCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _formatCurrency(winner.price),
+                      formatVnd(winner.price),
                       style: const TextStyle(
                         color: AppColors.primaryBlue,
                         fontSize: 20,
@@ -133,7 +134,4 @@ class WinnerDetailProductCard extends StatelessWidget {
     );
   }
 
-  String _formatCurrency(num amount) {
-    return '₫${amount.toString().replaceAllMapped(RegExp(r"(\d{1,3})(?=(\d{3})+(?!\d))"), (Match m) => "${m[1]}.")}';
-  }
 }

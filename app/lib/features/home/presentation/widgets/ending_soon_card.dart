@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/utils/image_provider_helper.dart';
+
 class EndingSoonCard extends StatelessWidget {
   final String imageUrl;
   final String title;
@@ -25,8 +27,8 @@ class EndingSoonCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(24),
-                child: Image.network(
-                  imageUrl,
+                child: Image(
+                  image: appImageProvider(imageUrl),
                   height: 160,
                   width: 160,
                   fit: BoxFit.cover,

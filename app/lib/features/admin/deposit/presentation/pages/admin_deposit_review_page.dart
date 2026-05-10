@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 
 import '../../../../../core/network/api_client.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/currency_formatter.dart';
 import '../../../../auth/data/auth_session.dart';
 import '../../../shared/guards/admin_access_guard.dart';
 import '../../../shared/widgets/admin_app_bar.dart';
 import '../../../shared/widgets/admin_bottom_navigation.dart';
+import '../../../withdrawal/presentation/pages/admin_withdrawal_review_page.dart';
 import '../../data/models/admin_deposit_model.dart';
 import '../../data/sources/admin_deposit_service.dart';
 
@@ -194,37 +196,50 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
         .where((deposit) => deposit.status == 'PENDING_APPROVAL')
         .length;
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: const Icon(
-                Icons.arrow_back_ios_new_rounded,
-                size: 14,
-                color: Color(0xFF1E293B),
-              ),
+        GestureDetector(
+          onTap: () => Navigator.pop(context),
+          child: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            size: 14,
+            color: Color(0xFF1E293B),
+          ),
+        ),
+        const SizedBox(width: 10),
+        const Expanded(
+          child: Text(
+            'Duyet tien coc',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.w900,
+              color: Color(0xFF1E293B),
             ),
-            const SizedBox(width: 10),
-            const Text(
-              'Duyet tien coc',
-              style: TextStyle(
-                fontSize: 26,
-                fontWeight: FontWeight.w900,
-                color: Color(0xFF1E293B),
+          ),
+        ),
+        const SizedBox(width: 8),
+        IconButton(
+          tooltip: 'Duyet rut tien',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => const AdminWithdrawalReviewPage(),
               ),
-            ),
-          ],
+            );
+          },
+          icon: const Icon(Icons.account_balance_wallet_outlined),
+          color: AppColors.primaryBlue,
         ),
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
           decoration: BoxDecoration(
             color: const Color(0xFFE0F2FE),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            '$pendingCount cho duyet',
+            '$pendingCount',
             style: const TextStyle(
               color: Color(0xFF0369A1),
               fontSize: 12,
@@ -340,7 +355,7 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
       builder: (context) => AlertDialog(
         title: const Text('Duyet tien coc'),
         content: Text(
-          'Xac nhan user da chuyen ${_formatMoney(deposit.requiredAmount)}?',
+          'Xac nhan user da chuyen ${formatVnd(deposit.requiredAmount)}?',
         ),
         actions: [
           TextButton(
@@ -410,7 +425,7 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
       builder: (context) => AlertDialog(
         title: const Text('Hoan tien coc'),
         content: Text(
-          'Xac nhan hoan ${_formatMoney(deposit.requiredAmount)} ve vi user?',
+          'Xac nhan hoan ${formatVnd(deposit.requiredAmount)} ve vi user?',
         ),
         actions: [
           TextButton(
@@ -511,7 +526,7 @@ class _DepositReviewCard {
             ],
           ),
           const SizedBox(height: 16),
-          _InfoRow(label: 'So tien', value: _formatMoney(deposit.requiredAmount)),
+          _InfoRow(label: 'So tien', value: formatVnd(deposit.requiredAmount)),
           _InfoRow(label: 'Noi dung CK', value: deposit.transferContent),
           _InfoRow(label: 'User', value: _userDisplay(deposit)),
           _InfoRow(label: 'San pham', value: _productDisplay(deposit)),
@@ -699,15 +714,6 @@ String _shortId(String value) {
   return value.substring(0, 8).toUpperCase();
 }
 
-String _formatMoney(num amount) {
-  final raw = amount.toStringAsFixed(amount.truncateToDouble() == amount ? 0 : 2);
-  final parts = raw.split('.');
-  final whole = parts.first.replaceAllMapped(
-    RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-    (match) => '${match[1]}.',
-  );
-  return parts.length == 1 ? '${whole}d' : '$whole,${parts.last}d';
-}
 
 String _formatDate(DateTime? date) {
   if (date == null) return 'Chua cap nhat';

@@ -6,6 +6,7 @@ import com.application.auction.dto.response.ApiResponse;
 import com.application.auction.dto.response.AuctionDepositResponse;
 import com.application.auction.dto.response.AuctionParticipationStatusResponse;
 import com.application.auction.dto.response.AuctionRoomAccessResponse;
+import com.application.auction.service.AuctionDepositService;
 import com.application.auction.service.AuctionParticipationService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ import java.util.UUID;
 public class AuctionParticipationController {
 
     AuctionParticipationService auctionParticipationService;
+    AuctionDepositService auctionDepositService;
 
     @GetMapping("/products/{productId}")
     public ApiResponse<AuctionParticipationStatusResponse> getStatus(@PathVariable UUID productId) {
@@ -50,14 +52,14 @@ public class AuctionParticipationController {
             @RequestBody(required = false) AuctionDepositSubmitRequest request
     ) {
         return ApiResponse.<AuctionDepositResponse>builder()
-                .result(auctionParticipationService.submitPayment(depositId, request))
+                .result(auctionDepositService.submitPayment(depositId, request))
                 .build();
     }
 
     @GetMapping("/deposits/me")
     public ApiResponse<List<AuctionDepositResponse>> getMyDeposits() {
         return ApiResponse.<List<AuctionDepositResponse>>builder()
-                .result(auctionParticipationService.getMyDeposits())
+                .result(auctionDepositService.getMyDeposits())
                 .build();
     }
 
@@ -66,7 +68,7 @@ public class AuctionParticipationController {
             @RequestParam(required = false) String status
     ) {
         return ApiResponse.<List<AuctionDepositResponse>>builder()
-                .result(auctionParticipationService.getDeposits(status))
+                .result(auctionDepositService.getDeposits(status))
                 .build();
     }
 
@@ -76,7 +78,7 @@ public class AuctionParticipationController {
             @RequestBody AuctionDepositReviewRequest request
     ) {
         return ApiResponse.<AuctionDepositResponse>builder()
-                .result(auctionParticipationService.reviewDeposit(depositId, request))
+                .result(auctionDepositService.reviewDeposit(depositId, request))
                 .build();
     }
 

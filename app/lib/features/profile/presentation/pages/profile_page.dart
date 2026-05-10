@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../auth/data/auth_service.dart';
 import '../../../auth/data/auth_session.dart';
 import '../../../auth/domain/auth_repository.dart';
@@ -13,6 +14,8 @@ import '../../../kyc/presentation/pages/kyc_main_page.dart';
 import '../../../kyc/presentation/widgets/kyc_status_dialog.dart';
 import '../../../setting/data/models/profile_response.dart';
 import '../../../setting/data/profile_service.dart';
+import '../../data/models/withdrawal_request_model.dart';
+import '../../data/withdrawal_service.dart';
 import '../widgets/wallet_card.dart';
 import 'edit_profile_page.dart';
 
@@ -29,11 +32,13 @@ class _ProfilePageState extends State<ProfilePage> {
   late final KycController _kycController;
   final ProfileService _profileService = ProfileService();
   final AuctionParticipationService _auctionService = AuctionParticipationService();
+  final WithdrawalService _withdrawalService = WithdrawalService();
   ProfileResponse? _profile;
   bool _isProfileLoading = true;
   bool _isWalletLoading = true;
   num _withdrawableBalance = 0;
   num _lockedDeposit = 0;
+  List<WithdrawalRequestModel> _withdrawals = const [];
 
   @override
   void initState() {
@@ -87,6 +92,9 @@ class _ProfilePageState extends State<ProfilePage> {
       final deposits = await _auctionService.getMyDeposits(
         accessToken: accessToken,
       );
+      final withdrawals = await _withdrawalService.getMyWithdrawals(
+        accessToken: accessToken,
+      );
       num withdrawable = 0;
       num locked = 0;
       for (final deposit in deposits) {
@@ -100,10 +108,20 @@ class _ProfilePageState extends State<ProfilePage> {
             break;
         }
       }
+      for (final withdrawal in withdrawals) {
+        if (withdrawal.status == 'PENDING' ||
+            withdrawal.status == 'COMPLETED') {
+          withdrawable -= withdrawal.amount;
+        }
+      }
+      if (withdrawable < 0) {
+        withdrawable = 0;
+      }
       if (!mounted) return;
       setState(() {
         _withdrawableBalance = withdrawable;
         _lockedDeposit = locked;
+        _withdrawals = withdrawals;
         _isWalletLoading = false;
       });
     } catch (_) {
@@ -189,11 +207,64 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
-  void _handleWithdraw() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Chuc nang rut tien se chi dung so du co the rut'),
+  Future<void> _handleWithdraw() async {
+    if (_withdrawableBalance <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Chua co so du co the rut')),
+      );
+      return;
+    }
+    final submitted = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
+      builder: (context) => _WithdrawalFormSheet(
+        maxAmount: _withdrawableBalance,
+        onSubmit: _submitWithdrawal,
+      ),
+    );
+    if (submitted == true) {
+      await _loadWalletSummary();
+    }
+  }
+
+  Future<void> _submitWithdrawal({
+    required num amount,
+    required String bankName,
+    required String accountNumber,
+    required String accountHolderName,
+    required String branchName,
+    required String userNote,
+  }) async {
+    final accessToken = AuthSession.instance.accessToken;
+    if (accessToken == null || accessToken.isEmpty) {
+      throw Exception('Khong tim thay access token');
+    }
+    await _withdrawalService.createWithdrawal(
+      accessToken: accessToken,
+      body: {
+        'amount': amount,
+        'bankName': bankName,
+        'accountNumber': accountNumber,
+        'accountHolderName': accountHolderName,
+        if (branchName.isNotEmpty) 'branchName': branchName,
+        if (userNote.isNotEmpty) 'userNote': userNote,
+      },
+    );
+  }
+
+  void _showWithdrawalHistory() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) => _WithdrawalHistorySheet(withdrawals: _withdrawals),
     );
   }
 
@@ -245,6 +316,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   lockedDeposit: _lockedDeposit,
                   isLoading: _isWalletLoading,
                   onWithdraw: _handleWithdraw,
+                  onHistory: _showWithdrawalHistory,
                 ),
                 const SizedBox(height: 32),
                 _buildSection(
@@ -567,5 +639,349 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
       ),
     );
+  }
+}
+
+class _WithdrawalFormSheet extends StatefulWidget {
+  final num maxAmount;
+  final Future<void> Function({
+    required num amount,
+    required String bankName,
+    required String accountNumber,
+    required String accountHolderName,
+    required String branchName,
+    required String userNote,
+  }) onSubmit;
+
+  const _WithdrawalFormSheet({
+    required this.maxAmount,
+    required this.onSubmit,
+  });
+
+  @override
+  State<_WithdrawalFormSheet> createState() => _WithdrawalFormSheetState();
+}
+
+class _WithdrawalFormSheetState extends State<_WithdrawalFormSheet> {
+  final _amountController = TextEditingController();
+  final _bankController = TextEditingController();
+  final _accountController = TextEditingController();
+  final _holderController = TextEditingController();
+  final _branchController = TextEditingController();
+  final _noteController = TextEditingController();
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _amountController.text = formatMoneyInput(widget.maxAmount);
+  }
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _bankController.dispose();
+    _accountController.dispose();
+    _holderController.dispose();
+    _branchController.dispose();
+    _noteController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final amount = num.tryParse(
+      _amountController.text.replaceAll(RegExp(r'[^0-9.]'), ''),
+    );
+    final bankName = _bankController.text.trim();
+    final accountNumber = _accountController.text.trim();
+    final accountHolderName = _holderController.text.trim();
+    final branchName = _branchController.text.trim();
+    final userNote = _noteController.text.trim();
+
+    if (amount == null || amount <= 0 || amount > widget.maxAmount) {
+      _showError('So tien rut khong hop le');
+      return;
+    }
+    if (bankName.isEmpty || accountNumber.isEmpty || accountHolderName.isEmpty) {
+      _showError('Nhap du thong tin ngan hang');
+      return;
+    }
+
+    setState(() => _isSubmitting = true);
+    try {
+      await widget.onSubmit(
+        amount: amount,
+        bankName: bankName,
+        accountNumber: accountNumber,
+        accountHolderName: accountHolderName,
+        branchName: branchName,
+        userNote: userNote,
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Da gui yeu cau rut tien')),
+      );
+      Navigator.pop(context, true);
+    } catch (error) {
+      if (!mounted) return;
+      _showError(error.toString().replaceFirst('Exception: ', ''));
+      setState(() => _isSubmitting = false);
+    }
+  }
+
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Rut tien',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Toi da: ${formatVnd(widget.maxAmount)}',
+              style: const TextStyle(
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 18),
+            _Input(
+              controller: _amountController,
+              label: 'So tien',
+              keyboardType: TextInputType.number,
+              isMoney: true,
+            ),
+            _Input(controller: _bankController, label: 'Ngan hang'),
+            _Input(controller: _accountController, label: 'So tai khoan'),
+            _Input(controller: _holderController, label: 'Chu tai khoan'),
+            _Input(controller: _branchController, label: 'Chi nhanh'),
+            _Input(
+              controller: _noteController,
+              label: 'Ghi chu',
+              maxLines: 2,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _isSubmitting ? null : _submit,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryBlue,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: _isSubmitting
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Text(
+                        'Gui admin xet duyet',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _WithdrawalHistorySheet extends StatelessWidget {
+  final List<WithdrawalRequestModel> withdrawals;
+
+  const _WithdrawalHistorySheet({required this.withdrawals});
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Lich su rut tien',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w900,
+                color: Color(0xFF1E293B),
+              ),
+            ),
+            const SizedBox(height: 16),
+            if (withdrawals.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Center(child: Text('Chua co yeu cau rut tien')),
+              )
+            else
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: withdrawals.length,
+                  itemBuilder: (context, index) {
+                    final withdrawal = withdrawals[index];
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 10),
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFF),
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  formatVnd(withdrawal.amount),
+                                  style: const TextStyle(
+                                    color: AppColors.primaryBlue,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                              _StatusText(status: withdrawal.status),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '${withdrawal.bankName} - ${withdrawal.accountNumber}',
+                            style: const TextStyle(
+                              color: Color(0xFF475569),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if ((withdrawal.adminNote ?? '').isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              'Admin: ${withdrawal.adminNote}',
+                              style: const TextStyle(
+                                color: Color(0xFF64748B),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Input extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final TextInputType? keyboardType;
+  final int maxLines;
+  final bool isMoney;
+
+  const _Input({
+    required this.controller,
+    required this.label,
+    this.keyboardType,
+    this.maxLines = 1,
+    this.isMoney = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TextField(
+        controller: controller,
+        keyboardType: keyboardType,
+        inputFormatters: isMoney
+            ? const [ThousandsSeparatorInputFormatter()]
+            : null,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: const Color(0xFFF8FAFF),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _StatusText extends StatelessWidget {
+  final String status;
+
+  const _StatusText({required this.status});
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      _label(status),
+      style: TextStyle(
+        color: _color(status),
+        fontSize: 12,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  String _label(String status) {
+    switch (status) {
+      case 'COMPLETED':
+        return 'Da chuyen';
+      case 'REJECTED':
+        return 'Tu choi';
+      default:
+        return 'Cho duyet';
+    }
+  }
+
+  Color _color(String status) {
+    switch (status) {
+      case 'COMPLETED':
+        return const Color(0xFF16A34A);
+      case 'REJECTED':
+        return const Color(0xFFDC2626);
+      default:
+        return const Color(0xFFD97706);
+    }
   }
 }

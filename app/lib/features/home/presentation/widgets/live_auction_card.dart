@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/utils/image_provider_helper.dart';
+
 class LiveAuctionCard extends StatelessWidget {
   final String imageUrl;
   final String title;
@@ -39,8 +41,8 @@ class LiveAuctionCard extends StatelessWidget {
               ClipRRect(
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(24)),
-                child: Image.network(
-                  imageUrl,
+                child: Image(
+                  image: appImageProvider(imageUrl),
                   height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,

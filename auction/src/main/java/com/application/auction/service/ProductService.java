@@ -103,6 +103,7 @@ public class ProductService {
                 .provenance(normalize(request.getProvenance()))
                 .attributes(request.getAttributes() == null ? java.util.Map.of() : request.getAttributes())
                 .rarityRank(request.getRarityRank())
+                .plannedStartTime(request.getPlannedStartTime())
                 .status(request.getStatus() == null ? com.application.auction.enums.ProductStatus.DRAFT : request.getStatus())
                 .build();
     }

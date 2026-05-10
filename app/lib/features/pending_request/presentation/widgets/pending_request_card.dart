@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class PendingRequestCard extends StatelessWidget {
   final String title;
@@ -192,7 +193,7 @@ class PendingRequestCard extends StatelessWidget {
   }
 }
 
-class _RoomAccessBox extends StatelessWidget {
+class _RoomAccessBox extends StatefulWidget {
   final String? roomCode;
   final String? roomPassword;
   final VoidCallback? onJoinRoom;
@@ -204,12 +205,25 @@ class _RoomAccessBox extends StatelessWidget {
   });
 
   @override
+  State<_RoomAccessBox> createState() => _RoomAccessBoxState();
+}
+
+class _RoomAccessBoxState extends State<_RoomAccessBox> {
+  bool _isVisible = false;
+
+  @override
   Widget build(BuildContext context) {
+    final roomCode = widget.roomCode;
+    final roomPassword = widget.roomPassword;
     final hasAccess = roomCode != null &&
-        roomCode!.trim().isNotEmpty &&
+        roomCode.trim().isNotEmpty &&
         roomPassword != null &&
-        roomPassword!.trim().isNotEmpty;
-    final displayRoomCode = hasAccess ? _displayRoomCode(roomCode!) : 'Đang tải';
+        roomPassword.trim().isNotEmpty;
+    final displayRoomCode =
+        hasAccess && _isVisible ? roomCode : _maskSecret(roomCode ?? '');
+    final displayPassword = hasAccess && _isVisible
+        ? roomPassword
+        : _maskSecret(roomPassword ?? '');
 
     return Container(
       width: double.infinity,
@@ -222,21 +236,52 @@ class _RoomAccessBox extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Row(
+            children: [
+              const Expanded(
+                child: Text(
+                  'Thông tin vào phòng',
+                  style: TextStyle(
+                    color: Color(0xFF1E293B),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              IconButton(
+                onPressed: hasAccess
+                    ? () => setState(() => _isVisible = !_isVisible)
+                    : null,
+                visualDensity: VisualDensity.compact,
+                tooltip: _isVisible ? 'Ẩn thông tin' : 'Hiện thông tin',
+                icon: Icon(
+                  _isVisible
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  size: 18,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
           _AccessLine(
             label: 'Mã phòng',
-            value: displayRoomCode,
+            value: hasAccess ? displayRoomCode : 'Đang tải',
+            copyValue: hasAccess ? roomCode : null,
           ),
           const SizedBox(height: 4),
           _AccessLine(
             label: 'Mật khẩu',
-            value: hasAccess ? roomPassword! : 'Đang tải',
+            value: hasAccess ? displayPassword : 'Đang tải',
+            copyValue: hasAccess ? roomPassword : null,
           ),
           const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
             height: 34,
             child: ElevatedButton.icon(
-              onPressed: hasAccess ? onJoinRoom : null,
+              onPressed: hasAccess ? widget.onJoinRoom : null,
               icon: const Icon(Icons.login_rounded, size: 16),
               label: const Text('Vào phòng bid'),
               style: ElevatedButton.styleFrom(
@@ -260,28 +305,22 @@ class _RoomAccessBox extends StatelessWidget {
     );
   }
 
-  String _displayRoomCode(String value) {
-    final trimmed = value.trim();
-    if (RegExp(r'^\d+$').hasMatch(trimmed)) return trimmed;
-
-    final digits = trimmed.replaceAll(RegExp(r'\D'), '');
-    if (digits.length >= 6) return digits.substring(0, 6);
-
-    final hash = trimmed.codeUnits.fold<int>(
-      0,
-      (previous, codeUnit) => (previous * 31 + codeUnit) & 0x7fffffff,
-    );
-    return (100000 + hash % 900000).toString();
+  String _maskSecret(String value) {
+    final length = value.trim().isEmpty ? 8 : value.trim().length;
+    final maskLength = length < 6 ? 6 : length;
+    return List.filled(maskLength, '*').join();
   }
 }
 
 class _AccessLine extends StatelessWidget {
   final String label;
   final String value;
+  final String? copyValue;
 
   const _AccessLine({
     required this.label,
     required this.value,
+    this.copyValue,
   });
 
   @override
@@ -309,6 +348,24 @@ class _AccessLine extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w900,
             ),
+          ),
+        ),
+        IconButton(
+          onPressed: copyValue == null
+              ? null
+              : () async {
+                  await Clipboard.setData(ClipboardData(text: copyValue!));
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Đã sao chép $label')),
+                  );
+                },
+          visualDensity: VisualDensity.compact,
+          tooltip: 'Sao chép $label',
+          icon: const Icon(
+            Icons.copy_rounded,
+            size: 16,
+            color: Color(0xFF64748B),
           ),
         ),
       ],

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../auction/presentation/widgets/auction_registration_flow.dart';
 import '../../data/models/product_model.dart';
 import 'live_auction_card.dart';
@@ -13,14 +14,20 @@ class LiveAuctionSection extends StatelessWidget {
 
   List<ProductModel> get _liveProducts {
     final liveProducts = products
-        .where((product) => product.auctionRoom?.status.toUpperCase() == 'LIVE')
+        .where((product) => _effectiveRoomStatus(product) == 'LIVE')
         .toList();
 
     if (liveProducts.isNotEmpty) {
       return liveProducts.take(5).toList();
     }
 
-    return products.take(5).toList();
+    return products
+        .where((product) {
+          final status = _effectiveRoomStatus(product);
+          return status == 'SCHEDULED' || status == 'LIVE';
+        })
+        .take(5)
+        .toList();
   }
 
   @override
@@ -94,7 +101,9 @@ class LiveAuctionSection extends StatelessWidget {
                 return LiveAuctionCard(
                   imageUrl: product.displayImage,
                   title: product.name,
-                  currentPrice: _formatMoney(product.auctionRoom?.minimumBid),
+                  currentPrice: product.auctionRoom?.minimumBid == null
+                      ? 'Đang cập nhật'
+                      : formatVnd(product.auctionRoom?.minimumBid),
                   timeLeft: _formatTimeLeft(product.auctionRoom?.endTime),
                   onRegister: () => AuctionRegistrationFlow.start(
                     context,
@@ -106,25 +115,6 @@ class LiveAuctionSection extends StatelessWidget {
           ),
       ],
     );
-  }
-
-  String _formatMoney(num? value) {
-    if (value == null) {
-      return 'Đang cập nhật';
-    }
-
-    final digits = value.round().toString();
-    final buffer = StringBuffer();
-
-    for (int index = 0; index < digits.length; index++) {
-      final reverseIndex = digits.length - index;
-      buffer.write(digits[index]);
-      if (reverseIndex > 1 && reverseIndex % 3 == 1) {
-        buffer.write('.');
-      }
-    }
-
-    return '${buffer.toString()} d';
   }
 
   String _formatTimeLeft(DateTime? endTime) {
@@ -141,5 +131,23 @@ class LiveAuctionSection extends StatelessWidget {
     final minutes = (difference.inMinutes % 60).toString().padLeft(2, '0');
     final seconds = (difference.inSeconds % 60).toString().padLeft(2, '0');
     return '$hours:$minutes:$seconds';
+  }
+
+  String _effectiveRoomStatus(ProductModel product) {
+    final room = product.auctionRoom;
+    if (room == null) return '';
+
+    final now = DateTime.now();
+    final endTime = room.endTime;
+    if (endTime != null && !now.isBefore(endTime)) {
+      return 'CLOSED';
+    }
+
+    final startTime = room.startTime;
+    if (startTime != null && now.isBefore(startTime)) {
+      return 'SCHEDULED';
+    }
+
+    return room.status.toUpperCase();
   }
 }

@@ -15,6 +15,7 @@ class ProductModel {
   final String? authenticity;
   final String? provenance;
   final int? rarityRank;
+  final DateTime? plannedStartTime;
   final String status;
   final DateTime? createdAt;
   final DateTime? updatedAt;
@@ -36,6 +37,7 @@ class ProductModel {
     this.authenticity,
     this.provenance,
     this.rarityRank,
+    this.plannedStartTime,
     this.createdAt,
     this.updatedAt,
     this.auctionRoom,
@@ -63,6 +65,7 @@ class ProductModel {
       authenticity: json['authenticity']?.toString(),
       provenance: json['provenance']?.toString(),
       rarityRank: json['rarityRank'] as int?,
+      plannedStartTime: _parseDateTime(json['plannedStartTime']),
       status: json['status']?.toString() ?? '',
       createdAt: _parseDateTime(json['createdAt']),
       updatedAt: _parseDateTime(json['updatedAt']),
@@ -81,6 +84,8 @@ class ProductModel {
     }
     return '';
   }
+
+  DateTime? get effectiveStartTime => auctionRoom?.startTime ?? plannedStartTime;
 
   static DateTime? _parseDateTime(dynamic value) {
     final raw = value?.toString();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../core/utils/currency_formatter.dart';
 import '../../../../auth/data/auth_session.dart';
 import '../../../../home/data/models/product_model.dart';
 import '../../data/admin_auction_service.dart';
@@ -70,7 +71,7 @@ class _AdminAuctionDetailPageState extends State<AdminAuctionDetailPage> {
                     category: product.brand.isEmpty ? product.categoryId : product.brand,
                     productId: _shortId(product.id),
                     title: product.name,
-                    currentPrice: _formatMoney(room?.minimumBid),
+                    currentPrice: formatVnd(room?.minimumBid),
                     timeRemaining: _roomTimeLabel(status, room?.endTime),
                   ),
                   const SizedBox(height: 32),
@@ -178,16 +179,6 @@ class _AdminAuctionDetailPageState extends State<AdminAuctionDetailPage> {
     if (endTime == null) return status.isEmpty ? 'Chua co phong' : status;
     final local = endTime.toLocal();
     return '${_two(local.hour)}:${_two(local.minute)} - ${_two(local.day)}/${_two(local.month)}/${local.year}';
-  }
-
-  String _formatMoney(num? value) {
-    final amount = value ?? 0;
-    final raw = amount.round().toString();
-    final formatted = raw.replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (match) => '${match[1]}.',
-    );
-    return '${formatted}d';
   }
 
   String _shortId(String value) {

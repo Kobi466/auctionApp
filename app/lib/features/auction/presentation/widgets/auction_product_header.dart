@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../home/data/models/product_model.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/image_provider_helper.dart';
 
 class AuctionProductHeader extends StatefulWidget {
   final ProductModel product;
@@ -119,16 +120,17 @@ class _ImageCarousel extends StatelessWidget {
             onPageChanged: onPageChanged,
             itemBuilder: (context, index) {
               final imageUrl = images[index];
-              return imageUrl.isNotEmpty
-                  ? Image.network(
-                      imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: const Color(0xFFF1F5F9),
-                        child: const Icon(Icons.image_not_supported_outlined, color: Color(0xFF94A3B8)),
-                      ),
-                    )
-                  : Container(color: const Color(0xFFF1F5F9));
+              return Image(
+                image: appImageProvider(imageUrl),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) => Container(
+                  color: const Color(0xFFF1F5F9),
+                  child: const Icon(
+                    Icons.image_not_supported_outlined,
+                    color: Color(0xFF94A3B8),
+                  ),
+                ),
+              );
             },
           ),
         ),

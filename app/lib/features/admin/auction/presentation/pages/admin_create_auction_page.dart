@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_colors.dart';
+import '../../../../../core/utils/currency_formatter.dart';
 import '../../../../auth/data/auth_session.dart';
 import '../../../../home/data/models/product_model.dart';
 import '../../../../home/data/product_service.dart';
@@ -109,7 +110,7 @@ class _AdminCreateAuctionPageState extends State<AdminCreateAuctionPage> {
 
   void _syncPriceFromSelectedProduct() {
     final price = _selectedProduct?.startingPrice ?? 0;
-    _minimumBidController.text = price <= 0 ? '' : price.toStringAsFixed(0);
+    _minimumBidController.text = formatMoneyInput(price);
   }
 
   Future<void> _createAuctionRoom() async {

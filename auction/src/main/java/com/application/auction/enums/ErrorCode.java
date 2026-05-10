@@ -56,7 +56,17 @@ public enum ErrorCode {
     ACCOUNT_LOCKED(451, "Account is locked", HttpStatus.FORBIDDEN),
     USER_STATUS_REQUIRED(452, "User status is required", HttpStatus.BAD_REQUEST),
     CANNOT_LOCK_SELF(453, "Admin cannot lock own account", HttpStatus.BAD_REQUEST),
-    NOTIFICATION_NOT_FOUND(454, "Notification not found", HttpStatus.NOT_FOUND);
+    NOTIFICATION_NOT_FOUND(454, "Notification not found", HttpStatus.NOT_FOUND),
+    AUCTION_ROOM_NOT_STARTED(455, "Auction registration is not open yet", HttpStatus.BAD_REQUEST),
+    AUCTION_ROOM_CLOSED(456, "Auction room has ended", HttpStatus.BAD_REQUEST),
+    AUCTION_ROOM_ALREADY_STARTED(457, "Auction room has already started", HttpStatus.BAD_REQUEST),
+    WITHDRAWAL_NOT_FOUND(458, "Withdrawal request not found", HttpStatus.NOT_FOUND),
+    WITHDRAWAL_AMOUNT_INVALID(459, "Withdrawal amount is invalid", HttpStatus.BAD_REQUEST),
+    WITHDRAWAL_BALANCE_NOT_ENOUGH(460, "Withdrawable balance is not enough", HttpStatus.BAD_REQUEST),
+    WITHDRAWAL_BANK_REQUIRED(461, "Withdrawal bank information is required", HttpStatus.BAD_REQUEST),
+    WITHDRAWAL_STATUS_INVALID(462, "Withdrawal status is invalid", HttpStatus.BAD_REQUEST),
+    WITHDRAWAL_REVIEW_INVALID(463, "Withdrawal review is invalid", HttpStatus.BAD_REQUEST),
+    BID_AMOUNT_INVALID(464, "Bid amount is invalid", HttpStatus.BAD_REQUEST);
 
     int code;
     String message;

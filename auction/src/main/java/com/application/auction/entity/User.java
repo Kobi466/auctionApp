@@ -22,10 +22,12 @@ import java.util.UUID;
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @ToString(exclude = "roles")
 @FieldDefaults(level = lombok.AccessLevel.PRIVATE)
+@Table(name = "user")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(nullable = false, updatable = false, length = 36)
     @EqualsAndHashCode.Include
     UUID id;
 
@@ -47,6 +49,21 @@ public class User {
 
 
     @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_roles",
+            joinColumns = @JoinColumn(
+                    name = "user_id",
+                    referencedColumnName = "id",
+                    nullable = false,
+                    foreignKey = @ForeignKey(name = "fk_user_roles_user")
+            ),
+            inverseJoinColumns = @JoinColumn(
+                    name = "roles_id",
+                    referencedColumnName = "id",
+                    nullable = false,
+                    foreignKey = @ForeignKey(name = "fk_user_roles_role")
+            )
+    )
     Set<Role> roles;
 
 }

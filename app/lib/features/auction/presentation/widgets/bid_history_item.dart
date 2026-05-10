@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../data/models/bid_model.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
 
 class BidHistoryItem extends StatelessWidget {
   final BidModel bid;
@@ -56,7 +57,7 @@ class BidHistoryItem extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                '${_formatAmount(bid.amount)} đ',
+                formatVnd(bid.amount),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
@@ -75,14 +76,6 @@ class BidHistoryItem extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  String _formatAmount(num amount) {
-    // Simple formatting for the demo
-    return amount.toString().replaceAllMapped(
-          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-          (Match m) => '${m[1]}.',
-        );
   }
 
   String _formatTime(DateTime time) {

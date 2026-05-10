@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
 
 class AuctionPriceCard extends StatelessWidget {
   final num startingPrice;
@@ -33,22 +34,14 @@ class AuctionPriceCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildPriceInfo('GIÁ GỐC', '${_formatPrice(startingPrice)}kđ'),
+          _buildPriceInfo('GIÁ GỐC', formatVnd(startingPrice)),
           Container(width: 1, height: 32, color: const Color(0xFFF1F5F9)),
-          _buildPriceInfo('GIÁ HIỆN TẠI', '${_formatPrice(currentPrice)}kđ', isBlue: true),
+          _buildPriceInfo('GIÁ HIỆN TẠI', formatVnd(currentPrice), isBlue: true),
           Container(width: 1, height: 32, color: const Color(0xFFF1F5F9)),
           _buildPriceInfo('KẾT THÚC', endTime, isRed: true),
         ],
       ),
     );
-  }
-
-  String _formatPrice(num price) {
-    // Basic formatting for the demo based on the UI screenshot
-    if (price >= 1000000) {
-      return (price / 1000000).toStringAsFixed(3).replaceAll('.', '.');
-    }
-    return price.toString();
   }
 
   Widget _buildPriceInfo(String label, String value, {bool isBlue = false, bool isRed = false}) {

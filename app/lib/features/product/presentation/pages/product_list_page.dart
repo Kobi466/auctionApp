@@ -5,6 +5,7 @@ import '../../../auction/presentation/widgets/auction_registration_flow.dart';
 import '../../../auth/data/auth_session.dart';
 import '../../../home/data/models/product_model.dart';
 import '../../../home/data/product_service.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../home/presentation/widgets/custom_bottom_navigation.dart';
 import '../../../home/presentation/widgets/home_app_bar.dart';
 import '../widgets/user_product_card.dart';
@@ -194,11 +195,12 @@ class _ProductListPageState extends State<ProductListPage>
     bool onlyUpcoming = false,
   }) {
     final auctionProducts = products.where((product) {
-      return product.auctionRoom != null;
+      final status = _effectiveRoomStatus(product);
+      return status != 'CLOSED' && status != 'CANCELLED';
     });
 
     final items = auctionProducts.where((product) {
-      final status = product.auctionRoom?.status.toUpperCase() ?? '';
+      final status = _effectiveRoomStatus(product);
       final matchesTab = onlyLive
           ? status == 'LIVE'
           : onlyUpcoming
@@ -245,13 +247,13 @@ class _ProductListPageState extends State<ProductListPage>
         itemBuilder: (context, index) {
           final product = items[index];
           final room = product.auctionRoom;
-          final isLive = room?.status.toUpperCase() == 'LIVE';
+          final isLive = _effectiveRoomStatus(product) == 'LIVE';
 
           return UserProductCard(
             title: product.name,
             imageUrl: product.displayImage,
             time: _formatAuctionTime(product),
-            price: _formatMoney(room?.minimumBid),
+            price: formatVnd(room?.minimumBid ?? product.startingPrice),
             participants: 0,
             isLive: isLive,
             onDetails: () {
@@ -262,9 +264,9 @@ class _ProductListPageState extends State<ProductListPage>
                 ),
               );
             },
-            onAction: () {
-              AuctionRegistrationFlow.start(context, product: product);
-            },
+            onAction: product.auctionRoom == null
+                ? null
+                : () => AuctionRegistrationFlow.start(context, product: product),
           );
         },
       ),
@@ -305,10 +307,14 @@ class _ProductListPageState extends State<ProductListPage>
 
   String _formatAuctionTime(ProductModel product) {
     final room = product.auctionRoom;
-    if (room == null) return 'Chưa có phòng';
+    if (room == null) {
+      return _formatPlannedStartTime(product.plannedStartTime);
+    }
 
     final now = DateTime.now();
-    final status = room.status.toUpperCase();
+    final status = _effectiveRoomStatus(product);
+    if (status == 'CLOSED') return 'Da ket thuc';
+    if (status == 'CANCELLED') return 'Da huy';
     final target = status == 'LIVE' ? room.endTime : room.startTime;
     if (target == null) return status;
 
@@ -327,14 +333,32 @@ class _ProductListPageState extends State<ProductListPage>
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  String _formatMoney(num? amount) {
-    final value = amount ?? 0;
-    final raw = value.toStringAsFixed(value.truncateToDouble() == value ? 0 : 2);
-    final parts = raw.split('.');
-    final whole = parts.first.replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (match) => '${match[1]}.',
-    );
-    return parts.length == 1 ? '${whole}đ' : '$whole,${parts.last}đ';
+  String _effectiveRoomStatus(ProductModel product) {
+    final room = product.auctionRoom;
+    if (room == null) return '';
+
+    final now = DateTime.now();
+    final endTime = room.endTime;
+    if (endTime != null && !now.isBefore(endTime)) {
+      return 'CLOSED';
+    }
+
+    final startTime = room.startTime;
+    if (startTime != null && now.isBefore(startTime)) {
+      return 'SCHEDULED';
+    }
+
+    return room.status.toUpperCase();
   }
+
+  String _formatPlannedStartTime(DateTime? value) {
+    if (value == null) return 'Chua co ngay bat dau';
+    final local = value.toLocal();
+    final day = local.day.toString().padLeft(2, '0');
+    final month = local.month.toString().padLeft(2, '0');
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
+    return '$day/$month/${local.year} $hour:$minute';
+  }
+
 }

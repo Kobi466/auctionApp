@@ -37,7 +37,7 @@ class AuctionDetailHistory extends StatelessWidget {
         _buildHistoryItem(
           name: 'Trần Minh Quân',
           time: '3 PHÚT TRƯỚC',
-          price: '450.000.000đ',
+          price: '450.000.000 VNĐ',
           isHighest: true,
           avatarUrl: 'https://i.pravatar.cc/150?u=1',
         ),
@@ -45,14 +45,14 @@ class AuctionDetailHistory extends StatelessWidget {
         _buildHistoryItem(
           name: 'Lê Thủy Chi',
           time: '8 PHÚT TRƯỚC',
-          price: '445.000.000đ',
+          price: '445.000.000 VNĐ',
           avatarUrl: 'https://i.pravatar.cc/150?u=2',
         ),
         const SizedBox(height: 12),
         _buildHistoryItem(
           name: 'Nguyễn Hoàng Nam',
           time: '15 PHÚT TRƯỚC',
-          price: '440.000.000đ',
+          price: '440.000.000 VNĐ',
           avatarUrl: 'https://i.pravatar.cc/150?u=3',
         ),
       ],

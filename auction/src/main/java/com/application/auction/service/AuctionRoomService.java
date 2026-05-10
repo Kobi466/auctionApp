@@ -1,7 +1,9 @@
 package com.application.auction.service;
 
 import com.application.auction.dto.request.AuctionRoomRequest;
+import com.application.auction.dto.response.AuctionParticipantResponse;
 import com.application.auction.dto.response.AuctionRoomResponse;
+import com.application.auction.dto.response.AuctionRoomSummaryResponse;
 import com.application.auction.dto.response.ProductResponse;
 import com.application.auction.entity.AuctionRoom;
 import com.application.auction.entity.Product;
@@ -27,6 +29,7 @@ import java.util.Locale;
 import java.util.Random;
 import java.util.UUID;
 
+//ql phòng
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -36,6 +39,8 @@ public class AuctionRoomService {
     ProductRepository productRepository;
     AuctionRoomMapper auctionRoomMapper;
     ProductMapper productMapper;
+    BidService bidService;
+    AuctionRoomParticipantService auctionRoomParticipantService;
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
@@ -86,8 +91,13 @@ public class AuctionRoomService {
     @Transactional(readOnly = true)
     public List<ProductResponse> getProductsWithAuctionRooms() {
         return auctionRoomRepository.findAll().stream()
+                .filter(room -> room.getStatus() != AuctionRoomStatus.CANCELLED)
                 .map(room -> {
                     applyCurrentAuctionRoomStatus(room);
+                    return room;
+                })
+                .filter(room -> room.getStatus() != AuctionRoomStatus.CLOSED)
+                .map(room -> {
                     Product product = productRepository.findById(room.getProductId())
                             .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
                     return toProductResponse(product, room);
@@ -101,6 +111,27 @@ public class AuctionRoomService {
                 .orElseThrow(() -> new AppException(ErrorCode.AUCTION_ROOM_NOT_FOUND));
         applyCurrentAuctionRoomStatus(auctionRoom);
         return auctionRoomMapper.toAuctionRoomResponse(auctionRoom);
+    }
+
+    @Transactional(readOnly = true)
+    public AuctionRoomSummaryResponse getAuctionRoomSummary(UUID roomId) {
+        AuctionRoom auctionRoom = auctionRoomRepository.findById(roomId)
+                .orElseThrow(() -> new AppException(ErrorCode.AUCTION_ROOM_NOT_FOUND));
+        applyCurrentAuctionRoomStatus(auctionRoom);
+        Product product = productRepository.findById(auctionRoom.getProductId())
+                .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
+        ProductResponse productResponse = toProductResponse(product, auctionRoom);
+        List<AuctionParticipantResponse> participants =
+                auctionRoomParticipantService.getApprovedParticipants(roomId);
+
+        return AuctionRoomSummaryResponse.builder()
+                .product(productResponse)
+                .currentPrice(bidService.getCurrentPrice(auctionRoom))
+                .bidCount(bidService.countBid(roomId))
+                .watcherCount(participants.size())
+                .participants(participants)
+                .bids(bidService.getBidHistory(roomId))
+                .build();
     }
 
     @Transactional

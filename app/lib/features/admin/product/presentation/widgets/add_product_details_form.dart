@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../../core/utils/currency_formatter.dart';
 
 class AddProductDetailsForm extends StatelessWidget {
   final TextEditingController? nameController;
@@ -7,6 +8,9 @@ class AddProductDetailsForm extends StatelessWidget {
   final TextEditingController? provenanceController;
   final TextEditingController? authenticityController;
   final TextEditingController? rarityRankController;
+  final DateTime? plannedStartTime;
+  final VoidCallback? onPickPlannedStartTime;
+  final VoidCallback? onClearPlannedStartTime;
 
   const AddProductDetailsForm({
     super.key,
@@ -16,6 +20,9 @@ class AddProductDetailsForm extends StatelessWidget {
     this.provenanceController,
     this.authenticityController,
     this.rarityRankController,
+    this.plannedStartTime,
+    this.onPickPlannedStartTime,
+    this.onClearPlannedStartTime,
   });
 
   @override
@@ -59,10 +66,11 @@ class AddProductDetailsForm extends StatelessWidget {
           const SizedBox(height: 20),
           _buildTextField(
             label: 'Gia khoi diem',
-            hint: '150000000',
-            prefixText: 'VND ',
+            hint: '150,000,000',
+            prefixText: 'VNĐ ',
             controller: startingPriceController,
             keyboardType: TextInputType.number,
+            isMoney: true,
           ),
           const SizedBox(height: 20),
           _buildTextField(
@@ -84,9 +92,74 @@ class AddProductDetailsForm extends StatelessWidget {
             controller: rarityRankController,
             keyboardType: TextInputType.number,
           ),
+          const SizedBox(height: 20),
+          _buildPlannedStartTimeField(),
         ],
       ),
     );
+  }
+
+  Widget _buildPlannedStartTimeField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Ngay gio bat dau du kien',
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF475569),
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onPickPlannedStartTime,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEEF2FF),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.event_outlined, color: Color(0xFF4F46E5), size: 20),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    plannedStartTime == null
+                        ? 'Chua co ngay bat dau'
+                        : _formatDateTime(plannedStartTime!),
+                    style: TextStyle(
+                      color: plannedStartTime == null
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF1E293B),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                if (plannedStartTime != null)
+                  IconButton(
+                    onPressed: onClearPlannedStartTime,
+                    icon: const Icon(Icons.close_rounded, size: 18),
+                    color: const Color(0xFF64748B),
+                    tooltip: 'Xoa ngay bat dau',
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatDateTime(DateTime value) {
+    final local = value.toLocal();
+    final day = local.day.toString().padLeft(2, '0');
+    final month = local.month.toString().padLeft(2, '0');
+    final hour = local.hour.toString().padLeft(2, '0');
+    final minute = local.minute.toString().padLeft(2, '0');
+    return '$day/$month/${local.year} $hour:$minute';
   }
 
   Widget _buildTextField({
@@ -96,6 +169,7 @@ class AddProductDetailsForm extends StatelessWidget {
     int maxLines = 1,
     TextEditingController? controller,
     TextInputType? keyboardType,
+    bool isMoney = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -118,6 +192,9 @@ class AddProductDetailsForm extends StatelessWidget {
             controller: controller,
             maxLines: maxLines,
             keyboardType: keyboardType,
+            inputFormatters: isMoney
+                ? const [ThousandsSeparatorInputFormatter()]
+                : null,
             decoration: InputDecoration(
               hintText: hint,
               hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 14),

@@ -13,5 +13,9 @@ public interface AuctionDepositRepository extends JpaRepository<AuctionDeposit, 
 
     List<AuctionDeposit> findByUserIdOrderByCreatedAtDesc(UUID userId);
 
+    List<AuctionDeposit> findByAuctionRoomIdAndStatus(UUID auctionRoomId, AuctionDepositStatus status);
+
+    long countByAuctionRoomIdAndStatus(UUID auctionRoomId, AuctionDepositStatus status);
+
     List<AuctionDeposit> findByStatus(AuctionDepositStatus status);
 }

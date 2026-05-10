@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../auth/data/auth_session.dart';
 import '../../../home/data/models/product_model.dart';
 import '../../../kyc/presentation/pages/kyc_main_page.dart';
@@ -33,6 +34,12 @@ class AuctionRegistrationFlow {
       );
       if (!context.mounted) return;
       Navigator.pop(context);
+
+      final roomStatus = _roomStatus(status.product ?? product);
+      if (roomStatus == 'CLOSED' || roomStatus == 'CANCELLED') {
+        await _showAuctionClosedDialog(context);
+        return;
+      }
 
       if (!status.kycVerified) {
         await _showKycRequiredDialog(context);
@@ -73,12 +80,22 @@ class AuctionRegistrationFlow {
           return;
         }
 
+        if (roomStatus == 'LIVE') {
+          await _showAuctionAlreadyStartedDialog(context);
+          return;
+        }
+
         await _showPaymentDialog(
           context,
           accessToken: accessToken,
           deposit: status.deposit!,
           paymentConfig: status.paymentConfig!,
         );
+        return;
+      }
+
+      if (roomStatus == 'LIVE') {
+        await _showAuctionAlreadyStartedDialog(context);
         return;
       }
 
@@ -97,6 +114,22 @@ class AuctionRegistrationFlow {
         isError: true,
       );
     }
+  }
+
+  static String _roomStatus(ProductModel product) {
+    final room = product.auctionRoom;
+    if (room == null) return '';
+
+    final now = DateTime.now();
+    final startTime = room.startTime;
+    final endTime = room.endTime;
+    if (endTime != null && !now.isBefore(endTime)) {
+      return 'CLOSED';
+    }
+    if (startTime != null && now.isBefore(startTime)) {
+      return 'SCHEDULED';
+    }
+    return room.status.toUpperCase();
   }
 
   static void _showLoading(BuildContext context) {
@@ -381,7 +414,7 @@ class AuctionRegistrationFlow {
                     label: 'Chủ tài khoản',
                     value: paymentConfig.accountHolderName,
                   ),
-                  _InfoRow(label: 'Số tiền', value: _formatMoney(deposit.requiredAmount)),
+                  _InfoRow(label: 'Số tiền', value: formatVnd(deposit.requiredAmount)),
                   _InfoRow(label: 'Nội dung', value: deposit.transferContent),
                 ],
               ),
@@ -481,6 +514,72 @@ class AuctionRegistrationFlow {
     );
   }
 
+  static Future<void> _showAuctionNotStartedDialog(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Chua den gio dau gia'),
+        content: const Text(
+          'Tien coc cua ban da duoc duyet. Phong se mo khi den thoi gian dau gia.',
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Da hieu'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Future<void> _showAuctionAlreadyStartedDialog(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Phien dau gia da bat dau'),
+        content: const Text(
+          'Da qua thoi gian dang ky dat coc. Chi tai khoan da duoc duyet truoc do moi co the vao phong.',
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Da hieu'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Future<void> _showAuctionClosedDialog(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Phien dau gia da ket thuc'),
+        content: const Text(
+          'San pham nay da qua thoi gian dau gia nen khong the dang ky hoac vao phong.',
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Da hieu'),
+          ),
+        ],
+      ),
+    );
+  }
+
   static void _showSnackBar(
     BuildContext context,
     String message, {
@@ -494,15 +593,6 @@ class AuctionRegistrationFlow {
     );
   }
 
-  static String _formatMoney(num amount) {
-    final raw = amount.toStringAsFixed(amount.truncateToDouble() == amount ? 0 : 2);
-    final parts = raw.split('.');
-    final whole = parts.first.replaceAllMapped(
-      RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
-      (match) => '${match[1]}.',
-    );
-    return parts.length == 1 ? '${whole}đ' : '$whole,${parts.last}đ';
-  }
   static String _buildVietQrUrl(
     AuctionPaymentConfigModel paymentConfig,
     AuctionDepositModel deposit,

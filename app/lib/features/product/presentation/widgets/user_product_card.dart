@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/image_provider_helper.dart';
 
 class UserProductCard extends StatelessWidget {
   final String imageUrl;
@@ -47,8 +48,8 @@ class UserProductCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(20),
-                child: Image.network(
-                  imageUrl,
+                child: Image(
+                  image: appImageProvider(imageUrl),
                   width: 100,
                   height: 100,
                   fit: BoxFit.cover,

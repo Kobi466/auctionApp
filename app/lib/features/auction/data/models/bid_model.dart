@@ -21,11 +21,14 @@ class BidModel {
     return BidModel(
       id: json['id']?.toString() ?? '',
       userId: json['userId']?.toString() ?? '',
-      userName: json['userName']?.toString() ?? 'Người dùng',
+      userName: json['userName']?.toString() ?? 'Nguoi dung',
       userAvatar: json['userAvatar']?.toString(),
-      amount: json['amount'] ?? 0,
-      createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
-      isLeading: json['isLeading'] == true,
+      amount: json['amount'] is num
+          ? json['amount'] as num
+          : num.tryParse('${json['amount']}') ?? 0,
+      createdAt:
+          DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
+      isLeading: json['isLeading'] == true || json['leading'] == true,
     );
   }
 }

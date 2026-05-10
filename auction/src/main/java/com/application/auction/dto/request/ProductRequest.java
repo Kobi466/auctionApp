@@ -11,6 +11,7 @@ import lombok.experimental.FieldDefaults;
 import java.util.List;
 import java.util.Map;
 import java.math.BigDecimal;
+import java.time.Instant;
 @Data
 @Builder
 @NoArgsConstructor
@@ -31,5 +32,6 @@ public class ProductRequest {
     String provenance;
     Map<String, Object> attributes;
     Integer rarityRank;
+    Instant plannedStartTime;
     ProductStatus status;
 }

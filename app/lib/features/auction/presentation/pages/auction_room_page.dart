@@ -1,81 +1,45 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
-import '../../../home/data/models/product_model.dart';
+import '../../../../core/utils/currency_formatter.dart';
+import '../../../auth/data/auth_session.dart';
 import '../../../home/presentation/widgets/custom_bottom_navigation.dart';
+import '../../data/auction_room_service.dart';
+import '../../data/models/auction_participant_model.dart';
+import '../../data/models/auction_room_summary_model.dart';
 import '../../data/models/bid_model.dart';
 import '../widgets/auction_price_card.dart';
 import '../widgets/auction_product_header.dart';
-import '../widgets/bid_history_item.dart';
 import '../widgets/auction_stats_card.dart';
+import '../widgets/bid_history_item.dart';
 import 'bid_history_page.dart';
 
 class AuctionRoomPage extends StatefulWidget {
-  const AuctionRoomPage({super.key});
+  final String roomId;
+
+  const AuctionRoomPage({
+    super.key,
+    required this.roomId,
+  });
 
   @override
   State<AuctionRoomPage> createState() => _AuctionRoomPageState();
 }
 
 class _AuctionRoomPageState extends State<AuctionRoomPage> {
-  final TextEditingController _bidController = TextEditingController(text: '2460000000');
+  final AuctionRoomService _service = AuctionRoomService();
+  final TextEditingController _bidController = TextEditingController();
 
-  // Specific product data as requested with multiple images
-  final ProductModel _product = const ProductModel(
-    id: 'patek-5711',
-    name: 'Patek Philippe Nautilus 5711/1A',
-    brand: 'PATEK PHILIPPE',
-    subTitle: 'NAUTILUS',
-    startingPrice: 2200000000,
-    mainImageUrl: 'https://images.patek.com/images/articles/face_white/625/5711_1A_010_1.jpg',
-    imageUrls: [
-      'https://static.patek.com/images/articles/face_white/1200/5711_1A_010_2.jpg',
-      'https://static.patek.com/images/articles/face_white/1200/5711_1A_010_3.jpg',
-      'https://static.patek.com/images/articles/face_white/1200/5711_1A_010_4.jpg',
-    ],
-    categoryId: 'watches',
-    tags: ['Luxury', 'Sport'],
-    status: 'active',
-  );
+  bool _isLoading = true;
+  bool _isSubmittingBid = false;
+  String? _errorMessage;
+  AuctionRoomSummaryModel? _summary;
 
-  // Mock data with more entries to demonstrate "View All"
-  final List<BidModel> _mockBids = [
-    BidModel(
-      id: '1',
-      userId: 'u1',
-      userName: 'Minh H***',
-      amount: 2450000000,
-      createdAt: DateTime.now().subtract(const Duration(seconds: 30)),
-      isLeading: true,
-    ),
-    BidModel(
-      id: '2',
-      userId: 'u2',
-      userName: 'Tuấn A***',
-      amount: 2440000000,
-      createdAt: DateTime.now().subtract(const Duration(minutes: 2)),
-    ),
-    BidModel(
-      id: '3',
-      userId: 'u3',
-      userName: 'Hải Đ***',
-      amount: 2420000000,
-      createdAt: DateTime.now().subtract(const Duration(minutes: 5)),
-    ),
-    BidModel(
-      id: '4',
-      userId: 'u4',
-      userName: 'Hoàng M***',
-      amount: 2410000000,
-      createdAt: DateTime.now().subtract(const Duration(minutes: 10)),
-    ),
-    BidModel(
-      id: '5',
-      userId: 'u5',
-      userName: 'Nam P***',
-      amount: 2400000000,
-      createdAt: DateTime.now().subtract(const Duration(minutes: 15)),
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadRoom();
+  }
 
   @override
   void dispose() {
@@ -83,109 +47,286 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
     super.dispose();
   }
 
+  Future<void> _loadRoom() async {
+    final accessToken = AuthSession.instance.accessToken ?? '';
+    if (accessToken.isEmpty || widget.roomId.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Khong tim thay thong tin phong dau gia';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _errorMessage = null;
+    });
+
+    try {
+      final summary = await _service.getRoomSummary(
+        accessToken: accessToken,
+        roomId: widget.roomId,
+      );
+      if (!mounted) return;
+      setState(() {
+        _summary = summary;
+        _bidController.text = formatMoneyInput(summary.currentPrice + 10000000);
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage = error.toString().replaceFirst('Exception: ', '');
+      });
+    }
+  }
+
+  Future<void> _placeBid() async {
+    final accessToken = AuthSession.instance.accessToken ?? '';
+    final amount = num.tryParse(
+      _bidController.text.replaceAll(RegExp(r'[^0-9.]'), ''),
+    );
+    if (accessToken.isEmpty || amount == null || amount <= 0) {
+      _showError('Nhap gia dau hop le');
+      return;
+    }
+
+    setState(() => _isSubmittingBid = true);
+    try {
+      await _service.placeBid(
+        accessToken: accessToken,
+        roomId: widget.roomId,
+        amount: amount,
+      );
+      await _loadRoom();
+    } catch (error) {
+      _showError(error.toString().replaceFirst('Exception: ', ''));
+    } finally {
+      if (mounted) setState(() => _isSubmittingBid = false);
+    }
+  }
+
+  void _showError(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message), backgroundColor: Colors.red),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final summary = _summary;
+
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        centerTitle: true,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Column(
-          children: [
-            const Text(
-              'Phòng đấu giá',
-              style: TextStyle(
-                color: Color(0xFF1E293B),
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: const BoxDecoration(
-                    color: Colors.red,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                const Text(
-                  'TRỰC TIẾP',
-                  style: TextStyle(
-                    color: Colors.red,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share_outlined, color: Color(0xFF1E293B)),
-            onPressed: () {},
-          ),
-          IconButton(
-            icon: const Icon(Icons.favorite_border, color: Color(0xFF1E293B)),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            AuctionProductHeader(product: _product),
-            const SizedBox(height: 8),
-            AuctionPriceCard(
-              startingPrice: _product.startingPrice,
-              currentPrice: 2450000000,
-              endTime: '00:45',
-            ),
-            const SizedBox(height: 16),
-            // Ô hiển thị lượt đấu giá và người xem
-            const AuctionStatsCard(
-              bidCount: 15,
-              watcherCount: 128,
-            ),
-            const SizedBox(height: 24),
-            _buildBiddingSection(),
-            const SizedBox(height: 24),
-            _buildHistorySection(),
-            const SizedBox(height: 40),
-          ],
-        ),
-      ),
+      appBar: _buildAppBar(),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+              ? _buildErrorState(_errorMessage!)
+              : summary == null
+                  ? _buildErrorState('Khong co du lieu phong')
+                  : RefreshIndicator(
+                      onRefresh: _loadRoom,
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          children: [
+                            AuctionProductHeader(product: summary.product),
+                            const SizedBox(height: 8),
+                            AuctionPriceCard(
+                              startingPrice: summary.product.startingPrice,
+                              currentPrice: summary.currentPrice,
+                              endTime: _formatTimeLeft(
+                                summary.product.auctionRoom?.endTime,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            AuctionStatsCard(
+                              bidCount: summary.bidCount,
+                              watcherCount: summary.watcherCount,
+                            ),
+                            const SizedBox(height: 16),
+                            _buildParticipantsSection(summary.participants),
+                            const SizedBox(height: 24),
+                            _buildBiddingSection(summary),
+                            const SizedBox(height: 24),
+                            _buildHistorySection(summary.bids),
+                            const SizedBox(height: 40),
+                          ],
+                        ),
+                      ),
+                    ),
       bottomNavigationBar: const CustomBottomNavigation(selectedIndex: 3),
     );
   }
 
-  Widget _buildBiddingSection() {
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.white,
+      elevation: 0,
+      centerTitle: true,
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
+        onPressed: () => Navigator.pop(context),
+      ),
+      title: Column(
+        children: [
+          const Text(
+            'Phong dau gia',
+            style: TextStyle(
+              color: Color(0xFF1E293B),
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 6,
+                height: 6,
+                decoration: const BoxDecoration(
+                  color: Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 4),
+              const Text(
+                'TRUC TIEP',
+                style: TextStyle(
+                  color: Colors.red,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.refresh, color: Color(0xFF1E293B)),
+          onPressed: _loadRoom,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Color(0xFF94A3B8)),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadRoom,
+              child: const Text('Tai lai'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildParticipantsSection(List<AuctionParticipantModel> participants) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFF),
+          borderRadius: BorderRadius.circular(18),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Nguoi da dang ky dau gia',
+              style: TextStyle(
+                color: Color(0xFF1E293B),
+                fontSize: 14,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 10),
+            if (participants.isEmpty)
+              const Text(
+                'Chua co nguoi dang ky',
+                style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
+              )
+            else
+              SizedBox(
+                height: 42,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: participants.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final participant = participants[index];
+                    return Chip(
+                      avatar: CircleAvatar(
+                        backgroundColor: AppColors.primaryBlue.withOpacity(0.12),
+                        child: Text(
+                          participant.userName.isEmpty
+                              ? '?'
+                              : participant.userName[0].toUpperCase(),
+                          style: const TextStyle(
+                            color: AppColors.primaryBlue,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      label: Text(participant.userName),
+                    );
+                  },
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBiddingSection(AuctionRoomSummaryModel summary) {
+    final leadingName =
+        summary.bids.isEmpty ? 'Chua co' : summary.bids.first.userName;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text(
-                'Dẫn đầu: Minh H***',
-                style: TextStyle(
-                  color: Color(0xFF64748B),
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
+            children: [
+              Expanded(
+                child: Text(
+                  'Dan dau: $leadingName',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
               ),
-              Text(
-                'BƯỚC GIÁ: +10M',
+              const Text(
+                'BUOC GIA: +10.000.000 VNĐ',
                 style: TextStyle(
                   color: Color(0xFF1E293B),
                   fontSize: 13,
@@ -206,94 +347,56 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
                     borderRadius: BorderRadius.circular(28),
                     border: Border.all(color: const Color(0xFFF1F5F9)),
                   ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _bidController,
-                          keyboardType: TextInputType.number,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1E293B),
-                          ),
-                          decoration: const InputDecoration(
-                            border: InputBorder.none,
-                            hintText: 'Nhập giá',
-                          ),
-                        ),
-                      ),
-                      const Text(
-                        'đ',
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AppColors.primaryBlue,
-                          decoration: TextDecoration.underline,
-                        ),
-                      ),
-                    ],
+                  child: TextField(
+                    controller: _bidController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: const [ThousandsSeparatorInputFormatter()],
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E293B),
+                    ),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'Nhap gia',
+                      suffixText: 'VNĐ',
+                    ),
                   ),
                 ),
               ),
               const SizedBox(width: 12),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: _isSubmittingBid ? null : _placeBid,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFEEF2FF),
-                  foregroundColor: AppColors.primaryBlue,
-                  elevation: 0,
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  backgroundColor: AppColors.primaryBlue,
+                  foregroundColor: Colors.white,
                   minimumSize: const Size(0, 56),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(28),
                   ),
                 ),
-                child: const Text(
-                  'TỰ ĐỘNG',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+                child: _isSubmittingBid
+                    ? const SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text(
+                        'DAT GIA',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          GestureDetector(
-            onTap: () {},
-            child: Container(
-              width: double.infinity,
-              height: 56,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF4F7DFF), Color(0xFF3B82F6)],
-                ),
-                borderRadius: BorderRadius.circular(28),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF3B82F6).withOpacity(0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-              ),
-              child: const Center(
-                child: Text(
-                  'ĐẶT GIÁ NGAY',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
         ],
       ),
     );
   }
 
-  Widget _buildHistorySection() {
+  Widget _buildHistorySection(List<BidModel> bids) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -303,7 +406,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Lịch sử đấu giá',
+                'Lich su dau gia',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -311,16 +414,18 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
                 ),
               ),
               TextButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => BidHistoryPage(bids: _mockBids),
-                    ),
-                  );
-                },
+                onPressed: bids.isEmpty
+                    ? null
+                    : () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => BidHistoryPage(bids: bids),
+                          ),
+                        );
+                      },
                 child: const Text(
-                  'XEM TẤT CẢ',
+                  'XEM TAT CA',
                   style: TextStyle(
                     color: AppColors.primaryBlue,
                     fontWeight: FontWeight.bold,
@@ -331,10 +436,27 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
             ],
           ),
           const SizedBox(height: 8),
-          // Only show top 3 bidders in the main view
-          ..._mockBids.take(3).map((bid) => BidHistoryItem(bid: bid)).toList(),
+          if (bids.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                'Chua co luot dau nao',
+                style: TextStyle(color: Color(0xFF64748B)),
+              ),
+            )
+          else
+            ...bids.take(3).map((bid) => BidHistoryItem(bid: bid)),
         ],
       ),
     );
+  }
+
+  String _formatTimeLeft(DateTime? endTime) {
+    if (endTime == null) return '--:--';
+    final diff = endTime.difference(DateTime.now());
+    if (diff.isNegative) return '00:00';
+    final hours = diff.inHours;
+    final minutes = diff.inMinutes.remainder(60);
+    return '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}';
   }
 }

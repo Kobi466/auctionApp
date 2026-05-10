@@ -104,7 +104,7 @@ class WishlistSection extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           const Text(
-                            '65.000.000 đ',
+                            '65.000.000 VNĐ',
                             style: TextStyle(
                               fontSize: 11,
                               fontWeight: FontWeight.w700,
