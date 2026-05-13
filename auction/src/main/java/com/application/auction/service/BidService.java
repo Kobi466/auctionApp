@@ -7,7 +7,7 @@ import com.application.auction.entity.AuctionRoom;
 import com.application.auction.entity.Bid;
 import com.application.auction.entity.User;
 import com.application.auction.enums.AuctionDepositStatus;
-import com.application.auction.enums.AuctionRoomStatus;
+import com.application.auction.websocket.enums.AuctionRoomStatus;
 import com.application.auction.enums.ErrorCode;
 import com.application.auction.exception.AppException;
 import com.application.auction.mapper.BidMapper;
@@ -55,7 +55,7 @@ public class BidService {
     public BigDecimal getCurrentPrice(AuctionRoom auctionRoom) {
         return bidRepository.findTopByAuctionRoomIdOrderByAmountDescCreatedAtAsc(auctionRoom.getId())
                 .map(Bid::getAmount)
-                .orElse(auctionRoom.getMinimumBid());
+                .orElse(auctionRoom.getStartingPrice());
     }
 
     @Transactional(readOnly = true)
@@ -87,9 +87,10 @@ public class BidService {
         }
 
         Bid bid = Bid.builder()
-                .auctionRoomId(roomId)
-                .userId(currentUser.getId())
+                .auctionRoom(auctionRoom)
+                .bidder(currentUser)
                 .amount(amount)
+                .timestamp(Instant.now())
                 .build();
         Bid savedBid = bidRepository.save(bid);
         return toBidResponse(savedBid, true);
@@ -98,10 +99,10 @@ public class BidService {
     private BidResponse toBidResponse(Bid bid, boolean leading) {
         BidResponse response = bidMapper.toBidResponse(bid);
         response.setLeading(leading);
-        userRepository.findById(bid.getUserId()).ifPresent(user -> {
+        userRepository.findById(bid.getBidder().getId()).ifPresent(user -> {
             response.setUserName(maskName(user.getUsername()));
         });
-        profileRepository.findById(bid.getUserId()).ifPresent(profile -> {
+        profileRepository.findById(bid.getBidder().getId()).ifPresent(profile -> {
             response.setUserAvatar(profile.getAvatar());
             if (profile.getFullName() != null && !profile.getFullName().isBlank()) {
                 response.setUserName(maskName(profile.getFullName()));

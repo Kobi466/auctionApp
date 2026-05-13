@@ -2,7 +2,7 @@ package com.application.auction.controller;
 
 import com.application.auction.dto.response.ApiResponse;
 import com.application.auction.dto.response.NotificationResponse;
-import com.application.auction.service.NotificationService;
+import com.application.auction.websocket.service.NotificationService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;

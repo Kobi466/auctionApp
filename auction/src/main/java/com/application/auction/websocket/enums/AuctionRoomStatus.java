@@ -1,4 +1,4 @@
-package com.application.auction.enums;
+package com.application.auction.websocket.enums;
 
 public enum AuctionRoomStatus {
     PENDING,

@@ -20,7 +20,7 @@ import java.util.Objects;
 @Component
 public class CustomJwtDecoder implements JwtDecoder {
     @NonFinal
-    @Value("${spring.jwt.signerKey}")
+    @Value("${jwt.secret}")
     String signerKey;
     @Autowired
     private LoginService loginService;

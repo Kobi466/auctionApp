@@ -8,7 +8,7 @@ import com.application.auction.entity.AuctionPaymentConfig;
 import com.application.auction.entity.AuctionRoom;
 import com.application.auction.entity.User;
 import com.application.auction.enums.AuctionDepositStatus;
-import com.application.auction.enums.AuctionRoomStatus;
+import com.application.auction.websocket.enums.AuctionRoomStatus;
 import com.application.auction.enums.ErrorCode;
 import com.application.auction.exception.AppException;
 import com.application.auction.mapper.AuctionDepositMapper;
@@ -58,12 +58,12 @@ public class AuctionDepositService {
                     .auctionRoomId(room.getId())
                     .productId(productId)
                     .userId(currentUser.getId())
-                    .requiredAmount(room.getMinimumBid())
+                    .requiredAmount(room.getDepositAmount())
                     .transferContent(buildTransferContent(config, room, currentUser))
                     .status(AuctionDepositStatus.PENDING_PAYMENT)
                     .build();
         } else if (deposit.getStatus() == AuctionDepositStatus.PENDING_PAYMENT) {
-            deposit.setRequiredAmount(room.getMinimumBid());
+            deposit.setRequiredAmount(room.getDepositAmount());
             deposit.setTransferContent(buildTransferContent(config, room, currentUser));
         }
         return auctionDepositRepository.save(deposit);

@@ -7,7 +7,7 @@ import com.application.auction.dto.response.AuctionRoomSummaryResponse;
 import com.application.auction.dto.response.ProductResponse;
 import com.application.auction.entity.AuctionRoom;
 import com.application.auction.entity.Product;
-import com.application.auction.enums.AuctionRoomStatus;
+import com.application.auction.websocket.enums.AuctionRoomStatus;
 import com.application.auction.enums.ErrorCode;
 import com.application.auction.enums.ProductStatus;
 import com.application.auction.exception.AppException;
@@ -54,7 +54,7 @@ public class AuctionRoomService {
         }
 
         AuctionRoom auctionRoom = auctionRoomMapper.toAuctionRoom(sanitizedRequest);
-        auctionRoom.setMinimumBid(product.getStartingPrice());
+        auctionRoom.setStartingPrice(product.getStartingPrice());
         applyAuctionRoomBusinessFields(auctionRoom);
         AuctionRoom savedRoom = auctionRoomRepository.save(auctionRoom);
         product.setStatus(resolveProductStatus(savedRoom.getStatus()));
@@ -77,9 +77,9 @@ public class AuctionRoomService {
                     throw new AppException(ErrorCode.AUCTION_ROOM_ALREADY_EXISTS);
                 });
 
-        UUID previousProductId = auctionRoom.getProductId();
+        UUID previousProductId = auctionRoom.getProduct().getId();
         auctionRoomMapper.updateAuctionRoom(auctionRoom, sanitizedRequest);
-        auctionRoom.setMinimumBid(product.getStartingPrice());
+        auctionRoom.getStartingPrice();
         applyAuctionRoomBusinessFields(auctionRoom);
         AuctionRoom savedRoom = auctionRoomRepository.save(auctionRoom);
         resetPreviousProductStatus(previousProductId, product.getId());
@@ -98,7 +98,7 @@ public class AuctionRoomService {
                 })
                 .filter(room -> room.getStatus() != AuctionRoomStatus.CLOSED)
                 .map(room -> {
-                    Product product = productRepository.findById(room.getProductId())
+                    Product product = productRepository.findById(room.getProduct().getId())
                             .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
                     return toProductResponse(product, room);
                 })
@@ -118,7 +118,7 @@ public class AuctionRoomService {
         AuctionRoom auctionRoom = auctionRoomRepository.findById(roomId)
                 .orElseThrow(() -> new AppException(ErrorCode.AUCTION_ROOM_NOT_FOUND));
         applyCurrentAuctionRoomStatus(auctionRoom);
-        Product product = productRepository.findById(auctionRoom.getProductId())
+        Product product = productRepository.findById(auctionRoom.getProduct().getId())
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
         ProductResponse productResponse = toProductResponse(product, auctionRoom);
         List<AuctionParticipantResponse> participants =
@@ -146,7 +146,7 @@ public class AuctionRoomService {
 
         auctionRoom.setStatus(AuctionRoomStatus.CANCELLED);
         AuctionRoom savedRoom = auctionRoomRepository.save(auctionRoom);
-        Product product = productRepository.findById(savedRoom.getProductId())
+        Product product = productRepository.findById(savedRoom.getProduct().getId())
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
         product.setStatus(ProductStatus.CANCELLED);
         Product savedProduct = productRepository.save(product);

@@ -1,65 +1,39 @@
 package com.application.auction.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.experimental.FieldDefaults;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Table(name = "bids")
-@Data
-@Builder
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
+@Builder
 public class Bid {
+
     @Id
-    @JdbcTypeCode(SqlTypes.CHAR)
-    @Column(nullable = false, updatable = false, length = 36)
-    UUID id;
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    private UUID id;
 
-    @JdbcTypeCode(SqlTypes.CHAR)
-    @Column(name = "auction_room_id", nullable = false, length = 36)
-    UUID auctionRoomId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "auctionRoom_id", nullable = false)
+    private AuctionRoom auctionRoom;
 
-    @JdbcTypeCode(SqlTypes.CHAR)
-    @Column(name = "user_id", nullable = false, length = 36)
-    UUID userId;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "bidder_id", nullable = false)
+    private User bidder;
 
     @Column(nullable = false, precision = 19, scale = 2)
-    BigDecimal amount;
+    private BigDecimal amount;
 
     @Column(nullable = false)
-    Instant createdAt;
+    private Instant timestamp;
 
-    Instant updatedAt;
-
-    @PrePersist
-    void onCreate() {
-        if (id == null) {
-            id = UUID.randomUUID();
-        }
-        Instant now = Instant.now();
-        createdAt = now;
-        updatedAt = now;
-    }
-
-    @PreUpdate
-    void onUpdate() {
-        updatedAt = Instant.now();
-    }
+    private LocalDateTime createdAt;
 }

@@ -57,7 +57,7 @@ public class LoginService {
 
 
     @NonFinal
-    @Value("${spring.jwt.signerKey}")
+    @Value("${jwt.secret}")
     String signerKey;
 
     public LoginResponse login(LoginRequest request) {

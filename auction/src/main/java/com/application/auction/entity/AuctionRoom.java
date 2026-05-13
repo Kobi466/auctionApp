@@ -1,14 +1,7 @@
 package com.application.auction.entity;
 
-import com.application.auction.enums.AuctionRoomStatus;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.PreUpdate;
-import jakarta.persistence.Table;
+import com.application.auction.websocket.enums.AuctionRoomStatus;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,33 +13,53 @@ import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "auction_rooms")
+@Table(
+        name = "auction_rooms",
+        indexes = {
+                @Index(name = "idx_room_code", columnList = "roomCode"),
+                @Index(name = "idx_status", columnList = "status")
+        }
+)
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuctionRoom {
+
     @Id
     @JdbcTypeCode(SqlTypes.CHAR)
     @Column(nullable = false, updatable = false, length = 36)
     UUID id;
 
-    @JdbcTypeCode(SqlTypes.CHAR)
-    @Column(name = "product_id", nullable = false, unique = true, length = 36)
-    UUID productId;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false, unique = true)
+    Product product;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "seller_id", nullable = false)
+    User seller;
 
     @Column(nullable = false, unique = true, length = 60)
     String roomCode;
 
-    @Column(nullable = false, length = 32)
     String roomPassword;
 
+    @Column(nullable = false)
+    boolean isPrivate = false;
+
     @Column(nullable = false, precision = 19, scale = 2)
-    BigDecimal minimumBid;
+    BigDecimal startingPrice;
+
+    @Column(nullable = false, precision = 19, scale = 2)
+    BigDecimal currentPrice;
+
+    @Column(nullable = false, precision = 19, scale = 2)
+    BigDecimal minBidIncrement;
 
     @Column(nullable = false, precision = 19, scale = 2)
     BigDecimal depositAmount;
@@ -61,16 +74,34 @@ public class AuctionRoom {
     @Column(nullable = false, length = 30)
     AuctionRoomStatus status;
 
-    @Column(nullable = false, updatable = false)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "highest_bidder_id")
+    User highestBidder;
+
+    @OneToMany(mappedBy = "auctionRoom")
+    List<Bid> bids;
+
+    Integer participantCount = 0;
+
     Instant createdAt;
 
     Instant updatedAt;
+
+    @Transient
+    public BigDecimal getNextMinimumBid() {
+        return currentPrice.add(minBidIncrement);
+    }
 
     @PrePersist
     void onCreate() {
         if (id == null) {
             id = UUID.randomUUID();
         }
+
+        if (currentPrice == null) {
+            currentPrice = startingPrice;
+        }
+
         Instant now = Instant.now();
         createdAt = now;
         updatedAt = now;

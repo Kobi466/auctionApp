@@ -5,7 +5,7 @@ import com.application.auction.dto.response.ProductResponse;
 import com.application.auction.entity.AuctionRoom;
 import com.application.auction.entity.Product;
 import com.application.auction.entity.User;
-import com.application.auction.enums.AuctionRoomStatus;
+import com.application.auction.websocket.enums.AuctionRoomStatus;
 import com.application.auction.enums.ErrorCode;
 import com.application.auction.exception.AppException;
 import com.application.auction.mapper.AuctionRoomMapper;
@@ -165,7 +165,7 @@ public class ProductService {
     //sync auction room minimum bid
     private void syncAuctionRoomMinimumBid(Product product) {
         auctionRoomRepository.findByProductId(product.getId()).ifPresent(room -> {
-            room.setMinimumBid(product.getStartingPrice());
+            room.setStartingPrice(product.getStartingPrice());
             auctionRoomRepository.save(room);
         });
     }

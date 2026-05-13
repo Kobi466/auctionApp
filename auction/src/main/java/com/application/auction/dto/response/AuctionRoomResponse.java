@@ -1,6 +1,6 @@
 package com.application.auction.dto.response;
 
-import com.application.auction.enums.AuctionRoomStatus;
+import com.application.auction.websocket.enums.AuctionRoomStatus;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
