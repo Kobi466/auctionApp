@@ -5,12 +5,14 @@ class CreateAuctionPriceForm extends StatelessWidget {
   final TextEditingController? minimumBidController;
   final TextEditingController? depositAmountController;
   final bool lockMinimumBid;
+  final bool lockDepositAmount;
 
   const CreateAuctionPriceForm({
     super.key,
     this.minimumBidController,
     this.depositAmountController,
     this.lockMinimumBid = false,
+    this.lockDepositAmount = false,
   });
 
   @override
@@ -61,6 +63,7 @@ class CreateAuctionPriceForm extends StatelessWidget {
                       prefixIcon: Icons.account_balance_wallet_outlined,
                       hintText: '15,000,000',
                       controller: depositAmountController,
+                      readOnly: lockDepositAmount,
                     ),
                   ),
                 ],
@@ -115,9 +118,7 @@ class CreateAuctionPriceForm extends StatelessWidget {
                 color: const Color(0xFF2563EB),
                 size: 20,
               ),
-              prefixIconConstraints: const BoxConstraints(
-                minWidth: 32,
-              ),
+              prefixIconConstraints: const BoxConstraints(minWidth: 32),
             ),
           ),
         ),

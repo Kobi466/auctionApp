@@ -82,8 +82,9 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
     required List<AuctionDepositModel> deposits,
   }) async {
     final result = <String, AuctionRoomAccessModel>{};
-    final approvedDeposits =
-        deposits.where((deposit) => deposit.status == 'APPROVED');
+    final approvedDeposits = deposits.where(
+      (deposit) => deposit.status == 'APPROVED' || deposit.status == 'SETTLED',
+    );
 
     for (final deposit in approvedDeposits) {
       try {
@@ -100,10 +101,12 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
   }
 
   List<String> get _categories {
-    final pendingCount =
-        _deposits.where((item) => item.status == 'PENDING_APPROVAL').length;
-    final approvedCount =
-        _deposits.where((item) => item.status == 'APPROVED').length;
+    final pendingCount = _deposits
+        .where((item) => item.status == 'PENDING_APPROVAL')
+        .length;
+    final approvedCount = _deposits
+        .where((item) => item.status == 'APPROVED' || item.status == 'SETTLED')
+        .length;
     return [
       'Tất cả (${_deposits.length})',
       'Chờ duyệt ($pendingCount)',
@@ -118,7 +121,8 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
       if (_selectedCategoryIndex == 1) {
         matchesTab = deposit.status == 'PENDING_APPROVAL';
       } else if (_selectedCategoryIndex == 2) {
-        matchesTab = deposit.status == 'APPROVED';
+        matchesTab =
+            deposit.status == 'APPROVED' || deposit.status == 'SETTLED';
       }
 
       final searchable = [
@@ -162,7 +166,7 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
           borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -207,9 +211,12 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
                   child: Text(
                     _categories[index],
                     style: TextStyle(
-                      color: isSelected ? Colors.white : const Color(0xFF64748B),
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.w500,
+                      color: isSelected
+                          ? Colors.white
+                          : const Color(0xFF64748B),
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.w500,
                       fontSize: 13,
                     ),
                   ),
@@ -269,8 +276,9 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
             adminNote: deposit.adminNote,
             roomCode: roomAccess?.roomCode,
             roomPassword: roomAccess?.roomPassword,
-            onJoinRoom:
-                roomAccess == null ? null : () => _openBidRoom(roomAccess),
+            onJoinRoom: roomAccess == null
+                ? null
+                : () => _openBidRoom(roomAccess),
           );
         },
       ),

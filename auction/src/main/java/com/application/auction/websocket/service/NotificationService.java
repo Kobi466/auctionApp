@@ -34,7 +34,7 @@ public class NotificationService {
     public void notifyOutbid(String username, UUID auctionId) {
         NotificationEvent notification = new NotificationEvent(
                 EventType.OUTBID,
-                "You have been outbid on auction #" + auctionId,
+                "Da co nguoi dat gia cao hon ban trong phong dau gia",
                 auctionId
         );
         // Sends a message to a user-specific destination, e.g., /user/{username}/queue/notifications

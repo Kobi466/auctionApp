@@ -5,13 +5,16 @@ import com.application.auction.entity.Bid;
 import com.application.auction.entity.User;
 import com.application.auction.repository.AuctionRepository;
 import com.application.auction.repository.BidRepository;
+import com.application.auction.repository.ProfileRepository;
 import com.application.auction.repository.UserRepository;
+import com.application.auction.util.PrivacyMaskingUtil;
 import com.application.auction.websocket.dto.event.AuctionUpdateEvent;
 import com.application.auction.websocket.dto.event.BidEvent;
 import com.application.auction.websocket.enums.AuctionRoomStatus;
 import com.application.auction.websocket.enums.EventType;
 import com.application.auction.websocket.exception.AuctionEndedException;
 import com.application.auction.websocket.exception.AuctionNotFoundException;
+import com.application.auction.websocket.exception.BidCooldownException;
 import com.application.auction.websocket.exception.InsufficientBidException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,32 +36,36 @@ public class AuctionService {
     private final AuctionRepository auctionRepository;
     private final BidRepository bidRepository;
     private final UserRepository userRepository;
+    private final ProfileRepository profileRepository;
     private final NotificationService notificationService;
     private final SimpMessagingTemplate messagingTemplate;
 
-    // Constants for anti-sniping logic
-    private static final long ANTI_SNIPING_THRESHOLD_SECONDS = 30;
-    private static final long ANTI_SNIPING_EXTENSION_SECONDS = 30;
+    // Last-minute extension is applied once per auction room.
+    private static final long LAST_MINUTE_EXTENSION_THRESHOLD_SECONDS = 60;
+    private static final long LAST_MINUTE_EXTENSION_SECONDS = 120;
+    private static final long BID_COOLDOWN_SECONDS = 5;
 
     @Transactional
-    public void placeBid(UUID auctionId, BigDecimal amount, String username) {
+    public void placeBid(UUID auctionId, BigDecimal incrementAmount, String email) {
         // Step 1: Lock the auction row for the duration of the transaction to prevent race conditions.
         AuctionRoom auction = auctionRepository.findByIdForUpdate(auctionId)
                 .orElseThrow(() -> new AuctionNotFoundException("Auction not found with ID: " + auctionId));
 
-        User bidder = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+        User bidder = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + email));
 
-        // Step 2: Validate auction status and bid amount.
-        validateAuctionAndBid(auction, amount);
+        // Step 2: Validate auction status and bid increment amount.
+        validateAuctionAndBid(auction, incrementAmount);
+        validateBidCooldown(auction, bidder);
+        BigDecimal newPrice = getCurrentPrice(auction).add(incrementAmount);
 
         User previousHighestBidder = auction.getHighestBidder();
 
         // Step 3: Save the new bid.
-        Bid newBid = createAndSaveBid(auction, bidder, amount);
+        Bid newBid = createAndSaveBid(auction, bidder, newPrice);
 
         // Step 4: Update the auction state.
-        auction.setCurrentPrice(amount);
+        auction.setCurrentPrice(newPrice);
         auction.setHighestBidder(bidder);
 
         // Step 5: Handle anti-sniping logic.
@@ -75,20 +82,38 @@ public class AuctionService {
 
         // Step 7: Notify the previously highest bidder that they have been outbid.
         if (previousHighestBidder != null && !previousHighestBidder.getId().equals(bidder.getId())) {
-            notificationService.notifyOutbid(previousHighestBidder.getUsername(), auctionId);
+            notificationService.notifyOutbid(previousHighestBidder.getEmail(), auctionId);
         }
     }
 
-    private void validateAuctionAndBid(AuctionRoom auction, BigDecimal amount) {
-        if (auction.getStatus() != AuctionRoomStatus.LIVE) {
-            throw new AuctionEndedException("Auction is not active.");
+    private void validateAuctionAndBid(AuctionRoom auction, BigDecimal incrementAmount) {
+        Instant now = Instant.now();
+        if (auction.getStatus() == AuctionRoomStatus.CANCELLED) {
+            throw new AuctionEndedException("Auction has been cancelled.");
         }
-        if (Instant.now().isAfter(auction.getEndTime())) {
+        if (auction.getStartTime() != null && now.isBefore(auction.getStartTime())) {
+            throw new AuctionEndedException("Auction has not started yet.");
+        }
+        if (auction.getEndTime() != null && now.isAfter(auction.getEndTime())) {
+            auction.setStatus(AuctionRoomStatus.CLOSED);
             throw new AuctionEndedException("Auction has already ended.");
         }
-        if (amount.compareTo(auction.getCurrentPrice()) <= 0) {
-            throw new InsufficientBidException("Bid amount must be greater than the current price of " + auction.getCurrentPrice());
+        if (auction.getStatus() != AuctionRoomStatus.LIVE) {
+            auction.setStatus(AuctionRoomStatus.LIVE);
         }
+        if (incrementAmount == null || incrementAmount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InsufficientBidException("Bid increment must be greater than zero.");
+        }
+    }
+
+    private BigDecimal getCurrentPrice(AuctionRoom auction) {
+        if (auction.getCurrentPrice() != null) {
+            return auction.getCurrentPrice();
+        }
+        if (auction.getStartingPrice() != null) {
+            return auction.getStartingPrice();
+        }
+        return BigDecimal.ZERO;
     }
 
     private Bid createAndSaveBid(AuctionRoom auction, User bidder, BigDecimal amount) {
@@ -100,11 +125,25 @@ public class AuctionService {
         return bidRepository.save(newBid);
     }
 
+    private void validateBidCooldown(AuctionRoom auction, User bidder) {
+        Instant cooldownStart = Instant.now().minusSeconds(BID_COOLDOWN_SECONDS);
+        bidRepository.findTopByAuctionRoomIdAndBidderIdOrderByTimestampDesc(auction.getId(), bidder.getId())
+                .filter(lastBid -> lastBid.getTimestamp() != null && lastBid.getTimestamp().isAfter(cooldownStart))
+                .ifPresent(lastBid -> {
+                    throw new BidCooldownException("Please wait 5 seconds before placing another bid.");
+                });
+    }
+
     private boolean handleAntiSniping(AuctionRoom auction) {
+        if (auction.isTimeExtended() || auction.getEndTime() == null) {
+            return false;
+        }
+
         long secondsUntilEnd = Duration.between(Instant.now(), auction.getEndTime()).getSeconds();
-        if (secondsUntilEnd > 0 && secondsUntilEnd <= ANTI_SNIPING_THRESHOLD_SECONDS) {
-            auction.setEndTime(auction.getEndTime().plusSeconds(ANTI_SNIPING_EXTENSION_SECONDS));
-            log.info("Auction {} extended by {} seconds due to anti-sniping.", auction.getId(), ANTI_SNIPING_EXTENSION_SECONDS);
+        if (secondsUntilEnd > 0 && secondsUntilEnd <= LAST_MINUTE_EXTENSION_THRESHOLD_SECONDS) {
+            auction.setEndTime(auction.getEndTime().plusSeconds(LAST_MINUTE_EXTENSION_SECONDS));
+            auction.setTimeExtended(true);
+            log.info("Auction {} extended by {} seconds due to last-minute bid.", auction.getId(), LAST_MINUTE_EXTENSION_SECONDS);
             return true;
         }
         return false;
@@ -115,7 +154,7 @@ public class AuctionService {
                 EventType.NEW_BID,
                 auction.getId(),
                 bid.getBidder().getId(),
-                bid.getBidder().getUsername(), // Assuming User has a getFullName() method
+                getMaskedBidderName(bid.getBidder()),
                 bid.getAmount(),
                 bid.getTimestamp()
         );
@@ -130,11 +169,19 @@ public class AuctionService {
                 auction.getId(),
                 auction.getCurrentPrice(),
                 auction.getHighestBidder().getId(),
-                auction.getHighestBidder().getUsername(),
+                getMaskedBidderName(auction.getHighestBidder()),
                 auction.getEndTime()
         );
         String topic = "/topic/auction/" + auction.getId();
         messagingTemplate.convertAndSend(topic, updateEvent);
         log.debug("Broadcast to {}: {}", topic, updateEvent);
+    }
+
+    private String getMaskedBidderName(User user) {
+        return profileRepository.findById(user.getId())
+                .map(profile -> profile.getFullName())
+                .filter(fullName -> fullName != null && !fullName.isBlank())
+                .map(PrivacyMaskingUtil::maskDisplayName)
+                .orElseGet(() -> PrivacyMaskingUtil.maskDisplayName(user.getUsername()));
     }
 }

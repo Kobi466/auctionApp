@@ -9,6 +9,14 @@ class AuctionRoomSummaryModel {
   final int watcherCount;
   final List<AuctionParticipantModel> participants;
   final List<BidModel> bids;
+  final int? currentWinnerRank;
+  final String? winnerPaymentStatus;
+  final num? winnerPaymentAmount;
+  final String? winnerPaymentReceiptUrl;
+  final String? winnerPaymentUserNote;
+  final int? winnerPaymentRejectedCount;
+  final DateTime? winnerPaymentSubmittedAt;
+  final bool currentUserWinnerPaymentEligible;
 
   const AuctionRoomSummaryModel({
     required this.product,
@@ -17,6 +25,14 @@ class AuctionRoomSummaryModel {
     required this.watcherCount,
     required this.participants,
     required this.bids,
+    this.currentWinnerRank,
+    this.winnerPaymentStatus,
+    this.winnerPaymentAmount,
+    this.winnerPaymentReceiptUrl,
+    this.winnerPaymentUserNote,
+    this.winnerPaymentRejectedCount,
+    this.winnerPaymentSubmittedAt,
+    this.currentUserWinnerPaymentEligible = false,
   });
 
   factory AuctionRoomSummaryModel.fromJson(Map<String, dynamic> json) {
@@ -28,12 +44,29 @@ class AuctionRoomSummaryModel {
       bidCount: _readInt(json['bidCount']),
       watcherCount: _readInt(json['watcherCount']),
       participants: (json['participants'] as List<dynamic>? ?? const [])
-          .map((item) =>
-              AuctionParticipantModel.fromJson(item as Map<String, dynamic>))
+          .map(
+            (item) =>
+                AuctionParticipantModel.fromJson(item as Map<String, dynamic>),
+          )
           .toList(),
       bids: (json['bids'] as List<dynamic>? ?? const [])
           .map((item) => BidModel.fromJson(item as Map<String, dynamic>))
           .toList(),
+      currentWinnerRank: _readNullableInt(json['currentWinnerRank']),
+      winnerPaymentStatus: json['winnerPaymentStatus']?.toString(),
+      winnerPaymentAmount: json['winnerPaymentAmount'] is num
+          ? json['winnerPaymentAmount'] as num
+          : num.tryParse('${json['winnerPaymentAmount']}'),
+      winnerPaymentReceiptUrl: json['winnerPaymentReceiptUrl']?.toString(),
+      winnerPaymentUserNote: json['winnerPaymentUserNote']?.toString(),
+      winnerPaymentRejectedCount: _readNullableInt(
+        json['winnerPaymentRejectedCount'],
+      ),
+      winnerPaymentSubmittedAt: DateTime.tryParse(
+        json['winnerPaymentSubmittedAt']?.toString() ?? '',
+      ),
+      currentUserWinnerPaymentEligible:
+          json['currentUserWinnerPaymentEligible'] == true,
     );
   }
 
@@ -41,5 +74,11 @@ class AuctionRoomSummaryModel {
     if (value is int) return value;
     if (value is num) return value.toInt();
     return int.tryParse(value?.toString() ?? '') ?? 0;
+  }
+
+  static int? _readNullableInt(dynamic value) {
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value?.toString() ?? '');
   }
 }

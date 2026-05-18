@@ -13,4 +13,6 @@ public interface BidRepository extends JpaRepository<Bid, UUID> {
     long countByAuctionRoomId(UUID auctionRoomId);
 
     Optional<Bid> findTopByAuctionRoomIdOrderByAmountDescCreatedAtAsc(UUID auctionRoomId);
+
+    Optional<Bid> findTopByAuctionRoomIdAndBidderIdOrderByTimestampDesc(UUID auctionRoomId, UUID bidderId);
 }

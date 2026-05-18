@@ -21,11 +21,12 @@ class _AdminCreateAuctionPageState extends State<AdminCreateAuctionPage> {
   final ProductService _productService = ProductService();
   final AdminAuctionService _auctionService = AdminAuctionService();
   final TextEditingController _minimumBidController = TextEditingController();
-  final TextEditingController _depositAmountController = TextEditingController();
+  final TextEditingController _depositAmountController =
+      TextEditingController();
 
   ProductModel? _selectedProduct;
   List<ProductModel> _products = const [];
-  DateTime _startTime = DateTime.now().add(const Duration(hours: 1));
+  DateTime _startTime = DateTime.now();
   DateTime _endTime = DateTime.now().add(const Duration(days: 1));
   bool _loadingProducts = true;
   bool _submitting = false;
@@ -55,8 +56,9 @@ class _AdminCreateAuctionPageState extends State<AdminCreateAuctionPage> {
           .toList();
       setState(() {
         _products = availableProducts;
-        _selectedProduct =
-            availableProducts.isNotEmpty ? availableProducts.first : null;
+        _selectedProduct = availableProducts.isNotEmpty
+            ? availableProducts.first
+            : null;
         _syncPriceFromSelectedProduct();
         _loadingProducts = false;
       });
@@ -67,9 +69,9 @@ class _AdminCreateAuctionPageState extends State<AdminCreateAuctionPage> {
       setState(() {
         _loadingProducts = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
     }
   }
 
@@ -111,21 +113,16 @@ class _AdminCreateAuctionPageState extends State<AdminCreateAuctionPage> {
   void _syncPriceFromSelectedProduct() {
     final price = _selectedProduct?.startingPrice ?? 0;
     _minimumBidController.text = formatMoneyInput(price);
+    _depositAmountController.text = formatMoneyInput(price);
   }
 
   Future<void> _createAuctionRoom() async {
     final product = _selectedProduct;
-    final minimumBid = num.tryParse(
-      _minimumBidController.text.replaceAll(RegExp(r'[^0-9.]'), ''),
-    );
-    final depositAmount = num.tryParse(
-      _depositAmountController.text.replaceAll(RegExp(r'[^0-9.]'), ''),
-    );
 
-    if (product == null || depositAmount == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui long chon san pham va nhap gia')),
-      );
+    if (product == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Vui long chon san pham')));
       return;
     }
 
@@ -143,7 +140,7 @@ class _AdminCreateAuctionPageState extends State<AdminCreateAuctionPage> {
         accessToken: token,
         productId: product.id,
         minimumBid: product.startingPrice,
-        depositAmount: depositAmount,
+        depositAmount: product.startingPrice,
         startTime: _startTime,
         endTime: _endTime,
       );
@@ -152,17 +149,17 @@ class _AdminCreateAuctionPageState extends State<AdminCreateAuctionPage> {
         return;
       }
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Da tao phong dau gia')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Da tao phong dau gia')));
       Navigator.pop(context, true);
     } catch (error) {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error.toString())));
     } finally {
       if (mounted) {
         setState(() {
@@ -216,6 +213,7 @@ class _AdminCreateAuctionPageState extends State<AdminCreateAuctionPage> {
                     minimumBidController: _minimumBidController,
                     depositAmountController: _depositAmountController,
                     lockMinimumBid: true,
+                    lockDepositAmount: true,
                   ),
                   const SizedBox(height: 24),
                   CreateAuctionTimeForm(
@@ -242,7 +240,7 @@ class _AdminCreateAuctionPageState extends State<AdminCreateAuctionPage> {
                     borderRadius: BorderRadius.circular(28),
                   ),
                   elevation: 8,
-                  shadowColor: AppColors.primaryBlue.withOpacity(0.5),
+                  shadowColor: AppColors.primaryBlue.withValues(alpha: 0.5),
                 ),
                 icon: _submitting
                     ? const SizedBox(

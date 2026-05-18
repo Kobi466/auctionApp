@@ -3,7 +3,9 @@ package com.application.auction.controller;
 import com.application.auction.dto.request.AuctionRoomJoinRequest;
 import com.application.auction.dto.request.AuctionRoomRequest;
 import com.application.auction.dto.request.BidRequest;
+import com.application.auction.dto.request.WinnerPaymentSubmitRequest;
 import com.application.auction.dto.response.ApiResponse;
+import com.application.auction.dto.response.AuctionRankingResponse;
 import com.application.auction.dto.response.AuctionRoomAccessResponse;
 import com.application.auction.dto.response.AuctionRoomResponse;
 import com.application.auction.dto.response.AuctionRoomSummaryResponse;
@@ -67,6 +69,13 @@ public class AuctionRoomController {
                 .build();
     }
 
+    @GetMapping("/winner-payments/me")
+    public ApiResponse<List<AuctionRoomSummaryResponse>> getMyWinnerPayments() {
+        return ApiResponse.<List<AuctionRoomSummaryResponse>>builder()
+                .result(auctionRoomService.getMyWinnerPayments())
+                .build();
+    }
+
     @PostMapping("/join")
     public ApiResponse<AuctionRoomAccessResponse> joinAuctionRoom(@RequestBody AuctionRoomJoinRequest request) {
         return ApiResponse.<AuctionRoomAccessResponse>builder()
@@ -88,6 +97,13 @@ public class AuctionRoomController {
                 .build();
     }
 
+    @GetMapping("/{roomId}/rankings")
+    public ApiResponse<List<AuctionRankingResponse>> getAuctionRankings(@PathVariable UUID roomId) {
+        return ApiResponse.<List<AuctionRankingResponse>>builder()
+                .result(bidService.getTopRankings(roomId, 5))
+                .build();
+    }
+
     @PostMapping("/{roomId}/bids")
     public ApiResponse<BidResponse> placeBid(
             @PathVariable UUID roomId,
@@ -95,6 +111,23 @@ public class AuctionRoomController {
     ) {
         return ApiResponse.<BidResponse>builder()
                 .result(bidService.placeBid(roomId, request))
+                .build();
+    }
+
+    @PutMapping("/{roomId}/winner-payment")
+    public ApiResponse<AuctionRoomSummaryResponse> submitWinnerPayment(
+            @PathVariable UUID roomId,
+            @RequestBody(required = false) WinnerPaymentSubmitRequest request
+    ) {
+        return ApiResponse.<AuctionRoomSummaryResponse>builder()
+                .result(auctionRoomService.submitWinnerPayment(roomId, request))
+                .build();
+    }
+
+    @PutMapping("/{roomId}/winner-offer/accept")
+    public ApiResponse<AuctionRoomSummaryResponse> acceptWinnerOffer(@PathVariable UUID roomId) {
+        return ApiResponse.<AuctionRoomSummaryResponse>builder()
+                .result(auctionRoomService.acceptWinnerOffer(roomId))
                 .build();
     }
 }

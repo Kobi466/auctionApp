@@ -42,10 +42,10 @@ public class CustomJwtDecoder implements JwtDecoder {
         }
         //token hop le thanh jwt token
         if(Objects.isNull(nimbusJwtDecoder)) {
-            SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(), "HmacSHA512");
+            SecretKeySpec secretKeySpec = new SecretKeySpec(signerKey.getBytes(), "HmacSHA256");
             nimbusJwtDecoder = NimbusJwtDecoder
                     .withSecretKey(secretKeySpec)
-                    .macAlgorithm(MacAlgorithm.HS512)
+                    .macAlgorithm(MacAlgorithm.HS256)
                     .build();
         }
         return nimbusJwtDecoder.decode(token);

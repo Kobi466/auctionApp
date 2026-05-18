@@ -1,3 +1,5 @@
+import '../../../../core/utils/privacy_masker.dart';
+
 class AuctionParticipantModel {
   final String userId;
   final String userName;
@@ -14,8 +16,8 @@ class AuctionParticipantModel {
   factory AuctionParticipantModel.fromJson(Map<String, dynamic> json) {
     return AuctionParticipantModel(
       userId: json['userId']?.toString() ?? '',
-      userName: json['userName']?.toString() ?? 'Nguoi dung',
-      userEmail: json['userEmail']?.toString() ?? '',
+      userName: PrivacyMasker.displayName(json['userName']?.toString()),
+      userEmail: PrivacyMasker.email(json['userEmail']?.toString()),
       userAvatar: json['userAvatar']?.toString(),
     );
   }

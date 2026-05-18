@@ -66,7 +66,9 @@ public enum ErrorCode {
     WITHDRAWAL_BANK_REQUIRED(461, "Withdrawal bank information is required", HttpStatus.BAD_REQUEST),
     WITHDRAWAL_STATUS_INVALID(462, "Withdrawal status is invalid", HttpStatus.BAD_REQUEST),
     WITHDRAWAL_REVIEW_INVALID(463, "Withdrawal review is invalid", HttpStatus.BAD_REQUEST),
-    BID_AMOUNT_INVALID(464, "Bid amount is invalid", HttpStatus.BAD_REQUEST);
+    BID_AMOUNT_INVALID(464, "Bid amount is invalid", HttpStatus.BAD_REQUEST),
+    BID_COOLDOWN_ACTIVE(465, "Please wait 5 seconds before placing another bid", HttpStatus.BAD_REQUEST),
+    AUCTION_ROOM_NOT_ENDED(466, "Auction room has not ended yet", HttpStatus.BAD_REQUEST);
 
     int code;
     String message;

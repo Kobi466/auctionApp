@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.FieldDefaults;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 
 @Data
@@ -22,4 +23,12 @@ public class AuctionRoomSummaryResponse {
     long watcherCount;
     List<AuctionParticipantResponse> participants;
     List<BidResponse> bids;
+    Integer currentWinnerRank;
+    String winnerPaymentStatus;
+    BigDecimal winnerPaymentAmount;
+    String winnerPaymentReceiptUrl;
+    String winnerPaymentUserNote;
+    Integer winnerPaymentRejectedCount;
+    Instant winnerPaymentSubmittedAt;
+    boolean currentUserWinnerPaymentEligible;
 }

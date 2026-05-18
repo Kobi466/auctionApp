@@ -19,6 +19,9 @@ public interface AuctionRoomMapper {
     AuctionRoom toAuctionRoom(AuctionRoomRequest request);
 
     @Mapping(target = "roomPassword", ignore = true)
+    @Mapping(target = "productId", source = "product.id")
+    @Mapping(target = "minimumBid", source = "minBidIncrement")
+    @Mapping(target = "winnerPaymentStatus", expression = "java(auctionRoom.getWinnerPaymentStatus() == null ? null : auctionRoom.getWinnerPaymentStatus().name())")
     AuctionRoomResponse toAuctionRoomResponse(AuctionRoom auctionRoom);
 
     @Mapping(target = "roomId", expression = "java(auctionRoom.getId().toString())")

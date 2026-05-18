@@ -16,7 +16,7 @@ class CreateAuctionTimeForm extends StatefulWidget {
 
 class _CreateAuctionTimeFormState extends State<CreateAuctionTimeForm> {
   // Khởi tạo thời gian mặc định
-  DateTime _startTime = DateTime.now().add(const Duration(hours: 1));
+  DateTime _startTime = DateTime.now();
   DateTime _endTime = DateTime.now().add(const Duration(days: 1));
 
   // Hàm chọn ngày và giờ
@@ -29,9 +29,7 @@ class _CreateAuctionTimeFormState extends State<CreateAuctionTimeForm> {
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.light(
-              primary: Color(0xFF2563EB),
-            ),
+            colorScheme: const ColorScheme.light(primary: Color(0xFF2563EB)),
           ),
           child: child!,
         );
@@ -39,13 +37,16 @@ class _CreateAuctionTimeFormState extends State<CreateAuctionTimeForm> {
     );
 
     if (pickedDate != null) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       final TimeOfDay? pickedTime = await showTimePicker(
         context: context,
-        initialTime: TimeOfDay.fromDateTime(isStartDate ? _startTime : _endTime),
+        initialTime: TimeOfDay.fromDateTime(
+          isStartDate ? _startTime : _endTime,
+        ),
       );
 
       if (pickedTime != null) {
+        if (!mounted) return;
         setState(() {
           final newDateTime = DateTime(
             pickedDate.year,
@@ -71,7 +72,9 @@ class _CreateAuctionTimeFormState extends State<CreateAuctionTimeForm> {
     final String month = dt.month.toString().padLeft(2, '0');
     final String day = dt.day.toString().padLeft(2, '0');
     final String year = dt.year.toString();
-    final String hour = (dt.hour % 12 == 0 ? 12 : dt.hour % 12).toString().padLeft(2, '0');
+    final String hour = (dt.hour % 12 == 0 ? 12 : dt.hour % 12)
+        .toString()
+        .padLeft(2, '0');
     final String minute = dt.minute.toString().padLeft(2, '0');
     final String amPm = dt.hour >= 12 ? 'PM' : 'AM';
 
@@ -108,7 +111,12 @@ class _CreateAuctionTimeFormState extends State<CreateAuctionTimeForm> {
                 value: _formatDateTime(_startTime),
                 onTap: () => _selectDateTime(context, true),
               ),
-              const Divider(height: 1, indent: 64, endIndent: 16, color: Color(0xFFE2E8F0)),
+              const Divider(
+                height: 1,
+                indent: 64,
+                endIndent: 16,
+                color: Color(0xFFE2E8F0),
+              ),
               _buildTimeTile(
                 icon: Icons.history_rounded,
                 iconColor: const Color(0xFFDB2777),
@@ -140,7 +148,7 @@ class _CreateAuctionTimeFormState extends State<CreateAuctionTimeForm> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: iconColor.withOpacity(0.1),
+                color: iconColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(icon, color: iconColor, size: 24),
@@ -170,7 +178,11 @@ class _CreateAuctionTimeFormState extends State<CreateAuctionTimeForm> {
                 ],
               ),
             ),
-            const Icon(Icons.calendar_month_outlined, size: 20, color: Color(0xFF64748B)),
+            const Icon(
+              Icons.calendar_month_outlined,
+              size: 20,
+              color: Color(0xFF64748B),
+            ),
           ],
         ),
       ),

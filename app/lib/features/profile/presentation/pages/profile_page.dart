@@ -18,6 +18,7 @@ import '../../data/models/withdrawal_request_model.dart';
 import '../../data/withdrawal_service.dart';
 import '../widgets/wallet_card.dart';
 import 'edit_profile_page.dart';
+import 'won_products_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -31,7 +32,8 @@ class _ProfilePageState extends State<ProfilePage> {
   bool _isDarkModeEnabled = false;
   late final KycController _kycController;
   final ProfileService _profileService = ProfileService();
-  final AuctionParticipationService _auctionService = AuctionParticipationService();
+  final AuctionParticipationService _auctionService =
+      AuctionParticipationService();
   final WithdrawalService _withdrawalService = WithdrawalService();
   ProfileResponse? _profile;
   bool _isProfileLoading = true;
@@ -63,7 +65,9 @@ class _ProfilePageState extends State<ProfilePage> {
     }
 
     try {
-      final profile = await _profileService.getProfile(accessToken: accessToken);
+      final profile = await _profileService.getProfile(
+        accessToken: accessToken,
+      );
       if (!mounted) return;
       setState(() {
         _profile = profile;
@@ -146,9 +150,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đăng xuất thành công')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Đăng xuất thành công')));
 
       _navigateToLogin();
     } catch (e) {
@@ -168,9 +172,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(
-        builder: (_) => const LoginScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
       (route) => false,
     );
   }
@@ -200,18 +202,18 @@ class _ProfilePageState extends State<ProfilePage> {
       // Trường hợp chưa gửi (null) hoặc bị từ chối (REJECTED)
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const KycMainPage(),
-        ),
-      ).then((_) => _kycController.initialize()); // Reload lại status sau khi quay về
+        MaterialPageRoute(builder: (context) => const KycMainPage()),
+      ).then(
+        (_) => _kycController.initialize(),
+      ); // Reload lại status sau khi quay về
     }
   }
 
   Future<void> _handleWithdraw() async {
     if (_withdrawableBalance <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Chua co so du co the rut')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Chua co so du co the rut')));
       return;
     }
     final submitted = await showModalBottomSheet<bool>(
@@ -286,7 +288,11 @@ class _ProfilePageState extends State<ProfilePage> {
         centerTitle: true,
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit_note_rounded, color: AppColors.primaryBlue, size: 28),
+            icon: const Icon(
+              Icons.edit_note_rounded,
+              color: AppColors.primaryBlue,
+              size: 28,
+            ),
             onPressed: () async {
               final updatedProfile = await Navigator.push<ProfileResponse>(
                 context,
@@ -322,9 +328,15 @@ class _ProfilePageState extends State<ProfilePage> {
                 _buildSection(
                   title: 'HOẠT ĐỘNG ĐẤU GIÁ',
                   children: [
-                    _buildMenuItem(Icons.local_offer_outlined, 'Đồ tôi đang bán'),
+                    _buildMenuItem(
+                      Icons.local_offer_outlined,
+                      'Đồ tôi đang bán',
+                    ),
                     _buildMenuItem(Icons.gavel_outlined, 'Lịch sử đấu giá'),
-                    _buildMenuItem(Icons.emoji_events_outlined, 'Sản phẩm đã thắng'),
+                    _buildMenuItem(
+                      Icons.emoji_events_outlined,
+                      'Sản phẩm đã thắng',
+                    ),
                     _buildMenuItem(
                       Icons.favorite_border_rounded,
                       'Danh sách yêu thích',
@@ -380,9 +392,7 @@ class _ProfilePageState extends State<ProfilePage> {
           );
         },
       ),
-      bottomNavigationBar: const CustomBottomNavigation(
-        selectedIndex: 4,
-      ),
+      bottomNavigationBar: const CustomBottomNavigation(selectedIndex: 4),
     );
   }
 
@@ -394,8 +404,16 @@ class _ProfilePageState extends State<ProfilePage> {
     return 'Chưa xác thực';
   }
 
-  bool get _isKycVerified =>
-      _kycController.status?.toUpperCase() == 'VERIFIED';
+  bool get _isKycVerified => _kycController.status?.toUpperCase() == 'VERIFIED';
+
+  Future<void> _openWonProducts() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => const WonProductsPage()),
+    );
+    if (!mounted) return;
+    await _loadWalletSummary();
+  }
 
   Widget _buildProfileHeader() {
     final profile = _profile;
@@ -437,7 +455,7 @@ class _ProfilePageState extends State<ProfilePage> {
         const SizedBox(height: 16),
         Text(
           _isProfileLoading ? 'Đang tải...' : name,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
             color: Color(0xFF1A1C1E),
@@ -446,7 +464,7 @@ class _ProfilePageState extends State<ProfilePage> {
         const SizedBox(height: 4),
         Text(
           email.isEmpty ? 'Chưa cập nhật email' : email,
-          style: TextStyle(fontSize: 14, color: Colors.grey),
+          style: const TextStyle(fontSize: 14, color: Colors.grey),
         ),
       ],
     );
@@ -496,7 +514,7 @@ class _ProfilePageState extends State<ProfilePage> {
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.02),
+                color: Colors.black.withValues(alpha: 0.02),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -519,7 +537,7 @@ class _ProfilePageState extends State<ProfilePage> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.primaryBlue.withOpacity(0.08),
+          color: AppColors.primaryBlue.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(icon, color: AppColors.primaryBlue, size: 20),
@@ -536,8 +554,8 @@ class _ProfilePageState extends State<ProfilePage> {
           ? Text(
               subtitle,
               style: TextStyle(
-                fontSize: 12, 
-                color: subtitle.contains('từ chối') ? Colors.red : Colors.grey
+                fontSize: 12,
+                color: subtitle.contains('từ chối') ? Colors.red : Colors.grey,
               ),
             )
           : null,
@@ -556,7 +574,9 @@ class _ProfilePageState extends State<ProfilePage> {
           const Icon(Icons.chevron_right_rounded, color: Colors.grey),
         ],
       ),
-      onTap: onTap,
+      onTap:
+          onTap ??
+          (icon == Icons.emoji_events_outlined ? _openWonProducts : null),
     );
   }
 
@@ -570,7 +590,7 @@ class _ProfilePageState extends State<ProfilePage> {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: AppColors.primaryBlue.withOpacity(0.08),
+          color: AppColors.primaryBlue.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(10),
         ),
         child: Icon(icon, color: AppColors.primaryBlue, size: 20),
@@ -586,7 +606,7 @@ class _ProfilePageState extends State<ProfilePage> {
       trailing: Switch(
         value: value,
         onChanged: onChanged,
-        activeColor: AppColors.primaryBlue,
+        activeThumbColor: AppColors.primaryBlue,
       ),
     );
   }
@@ -595,7 +615,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.purple.withOpacity(0.1),
+        color: Colors.purple.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(10),
       ),
       child: const Row(
@@ -631,7 +651,7 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
         ),
         style: TextButton.styleFrom(
-          backgroundColor: Colors.redAccent.withOpacity(0.05),
+          backgroundColor: Colors.redAccent.withValues(alpha: 0.05),
           padding: const EdgeInsets.symmetric(vertical: 16),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -651,12 +671,10 @@ class _WithdrawalFormSheet extends StatefulWidget {
     required String accountHolderName,
     required String branchName,
     required String userNote,
-  }) onSubmit;
+  })
+  onSubmit;
 
-  const _WithdrawalFormSheet({
-    required this.maxAmount,
-    required this.onSubmit,
-  });
+  const _WithdrawalFormSheet({required this.maxAmount, required this.onSubmit});
 
   @override
   State<_WithdrawalFormSheet> createState() => _WithdrawalFormSheetState();
@@ -702,7 +720,9 @@ class _WithdrawalFormSheetState extends State<_WithdrawalFormSheet> {
       _showError('So tien rut khong hop le');
       return;
     }
-    if (bankName.isEmpty || accountNumber.isEmpty || accountHolderName.isEmpty) {
+    if (bankName.isEmpty ||
+        accountNumber.isEmpty ||
+        accountHolderName.isEmpty) {
       _showError('Nhap du thong tin ngan hang');
       return;
     }
@@ -718,9 +738,9 @@ class _WithdrawalFormSheetState extends State<_WithdrawalFormSheet> {
         userNote: userNote,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Da gui yeu cau rut tien')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Da gui yeu cau rut tien')));
       Navigator.pop(context, true);
     } catch (error) {
       if (!mounted) return;
@@ -776,11 +796,7 @@ class _WithdrawalFormSheetState extends State<_WithdrawalFormSheet> {
             _Input(controller: _accountController, label: 'So tai khoan'),
             _Input(controller: _holderController, label: 'Chu tai khoan'),
             _Input(controller: _branchController, label: 'Chi nhanh'),
-            _Input(
-              controller: _noteController,
-              label: 'Ghi chu',
-              maxLines: 2,
-            ),
+            _Input(controller: _noteController, label: 'Ghi chu', maxLines: 2),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,

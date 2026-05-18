@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/utils/currency_formatter.dart';
@@ -20,18 +22,58 @@ class AdminAuctionListPage extends StatefulWidget {
 class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
   int _selectedTab = 1;
   final AdminAuctionService _auctionService = AdminAuctionService();
-  late Future<List<ProductModel>> _auctionRoomsFuture;
+  List<ProductModel> _auctionRooms = const [];
+  bool _isLoading = true;
+  bool _isRefreshing = false;
+  String? _loadError;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
     super.initState();
     _loadAuctionRooms();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      if (!mounted) return;
+      _loadAuctionRooms(silent: true);
+    });
   }
 
-  void _loadAuctionRooms() {
-    _auctionRoomsFuture = _auctionService.getAuctionRooms(
-      accessToken: AuthSession.instance.accessToken ?? '',
-    );
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _loadAuctionRooms({bool silent = false}) async {
+    if (_isRefreshing) return;
+    _isRefreshing = true;
+
+    if (!silent && mounted) {
+      setState(() {
+        _isLoading = _auctionRooms.isEmpty;
+        _loadError = null;
+      });
+    }
+
+    try {
+      final rooms = await _auctionService.getAuctionRooms(
+        accessToken: AuthSession.instance.accessToken ?? '',
+      );
+      if (!mounted) return;
+      setState(() {
+        _auctionRooms = rooms;
+        _loadError = null;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _loadError = error.toString().replaceFirst('Exception: ', '');
+        _isLoading = false;
+      });
+    } finally {
+      _isRefreshing = false;
+    }
   }
 
   @override
@@ -45,9 +87,7 @@ class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
           _buildTabs(),
           const SizedBox(height: 16),
           _buildSearchBar(),
-          Expanded(
-            child: _buildAuctionList(),
-          ),
+          Expanded(child: _buildAuctionList()),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -59,16 +99,14 @@ class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
             ),
           );
           if (created == true && mounted) {
-            setState(() {
-              _selectedTab = 0;
-              _loadAuctionRooms();
-            });
+            setState(() => _selectedTab = 0);
+            await _loadAuctionRooms();
           }
         },
         backgroundColor: AppColors.primaryBlue,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text(
-          'Tạo phiên mới',
+          'Tao phien moi',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
@@ -86,9 +124,9 @@ class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
       ),
       child: Row(
         children: [
-          _buildTabItem(0, 'Sắp diễn ra'),
-          _buildTabItem(1, 'Đang diễn ra'),
-          _buildTabItem(2, 'Đã kết thúc'),
+          _buildTabItem(0, 'Sap dien ra'),
+          _buildTabItem(1, 'Dang dien ra'),
+          _buildTabItem(2, 'Da ket thuc'),
         ],
       ),
     );
@@ -132,7 +170,7 @@ class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
+                    color: Colors.black.withValues(alpha: 0.02),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -140,7 +178,7 @@ class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
               ),
               child: const TextField(
                 decoration: InputDecoration(
-                  hintText: 'Tìm tên sản phẩm...',
+                  hintText: 'Tim ten san pham...',
                   border: InputBorder.none,
                   icon: Icon(Icons.search, color: Color(0xFF94A3B8)),
                 ),
@@ -162,54 +200,74 @@ class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
   }
 
   Widget _buildAuctionList() {
-    return FutureBuilder<List<ProductModel>>(
-      future: _auctionRoomsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
-        if (snapshot.hasError) {
-          return Center(child: Text(snapshot.error.toString()));
-        }
+    if (_loadError != null && _auctionRooms.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                _loadError!,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Color(0xFFDC2626)),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: _loadAuctionRooms,
+                child: const Text('Tai lai'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
-        final products = _filterBySelectedTab(
-          snapshot.data ?? const <ProductModel>[],
-        );
+    final products = _filterBySelectedTab(_auctionRooms);
 
-        if (products.isEmpty) {
-          return const Center(child: Text('Chưa có phiên đấu giá'));
-        }
-
-        return ListView.builder(
-          padding: const EdgeInsets.all(20),
-          itemCount: products.length,
-          itemBuilder: (context, index) {
-            final product = products[index];
-            final room = product.auctionRoom;
-            return AdminAuctionCard(
-              imageUrl: product.displayImage,
-              title: product.name,
-              timeRemaining: room?.status ?? '',
-              currentBid: formatVnd(room?.minimumBid),
-              isLive: room?.status.toUpperCase() == 'LIVE',
-              onTap: () async {
-                final changed = await Navigator.push<bool>(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => AdminAuctionDetailPage(
-                      product: product,
-                    ),
-                  ),
+    return RefreshIndicator(
+      onRefresh: () => _loadAuctionRooms(silent: true),
+      child: products.isEmpty
+          ? ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(24),
+              children: const [
+                SizedBox(height: 160),
+                Center(child: Text('Chua co phien dau gia')),
+              ],
+            )
+          : ListView.builder(
+              padding: const EdgeInsets.all(20),
+              itemCount: products.length,
+              itemBuilder: (context, index) {
+                final product = products[index];
+                final room = product.auctionRoom;
+                return AdminAuctionCard(
+                  imageUrl: product.displayImage,
+                  title: product.name,
+                  timeRemaining: _statusLabel(room?.status),
+                  currentBid: formatVnd(room?.minimumBid),
+                  isLive: room?.status.toUpperCase() == 'LIVE',
+                  onTap: () async {
+                    final changed = await Navigator.push<bool>(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AdminAuctionDetailPage(
+                          product: product,
+                        ),
+                      ),
+                    );
+                    if (changed == true && mounted) {
+                      await _loadAuctionRooms(silent: true);
+                    }
+                  },
                 );
-                if (changed == true && mounted) {
-                  setState(_loadAuctionRooms);
-                }
               },
-            );
-          },
-        );
-      },
+            ),
     );
   }
 
@@ -220,10 +278,38 @@ class _AdminAuctionListPageState extends State<AdminAuctionListPage> {
         return status == 'SCHEDULED';
       }
       if (_selectedTab == 2) {
-        return status == 'CLOSED' || status == 'CANCELLED';
+        return _isEndedStatus(status);
       }
       return status == 'LIVE';
     }).toList();
   }
 
+  bool _isEndedStatus(String? status) {
+    return status == 'CLOSED' ||
+        status == 'CANCELLED' ||
+        status == 'WAITING_WINNER_PAYMENT' ||
+        status == 'SOLD' ||
+        status == 'FAILED';
+  }
+
+  String _statusLabel(String? status) {
+    switch (status?.toUpperCase()) {
+      case 'SCHEDULED':
+        return 'Sap dien ra';
+      case 'LIVE':
+        return 'Dang dien ra';
+      case 'WAITING_WINNER_PAYMENT':
+        return 'Cho nguoi thang thanh toan';
+      case 'SOLD':
+        return 'Da ban';
+      case 'FAILED':
+        return 'Dau gia that bai';
+      case 'CANCELLED':
+        return 'Da huy';
+      case 'CLOSED':
+        return 'Da ket thuc';
+      default:
+        return status ?? '';
+    }
+  }
 }

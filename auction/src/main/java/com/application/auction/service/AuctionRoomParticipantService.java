@@ -6,6 +6,7 @@ import com.application.auction.enums.AuctionDepositStatus;
 import com.application.auction.repository.AuctionDepositRepository;
 import com.application.auction.repository.ProfileRepository;
 import com.application.auction.repository.UserRepository;
+import com.application.auction.util.PrivacyMaskingUtil;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -40,29 +41,18 @@ public class AuctionRoomParticipantService {
                 .userId(deposit.getUserId())
                 .build();
         userRepository.findById(deposit.getUserId()).ifPresent(user -> {
-            response.setUserName(maskName(user.getUsername()));
-            response.setUserEmail(user.getEmail());
+            response.setUserName(PrivacyMaskingUtil.maskDisplayName(user.getUsername()));
+            response.setUserEmail(PrivacyMaskingUtil.maskEmail(user.getEmail()));
         });
         profileRepository.findById(deposit.getUserId()).ifPresent(profile -> {
             response.setUserAvatar(profile.getAvatar());
             if (profile.getFullName() != null && !profile.getFullName().isBlank()) {
-                response.setUserName(maskName(profile.getFullName()));
+                response.setUserName(PrivacyMaskingUtil.maskDisplayName(profile.getFullName()));
             }
             if (response.getUserEmail() == null || response.getUserEmail().isBlank()) {
-                response.setUserEmail(profile.getEmail());
+                response.setUserEmail(PrivacyMaskingUtil.maskEmail(profile.getEmail()));
             }
         });
         return response;
-    }
-
-    private String maskName(String value) {
-        if (value == null || value.isBlank()) {
-            return "Nguoi dung";
-        }
-        String trimmed = value.trim();
-        if (trimmed.length() <= 2) {
-            return trimmed.charAt(0) + "***";
-        }
-        return trimmed.substring(0, Math.min(4, trimmed.length())) + "***";
     }
 }

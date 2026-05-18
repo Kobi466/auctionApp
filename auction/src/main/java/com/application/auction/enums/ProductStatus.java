@@ -5,5 +5,6 @@ public enum ProductStatus {
     SCHEDULED,
     ACTIVE,
     SOLD,
+    AUCTION_FAILED,
     CANCELLED
 }

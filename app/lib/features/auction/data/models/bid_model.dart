@@ -1,3 +1,5 @@
+import '../../../../core/utils/privacy_masker.dart';
+
 class BidModel {
   final String id;
   final String userId;
@@ -21,13 +23,14 @@ class BidModel {
     return BidModel(
       id: json['id']?.toString() ?? '',
       userId: json['userId']?.toString() ?? '',
-      userName: json['userName']?.toString() ?? 'Nguoi dung',
+      userName: PrivacyMasker.displayName(json['userName']?.toString()),
       userAvatar: json['userAvatar']?.toString(),
       amount: json['amount'] is num
           ? json['amount'] as num
           : num.tryParse('${json['amount']}') ?? 0,
       createdAt:
-          DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
+          DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
+          DateTime.now(),
       isLeading: json['isLeading'] == true || json['leading'] == true,
     );
   }

@@ -37,7 +37,7 @@ class PendingRequestCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -52,7 +52,11 @@ class PendingRequestCard extends StatelessWidget {
               color: statusStyle.background,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(statusStyle.icon, color: statusStyle.foreground, size: 30),
+            child: Icon(
+              statusStyle.icon,
+              color: statusStyle.foreground,
+              size: 30,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -76,8 +80,10 @@ class PendingRequestCard extends StatelessWidget {
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Container(
-                      padding:
-                          const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: statusStyle.background,
                         borderRadius: BorderRadius.circular(8),
@@ -117,8 +123,11 @@ class PendingRequestCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.access_time_rounded,
-                        size: 14, color: Color(0xFF94A3B8)),
+                    const Icon(
+                      Icons.access_time_rounded,
+                      size: 14,
+                      color: Color(0xFF94A3B8),
+                    ),
                     const SizedBox(width: 4),
                     Expanded(
                       child: Text(
@@ -139,8 +148,10 @@ class PendingRequestCard extends StatelessWidget {
                     'Admin: $adminNote',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style:
-                        const TextStyle(fontSize: 12, color: Color(0xFF64748B)),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Color(0xFF64748B),
+                    ),
                   ),
                 ],
                 if (status == 'APPROVED') ...[
@@ -174,6 +185,13 @@ class PendingRequestCard extends StatelessWidget {
           foreground: Color(0xFFB91C1C),
           background: Color(0xFFFEE2E2),
           icon: Icons.cancel_rounded,
+        );
+      case 'SETTLED':
+        return const _StatusStyle(
+          label: 'DA TAT TOAN',
+          foreground: Color(0xFF7C3AED),
+          background: Color(0xFFF3E8FF),
+          icon: Icons.verified_outlined,
         );
       case 'PENDING_PAYMENT':
         return const _StatusStyle(
@@ -215,12 +233,14 @@ class _RoomAccessBoxState extends State<_RoomAccessBox> {
   Widget build(BuildContext context) {
     final roomCode = widget.roomCode;
     final roomPassword = widget.roomPassword;
-    final hasAccess = roomCode != null &&
+    final hasAccess =
+        roomCode != null &&
         roomCode.trim().isNotEmpty &&
         roomPassword != null &&
         roomPassword.trim().isNotEmpty;
-    final displayRoomCode =
-        hasAccess && _isVisible ? roomCode : _maskSecret(roomCode ?? '');
+    final displayRoomCode = hasAccess && _isVisible
+        ? roomCode
+        : _maskSecret(roomCode ?? '');
     final displayPassword = hasAccess && _isVisible
         ? roomPassword
         : _maskSecret(roomPassword ?? '');
@@ -317,11 +337,7 @@ class _AccessLine extends StatelessWidget {
   final String value;
   final String? copyValue;
 
-  const _AccessLine({
-    required this.label,
-    required this.value,
-    this.copyValue,
-  });
+  const _AccessLine({required this.label, required this.value, this.copyValue});
 
   @override
   Widget build(BuildContext context) {
@@ -356,9 +372,9 @@ class _AccessLine extends StatelessWidget {
               : () async {
                   await Clipboard.setData(ClipboardData(text: copyValue!));
                   if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Đã sao chép $label')),
-                  );
+                  ScaffoldMessenger.of(
+                    context,
+                  ).showSnackBar(SnackBar(content: Text('Đã sao chép $label')));
                 },
           visualDensity: VisualDensity.compact,
           tooltip: 'Sao chép $label',

@@ -70,7 +70,9 @@ class ProductModel {
       createdAt: _parseDateTime(json['createdAt']),
       updatedAt: _parseDateTime(json['updatedAt']),
       auctionRoom: json['auctionRoom'] is Map<String, dynamic>
-          ? AuctionRoomModel.fromJson(json['auctionRoom'] as Map<String, dynamic>)
+          ? AuctionRoomModel.fromJson(
+              json['auctionRoom'] as Map<String, dynamic>,
+            )
           : null,
     );
   }
@@ -85,7 +87,52 @@ class ProductModel {
     return '';
   }
 
-  DateTime? get effectiveStartTime => auctionRoom?.startTime ?? plannedStartTime;
+  ProductModel copyWith({
+    String? id,
+    String? name,
+    String? subTitle,
+    String? brand,
+    num? startingPrice,
+    String? description,
+    String? shortDescription,
+    List<String>? imageUrls,
+    String? mainImageUrl,
+    String? categoryId,
+    List<String>? tags,
+    String? authenticity,
+    String? provenance,
+    int? rarityRank,
+    DateTime? plannedStartTime,
+    String? status,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    AuctionRoomModel? auctionRoom,
+  }) {
+    return ProductModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      subTitle: subTitle ?? this.subTitle,
+      brand: brand ?? this.brand,
+      startingPrice: startingPrice ?? this.startingPrice,
+      description: description ?? this.description,
+      shortDescription: shortDescription ?? this.shortDescription,
+      imageUrls: imageUrls ?? this.imageUrls,
+      mainImageUrl: mainImageUrl ?? this.mainImageUrl,
+      categoryId: categoryId ?? this.categoryId,
+      tags: tags ?? this.tags,
+      authenticity: authenticity ?? this.authenticity,
+      provenance: provenance ?? this.provenance,
+      rarityRank: rarityRank ?? this.rarityRank,
+      plannedStartTime: plannedStartTime ?? this.plannedStartTime,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      auctionRoom: auctionRoom ?? this.auctionRoom,
+    );
+  }
+
+  DateTime? get effectiveStartTime =>
+      auctionRoom?.startTime ?? plannedStartTime;
 
   static DateTime? _parseDateTime(dynamic value) {
     final raw = value?.toString();

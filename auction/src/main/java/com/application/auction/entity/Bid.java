@@ -2,6 +2,8 @@ package com.application.auction.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -19,10 +21,12 @@ public class Bid {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @JdbcTypeCode(SqlTypes.CHAR)
+    @Column(nullable = false, updatable = false, length = 36)
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "auctionRoom_id", nullable = false)
+    @JoinColumn(name = "auction_room_id", nullable = false)
     private AuctionRoom auctionRoom;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -36,4 +40,14 @@ public class Bid {
     private Instant timestamp;
 
     private LocalDateTime createdAt;
+
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+        if (timestamp == null) {
+            timestamp = Instant.now();
+        }
+    }
 }

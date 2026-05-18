@@ -1,6 +1,7 @@
 package com.application.auction.entity;
 
 import com.application.auction.websocket.enums.AuctionRoomStatus;
+import com.application.auction.enums.WinnerPaymentStatus;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -69,6 +70,36 @@ public class AuctionRoom {
 
     @Column(nullable = false)
     Instant endTime;
+
+    @Column(nullable = false)
+    boolean timeExtended = false;
+
+    @Column(nullable = false)
+    boolean winnerNotified = false;
+
+    Integer currentWinnerRank;
+
+    @Enumerated(EnumType.STRING)
+    @Column(length = 30)
+    WinnerPaymentStatus winnerPaymentStatus;
+
+    @Lob
+    @Column(columnDefinition = "LONGTEXT")
+    String winnerPaymentReceiptUrl;
+
+    @Column(length = 1000)
+    String winnerPaymentUserNote;
+
+    @Column(length = 1000)
+    String winnerPaymentAdminNote;
+
+    @Builder.Default
+    @Column(nullable = false)
+    Integer winnerPaymentRejectedCount = 0;
+
+    Instant winnerPaymentSubmittedAt;
+
+    Instant winnerPaymentConfirmedAt;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30)

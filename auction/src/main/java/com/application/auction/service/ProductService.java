@@ -36,6 +36,7 @@ public class ProductService {
     UserRepository userRepository;
     ProductMapper productMapper;
     AuctionRoomMapper auctionRoomMapper;
+    AuctionFinalizationService auctionFinalizationService;
 
     @Transactional
     @PreAuthorize("hasRole('ADMIN')")
@@ -70,15 +71,17 @@ public class ProductService {
         productRepository.delete(product);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public ProductResponse getProduct(UUID productId) {
+        auctionFinalizationService.finalizeEndedAuctions();
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new AppException(ErrorCode.PRODUCT_NOT_FOUND));
         return toResponse(product);
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public List<ProductResponse> getProducts() {
+        auctionFinalizationService.finalizeEndedAuctions();
         return productRepository.findAll().stream()
                 .map(this::toResponse)
                 .toList();
@@ -108,7 +111,6 @@ public class ProductService {
                 .build();
     }
 
-    //validate image urls
     private List<String> requireImageUrls(List<String> imageUrls) {
         if (imageUrls == null) {
             throw new AppException(ErrorCode.PRODUCT_IMAGES_REQUIRED);
@@ -124,7 +126,6 @@ public class ProductService {
         }
         return normalizedImages;
     }
-    //validate text
     private String requireText(String value, ErrorCode errorCode) {
         String normalized = normalize(value);
         if (normalized == null) {
@@ -132,14 +133,12 @@ public class ProductService {
         }
         return normalized;
     }
-    //validate positive amount
     private BigDecimal requirePositiveAmount(BigDecimal value) {
         if (value == null || value.compareTo(BigDecimal.ZERO) <= 0) {
             throw new AppException(ErrorCode.AUCTION_MINIMUM_BID_REQUIRED);
         }
         return value;
     }
-    //normalize string (làm sạch)
     private String normalize(String value) {
         if (value == null) {
             return null;
@@ -147,13 +146,11 @@ public class ProductService {
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
     }
-    //get current admin
     private User getCurrentAdmin() {
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
-    //convert product to response
     private ProductResponse toResponse(Product product) {
         ProductResponse response = productMapper.toProductResponse(product);
         auctionRoomRepository.findByProductId(product.getId())
@@ -162,22 +159,26 @@ public class ProductService {
                 .ifPresent(response::setAuctionRoom);
         return response;
     }
-    //sync auction room minimum bid
     private void syncAuctionRoomMinimumBid(Product product) {
         auctionRoomRepository.findByProductId(product.getId()).ifPresent(room -> {
             room.setStartingPrice(product.getStartingPrice());
+            room.setDepositAmount(product.getStartingPrice());
             auctionRoomRepository.save(room);
         });
     }
-    //cập nhật trạng thái phòng đấu giá
     private AuctionRoom applyCurrentAuctionRoomStatus(AuctionRoom auctionRoom) {
+        if (auctionRoom.getStatus() == AuctionRoomStatus.CANCELLED
+                || auctionRoom.getStatus() == AuctionRoomStatus.WAITING_WINNER_PAYMENT
+                || auctionRoom.getStatus() == AuctionRoomStatus.SOLD
+                || auctionRoom.getStatus() == AuctionRoomStatus.FAILED) {
+            return auctionRoom;
+        }
         auctionRoom.setStatus(resolveAuctionRoomStatus(
                 auctionRoom.getStartTime(),
                 auctionRoom.getEndTime()
         ));
         return auctionRoom;
     }
-    //xác định trạng thái phòng đấu giá
     private AuctionRoomStatus resolveAuctionRoomStatus(Instant startTime, Instant endTime) {
         Instant now = Instant.now();
         if (now.isBefore(startTime)) {

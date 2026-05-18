@@ -99,6 +99,8 @@ class ApiClient {
     }
   }
 
+  String get webSocketUrl => '$baseUrl/ws';
+
   Future<Map<String, dynamic>> patch(
     String endpoint, {
     Map<String, dynamic>? body,

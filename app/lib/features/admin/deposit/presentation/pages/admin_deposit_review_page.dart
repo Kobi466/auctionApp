@@ -25,6 +25,7 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
   bool _isLoading = true;
   String? _errorMessage;
   String _selectedStatus = 'PENDING_APPROVAL';
+  String? _selectedRoomId;
   List<AdminDepositModel> _deposits = const [];
 
   @override
@@ -64,7 +65,6 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
     try {
       final deposits = await _depositService.getDeposits(
         accessToken: accessToken,
-        status: _selectedStatus == 'ALL' ? null : _selectedStatus,
       );
       if (!mounted) return;
       setState(() {
@@ -76,18 +76,25 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
         _errorMessage = error.toString().replaceFirst('Exception: ', '');
       });
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   List<AdminDepositModel> get _filteredDeposits {
     final keyword = _searchController.text.trim().toLowerCase();
-    if (keyword.isEmpty) return _deposits;
     return _deposits.where((deposit) {
-      return deposit.id.toLowerCase().contains(keyword) ||
+      final matchesRoom =
+          _selectedRoomId == null || deposit.auctionRoomId == _selectedRoomId;
+      final matchesStatus =
+          _selectedStatus == 'ALL' || deposit.status == _selectedStatus;
+      final matchesSearch =
+          keyword.isEmpty ||
+          deposit.id.toLowerCase().contains(keyword) ||
+          deposit.auctionRoomId.toLowerCase().contains(keyword) ||
           deposit.userId.toLowerCase().contains(keyword) ||
           deposit.username.toLowerCase().contains(keyword) ||
           deposit.userEmail.toLowerCase().contains(keyword) ||
@@ -95,7 +102,45 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
           deposit.productId.toLowerCase().contains(keyword) ||
           deposit.productName.toLowerCase().contains(keyword) ||
           deposit.transferContent.toLowerCase().contains(keyword);
+      return matchesRoom && matchesStatus && matchesSearch;
     }).toList();
+  }
+
+  List<_RoomDepositGroup> get _filteredRoomGroups {
+    final keyword = _searchController.text.trim().toLowerCase();
+    final grouped = <String, List<AdminDepositModel>>{};
+    for (final deposit in _deposits) {
+      final key = deposit.auctionRoomId.isEmpty
+          ? deposit.productId
+          : deposit.auctionRoomId;
+      grouped.putIfAbsent(key, () => []).add(deposit);
+    }
+
+    final groups =
+        grouped.entries
+            .map((entry) => _RoomDepositGroup(entry.key, entry.value))
+            .where((group) {
+              final matchesStatus =
+                  _selectedStatus == 'ALL' ||
+                  group.countByStatus(_selectedStatus) > 0;
+              final matchesSearch =
+                  keyword.isEmpty ||
+                  group.roomId.toLowerCase().contains(keyword) ||
+                  group.productName.toLowerCase().contains(keyword) ||
+                  group.deposits.any((deposit) {
+                    return deposit.id.toLowerCase().contains(keyword) ||
+                        deposit.userId.toLowerCase().contains(keyword) ||
+                        deposit.username.toLowerCase().contains(keyword) ||
+                        deposit.userEmail.toLowerCase().contains(keyword) ||
+                        deposit.userFullName.toLowerCase().contains(keyword) ||
+                        deposit.transferContent.toLowerCase().contains(keyword);
+                  });
+              return matchesStatus && matchesSearch;
+            })
+            .toList()
+          ..sort((a, b) => b.pendingCount.compareTo(a.pendingCount));
+
+    return groups;
   }
 
   Future<void> _reviewDeposit(
@@ -120,9 +165,7 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            status == 'APPROVED'
-                ? 'Da duyet tien coc'
-                : 'Da tu choi tien coc',
+            status == 'APPROVED' ? 'Da duyet tien coc' : 'Da tu choi tien coc',
           ),
         ),
       );
@@ -142,6 +185,8 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
   @override
   Widget build(BuildContext context) {
     final deposits = _filteredDeposits;
+    final roomGroups = _filteredRoomGroups;
+    final isRoomDetail = _selectedRoomId != null;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8FAFF),
@@ -171,14 +216,20 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
                       )
                     else if (_errorMessage != null)
                       _buildErrorCard(_errorMessage!)
-                    else if (deposits.isEmpty)
+                    else if (isRoomDetail && deposits.isEmpty)
                       _buildEmptyCard()
+                    else if (!isRoomDetail && roomGroups.isEmpty)
+                      _buildEmptyRoomCard()
+                    else if (!isRoomDetail)
+                      ...roomGroups.map(_buildRoomCard)
                     else
-                      ...deposits.map(_DepositReviewCard(
-                        onApprove: (deposit) => _confirmApprove(deposit),
-                        onReject: (deposit) => _openRejectDialog(deposit),
-                        onRefund: (deposit) => _confirmRefund(deposit),
-                      ).build),
+                      ...deposits.map(
+                        _DepositReviewCard(
+                          onApprove: (deposit) => _confirmApprove(deposit),
+                          onReject: (deposit) => _openRejectDialog(deposit),
+                          onRefund: (deposit) => _confirmRefund(deposit),
+                        ).build,
+                      ),
                     const SizedBox(height: 100),
                   ],
                 ),
@@ -192,13 +243,27 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
   }
 
   Widget _buildHeader() {
-    final pendingCount = _deposits
+    final visibleDeposits = _selectedRoomId == null
+        ? _deposits
+        : _deposits
+              .where((deposit) => deposit.auctionRoomId == _selectedRoomId)
+              .toList();
+    final pendingCount = visibleDeposits
         .where((deposit) => deposit.status == 'PENDING_APPROVAL')
         .length;
+    final title = _selectedRoomId == null
+        ? 'Quan ly phong coc'
+        : 'Phong ${_shortId(_selectedRoomId!)}';
     return Row(
       children: [
         GestureDetector(
-          onTap: () => Navigator.pop(context),
+          onTap: () {
+            if (_selectedRoomId != null) {
+              setState(() => _selectedRoomId = null);
+              return;
+            }
+            Navigator.pop(context);
+          },
           child: const Icon(
             Icons.arrow_back_ios_new_rounded,
             size: 14,
@@ -206,12 +271,12 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
           ),
         ),
         const SizedBox(width: 10),
-        const Expanded(
+        Expanded(
           child: Text(
-            'Duyet tien coc',
+            title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.w900,
               color: Color(0xFF1E293B),
@@ -258,7 +323,7 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.02),
+            color: Colors.black.withValues(alpha: 0.02),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -282,6 +347,7 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
       'PENDING_APPROVAL': 'Cho duyet',
       'APPROVED': 'Da duyet',
       'REFUNDED': 'Da hoan',
+      'SETTLED': 'Tat toan',
       'REJECTED': 'Tu choi',
       'ALL': 'Tat ca',
     };
@@ -296,14 +362,16 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
             child: ChoiceChip(
               label: Text(entry.value),
               selected: selected,
-              selectedColor: AppColors.primaryBlue.withOpacity(0.12),
+              selectedColor: AppColors.primaryBlue.withValues(alpha: 0.12),
               labelStyle: TextStyle(
-                color: selected ? AppColors.primaryBlue : const Color(0xFF64748B),
+                color: selected
+                    ? AppColors.primaryBlue
+                    : const Color(0xFF64748B),
                 fontWeight: FontWeight.bold,
               ),
               side: BorderSide(
                 color: selected
-                    ? AppColors.primaryBlue.withOpacity(0.2)
+                    ? AppColors.primaryBlue.withValues(alpha: 0.2)
                     : const Color(0xFFE2E8F0),
               ),
               onSelected: (_) {
@@ -341,9 +409,110 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
       ),
       child: const Text(
         'Khong co giao dich tien coc nao.',
-        style: TextStyle(
-          color: Color(0xFF64748B),
-          fontWeight: FontWeight.w600,
+        style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  Widget _buildEmptyRoomCard() {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: const Text(
+        'Khong co phong dau gia nao co giao dich tien coc.',
+        style: TextStyle(color: Color(0xFF64748B), fontWeight: FontWeight.w600),
+      ),
+    );
+  }
+
+  Widget _buildRoomCard(_RoomDepositGroup group) {
+    return InkWell(
+      onTap: () => setState(() => _selectedRoomId = group.roomId),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 14),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.03),
+              blurRadius: 15,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryBlue.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Icon(
+                    Icons.meeting_room_outlined,
+                    color: AppColors.primaryBlue,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        group.productName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          color: Color(0xFF1E293B),
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        'Phong ${_shortId(group.roomId)}',
+                        style: const TextStyle(
+                          color: Color(0xFF94A3B8),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Color(0xFF94A3B8),
+                ),
+              ],
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                _RoomStat(label: 'Thanh vien', value: group.totalCount),
+                _RoomStat(label: 'Cho duyet', value: group.pendingCount),
+                _RoomStat(label: 'Da duyet', value: group.approvedCount),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                _RoomStat(label: 'Cho CK', value: group.pendingPaymentCount),
+                _RoomStat(label: 'Tu choi', value: group.rejectedCount),
+                _RoomStat(label: 'Da hoan', value: group.refundedCount),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -454,6 +623,77 @@ class _AdminDepositReviewPageState extends State<AdminDepositReviewPage> {
   }
 }
 
+class _RoomDepositGroup {
+  final String roomId;
+  final List<AdminDepositModel> deposits;
+
+  const _RoomDepositGroup(this.roomId, this.deposits);
+
+  String get productName {
+    for (final deposit in deposits) {
+      if (deposit.productName.isNotEmpty) return deposit.productName;
+    }
+    return 'San pham ${_shortId(deposits.first.productId)}';
+  }
+
+  int get totalCount => deposits.length;
+  int get pendingPaymentCount => countByStatus('PENDING_PAYMENT');
+  int get pendingCount => countByStatus('PENDING_APPROVAL');
+  int get approvedCount => countByStatus('APPROVED');
+  int get rejectedCount => countByStatus('REJECTED');
+  int get refundedCount => countByStatus('REFUNDED');
+
+  int countByStatus(String status) {
+    return deposits.where((deposit) => deposit.status == status).length;
+  }
+}
+
+class _RoomStat extends StatelessWidget {
+  final String label;
+  final int value;
+
+  const _RoomStat({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        margin: const EdgeInsets.only(right: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF8FAFF),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFE2E8F0)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '$value',
+              style: const TextStyle(
+                color: Color(0xFF1E293B),
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                color: Color(0xFF64748B),
+                fontSize: 10,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _DepositReviewCard {
   final void Function(AdminDepositModel deposit) onApprove;
   final void Function(AdminDepositModel deposit) onReject;
@@ -478,7 +718,7 @@ class _DepositReviewCard {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -492,7 +732,7 @@ class _DepositReviewCard {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.12),
+                  color: statusColor.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Icon(Icons.payments_outlined, color: statusColor),
@@ -512,7 +752,9 @@ class _DepositReviewCard {
                     ),
                     const SizedBox(height: 3),
                     Text(
-                      _formatDate(deposit.paymentSubmittedAt ?? deposit.createdAt),
+                      _formatDate(
+                        deposit.paymentSubmittedAt ?? deposit.createdAt,
+                      ),
                       style: const TextStyle(
                         color: Color(0xFF94A3B8),
                         fontSize: 12,
@@ -599,6 +841,8 @@ class _DepositReviewCard {
         return const Color(0xFFDC2626);
       case 'REFUNDED':
         return const Color(0xFF2563EB);
+      case 'SETTLED':
+        return const Color(0xFF7C3AED);
       case 'PENDING_PAYMENT':
         return const Color(0xFFD97706);
       default:
@@ -626,17 +870,14 @@ class _StatusBadge extends StatelessWidget {
   final String status;
   final Color color;
 
-  const _StatusBadge({
-    required this.status,
-    required this.color,
-  });
+  const _StatusBadge({required this.status, required this.color});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
@@ -658,6 +899,8 @@ class _StatusBadge extends StatelessWidget {
         return 'Tu choi';
       case 'REFUNDED':
         return 'Da hoan';
+      case 'SETTLED':
+        return 'Tat toan';
       case 'PENDING_PAYMENT':
         return 'Cho CK';
       default:
@@ -670,10 +913,7 @@ class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _InfoRow({
-    required this.label,
-    required this.value,
-  });
+  const _InfoRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -713,7 +953,6 @@ String _shortId(String value) {
   if (value.length <= 8) return value;
   return value.substring(0, 8).toUpperCase();
 }
-
 
 String _formatDate(DateTime? date) {
   if (date == null) return 'Chua cap nhat';

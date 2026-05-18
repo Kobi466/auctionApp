@@ -2,12 +2,13 @@ package com.application.auction.security;
 
 import com.application.auction.entity.User;
 import com.application.auction.repository.UserRepository;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
+import java.util.stream.Stream;
 
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
@@ -31,12 +32,22 @@ public class UserDetailsServiceImpl implements UserDetailsService {
      */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = userRepository.findByUsername(username)
+        User user = userRepository.findWithRolesByEmail(username)
+                .or(() -> userRepository.findWithRolesByUsername(username))
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
 
-        // For the UserDetails object, Spring Security needs a username, password, and a collection of authorities.
-        // In this example, we are not using roles/authorities, so we pass an empty list.
-        // If you have roles, you would map them to GrantedAuthority objects here.
-        return new org.springframework.security.core.userdetails.User(user.getUsername(), user.getPassword(), new ArrayList<>());
+        var authorities = user.getRoles() == null
+                ? java.util.List.<SimpleGrantedAuthority>of()
+                : user.getRoles().stream()
+                .flatMap(role -> Stream.concat(
+                        Stream.of(new SimpleGrantedAuthority("ROLE_" + role.getName())),
+                        role.getPermissions() == null
+                                ? Stream.empty()
+                                : role.getPermissions().stream()
+                                .map(permission -> new SimpleGrantedAuthority(permission.getName()))
+                ))
+                .toList();
+
+        return new org.springframework.security.core.userdetails.User(user.getEmail(), user.getPassword(), authorities);
     }
 }

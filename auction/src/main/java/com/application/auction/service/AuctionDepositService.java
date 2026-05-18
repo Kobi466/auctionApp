@@ -20,7 +20,6 @@ import com.application.auction.repository.UserRepository;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -34,7 +33,6 @@ import java.util.UUID;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 @RequiredArgsConstructor
 public class AuctionDepositService {
-    @Autowired
     AuctionDepositRepository auctionDepositRepository;
     AuctionRoomRepository auctionRoomRepository;
     ProductRepository productRepository;
@@ -151,9 +149,7 @@ public class AuctionDepositService {
     }
 
     public AuctionDepositResponse toDepositResponse(AuctionDeposit deposit) {
-        if (deposit == null) {
-            return null;
-        }
+        if (deposit == null) return null;
         AuctionDepositResponse response = auctionDepositMapper.toAuctionDepositResponse(deposit);
         productRepository.findById(deposit.getProductId())
                 .ifPresent(product -> response.setProductName(product.getName()));
@@ -175,9 +171,7 @@ public class AuctionDepositService {
             throw new AppException(ErrorCode.AUCTION_ROOM_CLOSED);
         }
         Instant now = Instant.now();
-        if (now.isBefore(room.getStartTime())) {
-            return;
-        }
+        if (now.isBefore(room.getStartTime())) return;
         if (now.isBefore(room.getEndTime())) {
             throw new AppException(ErrorCode.AUCTION_ROOM_ALREADY_STARTED);
         }
