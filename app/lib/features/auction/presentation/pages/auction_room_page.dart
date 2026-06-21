@@ -170,6 +170,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
       final summary = await _service.submitWinnerPayment(
         accessToken: accessToken,
         roomId: widget.roomId,
+        paymentMethod: 'BANK_TRANSFER',
         receiptUrl: receipt.isEmpty ? null : receipt,
         userNote: note.isEmpty ? null : note,
       );
@@ -677,7 +678,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              'So tien can thanh toan: ${formatVnd(summary.winnerPaymentAmount)}',
+              'Con phai thanh toan sau khi tru coc: ${formatVnd(summary.winnerPaymentAmount)}',
               style: const TextStyle(
                 color: Color(0xFF0F172A),
                 fontWeight: FontWeight.w700,

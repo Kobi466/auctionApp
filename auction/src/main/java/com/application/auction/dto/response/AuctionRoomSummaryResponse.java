@@ -25,6 +25,8 @@ public class AuctionRoomSummaryResponse {
     List<BidResponse> bids;
     Integer currentWinnerRank;
     String winnerPaymentStatus;
+    String winnerPaymentMethod;
+    String winnerShippingAddress;
     BigDecimal winnerPaymentAmount;
     String winnerPaymentReceiptUrl;
     String winnerPaymentUserNote;

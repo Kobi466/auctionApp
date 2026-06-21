@@ -9,6 +9,8 @@ class WinnerRankingModel {
   final String? depositStatus;
   final bool activeOffer;
   final String? winnerPaymentStatus;
+  final String? winnerPaymentMethod;
+  final String? winnerShippingAddress;
   final String? winnerPaymentReceiptUrl;
   final String? winnerPaymentUserNote;
   final String? winnerPaymentAdminNote;
@@ -26,6 +28,8 @@ class WinnerRankingModel {
     this.depositStatus,
     this.activeOffer = false,
     this.winnerPaymentStatus,
+    this.winnerPaymentMethod,
+    this.winnerShippingAddress,
     this.winnerPaymentReceiptUrl,
     this.winnerPaymentUserNote,
     this.winnerPaymentAdminNote,
@@ -47,6 +51,8 @@ class WinnerRankingModel {
       depositStatus: json['depositStatus']?.toString(),
       activeOffer: json['activeOffer'] == true,
       winnerPaymentStatus: json['winnerPaymentStatus']?.toString(),
+      winnerPaymentMethod: json['winnerPaymentMethod']?.toString(),
+      winnerShippingAddress: json['winnerShippingAddress']?.toString(),
       winnerPaymentReceiptUrl: json['winnerPaymentReceiptUrl']?.toString(),
       winnerPaymentUserNote: json['winnerPaymentUserNote']?.toString(),
       winnerPaymentAdminNote: json['winnerPaymentAdminNote']?.toString(),

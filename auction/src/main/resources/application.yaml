@@ -5,14 +5,14 @@ server:
 
 spring:
   datasource:
-    url: "jdbc:mysql://localhost:3307/auction-pr"
+    url: "jdbc:mysql://localhost:3306/aution"
     username: root
     password: 123456
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: ${JPA_DDL_AUTO:update}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
@@ -29,4 +29,3 @@ spring:
             enable: ${MAIL_SMTP_STARTTLS:true}
 jwt:
   secret: "9lGZwTBofjSQaAJ8gh2ZtanTNQ4OMZH3LSCEvKhibJn"
-

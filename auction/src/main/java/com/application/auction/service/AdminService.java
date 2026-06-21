@@ -25,6 +25,7 @@ import java.util.UUID;
 public class AdminService {
 
     AdminUserService adminUserService;
+    AdminDashboardFinanceService dashboardFinanceService;
     AdminWinnerQueryService winnerQueryService;
     AdminWinnerFlowService winnerFlowService;
     AdminWinnerPaymentService winnerPaymentService;
@@ -32,7 +33,7 @@ public class AdminService {
     @Transactional(readOnly = true)
     @PreAuthorize("hasRole('ADMIN')")
     public AdminDashboardSummaryResponse getDashboardSummary() {
-        return adminUserService.getDashboardSummary();
+        return dashboardFinanceService.enrich(adminUserService.getDashboardSummary());
     }
 
     @Transactional(readOnly = true)

@@ -1,7 +1,9 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
+import '../../../../core/theme/theme_controller.dart';
 import '../../../auth/data/auth_session.dart';
 import '../../../auth/data/auth_service.dart';
 import '../../../auth/domain/auth_repository.dart';
@@ -148,16 +150,21 @@ class _SettingScreenState extends State<SettingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final themeController = context.watch<ThemeController>();
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.black,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
         leading: const Icon(Icons.arrow_back),
         title: const Text('Elite Account Settings'),
-        actions: const [
+        actions: [
           Padding(
-            padding: EdgeInsets.only(right: 16),
-            child: Icon(Icons.help_outline, color: Colors.amber),
+            padding: const EdgeInsets.only(right: 16),
+            child: Icon(Icons.help_outline, color: colorScheme.primary),
           )
         ],
       ),
@@ -165,8 +172,8 @@ class _SettingScreenState extends State<SettingScreen> {
         future: _settingFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState != ConnectionState.done) {
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.amber),
+            return Center(
+              child: CircularProgressIndicator(color: colorScheme.primary),
             );
           }
 
@@ -176,7 +183,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 padding: const EdgeInsets.all(24),
                 child: Text(
                   snapshot.error.toString().replaceFirst('Exception: ', ''),
-                  style: const TextStyle(color: Colors.redAccent),
+                  style: TextStyle(color: colorScheme.error),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -206,7 +213,7 @@ class _SettingScreenState extends State<SettingScreen> {
                 const SizedBox(height: 20),
                 ActionButtonWidget(
                   text: 'EDIT SETTING',
-                  color: Colors.amber,
+                  color: colorScheme.primary,
                   onPressed: () => _openEditSetting(setting),
                 ),
                 const SizedBox(height: 14),
@@ -259,14 +266,25 @@ class _SettingScreenState extends State<SettingScreen> {
                   trailingText: language,
                 ),
                 SwitchTileWidget(
+                  icon: themeController.isDarkMode
+                      ? Icons.dark_mode_outlined
+                      : Icons.light_mode_outlined,
+                  title: 'Dark Mode',
+                  subtitle: themeController.isDarkMode
+                      ? 'Dark interface enabled'
+                      : 'Light interface enabled',
+                  value: themeController.isDarkMode,
+                  onChanged: themeController.setDarkMode,
+                ),
+                SwitchTileWidget(
                   icon: Icons.notifications,
                   title: 'Push Notifications',
                   value: pushNotification,
                 ),
                 const SizedBox(height: 30),
-                const ActionButtonWidget(
+                ActionButtonWidget(
                   text: 'EXPORT PERSONAL DATA',
-                  color: Colors.amber,
+                  color: colorScheme.primary,
                 ),
                 ActionButtonWidget(
                   text: 'LOG OUT',

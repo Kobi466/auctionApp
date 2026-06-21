@@ -11,6 +11,8 @@ class AuctionRoomSummaryModel {
   final List<BidModel> bids;
   final int? currentWinnerRank;
   final String? winnerPaymentStatus;
+  final String? winnerPaymentMethod;
+  final String? winnerShippingAddress;
   final num? winnerPaymentAmount;
   final String? winnerPaymentReceiptUrl;
   final String? winnerPaymentUserNote;
@@ -27,6 +29,8 @@ class AuctionRoomSummaryModel {
     required this.bids,
     this.currentWinnerRank,
     this.winnerPaymentStatus,
+    this.winnerPaymentMethod,
+    this.winnerShippingAddress,
     this.winnerPaymentAmount,
     this.winnerPaymentReceiptUrl,
     this.winnerPaymentUserNote,
@@ -54,6 +58,8 @@ class AuctionRoomSummaryModel {
           .toList(),
       currentWinnerRank: _readNullableInt(json['currentWinnerRank']),
       winnerPaymentStatus: json['winnerPaymentStatus']?.toString(),
+      winnerPaymentMethod: json['winnerPaymentMethod']?.toString(),
+      winnerShippingAddress: json['winnerShippingAddress']?.toString(),
       winnerPaymentAmount: json['winnerPaymentAmount'] is num
           ? json['winnerPaymentAmount'] as num
           : num.tryParse('${json['winnerPaymentAmount']}'),

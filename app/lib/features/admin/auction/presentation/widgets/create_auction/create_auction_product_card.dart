@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../../../core/utils/image_provider_helper.dart';
+
 class CreateAuctionProductCard extends StatelessWidget {
   final String imageUrl;
   final String title;
@@ -43,8 +45,8 @@ class CreateAuctionProductCard extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: Image.network(
-                  imageUrl,
+                child: Image(
+                  image: appImageProvider(imageUrl),
                   width: 70,
                   height: 70,
                   fit: BoxFit.cover,

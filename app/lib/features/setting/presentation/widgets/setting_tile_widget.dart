@@ -18,18 +18,22 @@ class SettingTileWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final mutedColor = colorScheme.onSurface.withOpacity(0.62);
+
     return ListTile(
-      leading: Icon(icon, color: Colors.white),
-      title: Text(title, style: const TextStyle(color: Colors.white)),
+      leading: Icon(icon, color: colorScheme.onSurface),
+      title: Text(title, style: TextStyle(color: colorScheme.onSurface)),
       subtitle: subtitle != null
-          ? Text(subtitle!, style: const TextStyle(color: Colors.grey))
+          ? Text(subtitle!, style: TextStyle(color: mutedColor))
           : null,
       trailing: isVerified
-          ? const Icon(Icons.check_circle, color: Colors.amber)
+          ? Icon(Icons.check_circle, color: colorScheme.primary)
           : trailingText != null
           ? Text(trailingText!,
-          style: const TextStyle(color: Colors.amber))
-          : const Icon(Icons.arrow_forward_ios, size: 14),
+          style: TextStyle(color: colorScheme.primary))
+          : Icon(Icons.arrow_forward_ios, size: 14, color: mutedColor),
     );
   }
 }

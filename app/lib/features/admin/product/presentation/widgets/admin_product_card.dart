@@ -1,7 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import '../../../../../core/theme/app_colors.dart';
+
+import '../../../../../core/utils/image_provider_helper.dart';
 
 class AdminProductCard extends StatelessWidget {
   final String imageUrl;
@@ -106,27 +105,13 @@ class AdminProductCard extends StatelessWidget {
   }
 
   Widget _buildImage() {
-    if (imageUrl.startsWith('http')) {
-      return Image.network(
-        imageUrl,
-        width: 100,
-        height: 100,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildImageFallback(),
-      );
-    }
-
-    if (imageUrl.isNotEmpty) {
-      return Image.file(
-        File(imageUrl),
-        width: 100,
-        height: 100,
-        fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) => _buildImageFallback(),
-      );
-    }
-
-    return _buildImageFallback();
+    return Image(
+      image: appImageProvider(imageUrl),
+      width: 100,
+      height: 100,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => _buildImageFallback(),
+    );
   }
 
   Widget _buildImageFallback() {

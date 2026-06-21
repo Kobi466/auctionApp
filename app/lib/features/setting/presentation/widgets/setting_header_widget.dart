@@ -21,6 +21,7 @@ class ProfileHeaderWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageProvider = _buildImageProvider(avatar);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
       children: [
@@ -48,19 +49,19 @@ class ProfileHeaderWidget extends StatelessWidget {
         const SizedBox(height: 10),
         Text(
           fullName,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: colorScheme.onSurface,
             fontSize: 20,
             fontWeight: FontWeight.bold,
           ),
         ),
         Text(
           email,
-          style: const TextStyle(color: Colors.amber),
+          style: TextStyle(color: colorScheme.primary),
         ),
         Text(
           (bio != null && bio!.trim().isNotEmpty) ? bio! : 'Elite Member',
-          style: const TextStyle(color: Colors.grey),
+          style: TextStyle(color: colorScheme.onSurface.withOpacity(0.62)),
           textAlign: TextAlign.center,
         ),
       ],

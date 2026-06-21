@@ -83,6 +83,12 @@ public class AuctionRoom {
     @Column(length = 30)
     WinnerPaymentStatus winnerPaymentStatus;
 
+    @Column(length = 30)
+    String winnerPaymentMethod;
+
+    @Column(length = 1000)
+    String winnerShippingAddress;
+
     @Lob
     @Column(columnDefinition = "LONGTEXT")
     String winnerPaymentReceiptUrl;

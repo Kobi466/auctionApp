@@ -5,11 +5,14 @@ import com.application.auction.dto.response.AuctionRoomResponse;
 import com.application.auction.dto.response.AuctionRoomSummaryResponse;
 import com.application.auction.dto.response.ProductResponse;
 import com.application.auction.entity.AuctionRoom;
+import com.application.auction.entity.AuctionDeposit;
 import com.application.auction.entity.Bid;
 import com.application.auction.entity.Product;
 import com.application.auction.entity.User;
+import com.application.auction.enums.AuctionDepositStatus;
 import com.application.auction.enums.ErrorCode;
 import com.application.auction.exception.AppException;
+import com.application.auction.repository.AuctionDepositRepository;
 import com.application.auction.mapper.AuctionRoomMapper;
 import com.application.auction.mapper.ProductMapper;
 import com.application.auction.repository.AuctionRoomRepository;
@@ -23,6 +26,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -35,6 +39,7 @@ import java.util.UUID;
 public class AuctionRoomSummaryService {
 
     AuctionRoomRepository auctionRoomRepository;
+    AuctionDepositRepository auctionDepositRepository;
     ProductRepository productRepository;
     UserRepository userRepository;
     BidRepository bidRepository;
@@ -97,7 +102,9 @@ public class AuctionRoomSummaryService {
                 .bids(bidService.getBidHistory(roomId))
                 .currentWinnerRank(room.getCurrentWinnerRank())
                 .winnerPaymentStatus(room.getWinnerPaymentStatus() == null ? null : room.getWinnerPaymentStatus().name())
-                .winnerPaymentAmount(resolveCurrentWinnerBid(room).map(Bid::getAmount).orElse(null))
+                .winnerPaymentMethod(room.getWinnerPaymentMethod())
+                .winnerShippingAddress(room.getWinnerShippingAddress())
+                .winnerPaymentAmount(resolveWinnerPaymentAmount(room))
                 .winnerPaymentReceiptUrl(room.getWinnerPaymentReceiptUrl())
                 .winnerPaymentUserNote(room.getWinnerPaymentUserNote())
                 .winnerPaymentRejectedCount(room.getWinnerPaymentRejectedCount())
@@ -127,6 +134,24 @@ public class AuctionRoomSummaryService {
         } catch (AppException exception) {
             return java.util.Optional.empty();
         }
+    }
+
+    private BigDecimal resolveWinnerPaymentAmount(AuctionRoom room) {
+        return resolveCurrentWinnerBid(room)
+                .map(bid -> {
+                    BigDecimal winningAmount = bid.getAmount();
+                    BigDecimal approvedDepositAmount = auctionDepositRepository
+                            .findTopByAuctionRoomIdAndUserIdOrderByCreatedAtDesc(room.getId(), bid.getBidder().getId())
+                            .filter(deposit -> deposit.getStatus() == AuctionDepositStatus.APPROVED
+                                    || deposit.getStatus() == AuctionDepositStatus.SETTLED)
+                            .map(AuctionDeposit::getRequiredAmount)
+                            .orElse(BigDecimal.ZERO);
+                    BigDecimal remainingAmount = winningAmount.subtract(approvedDepositAmount);
+                    return remainingAmount.compareTo(BigDecimal.ZERO) < 0
+                            ? BigDecimal.ZERO
+                            : remainingAmount;
+                })
+                .orElse(null);
     }
 
     private List<Bid> getUniqueBidderRanking(UUID roomId, int limit) {

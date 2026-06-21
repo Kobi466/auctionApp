@@ -27,6 +27,8 @@ public class AdminWinnerCandidateResponse {
     String depositStatus;
     boolean activeOffer;
     String winnerPaymentStatus;
+    String winnerPaymentMethod;
+    String winnerShippingAddress;
     String winnerPaymentReceiptUrl;
     String winnerPaymentUserNote;
     String winnerPaymentAdminNote;

@@ -30,18 +30,29 @@ class _SwitchTileWidgetState extends State<SwitchTileWidget> {
   }
 
   @override
+  void didUpdateWidget(covariant SwitchTileWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.value != widget.value) {
+      isOn = widget.value;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return ListTile(
-      leading: Icon(widget.icon, color: Colors.white),
+      leading: Icon(widget.icon, color: colorScheme.onSurface),
       title: Text(widget.title,
-          style: const TextStyle(color: Colors.white)),
+          style: TextStyle(color: colorScheme.onSurface)),
       subtitle: widget.subtitle != null
           ? Text(widget.subtitle!,
-          style: const TextStyle(color: Colors.grey))
+          style: TextStyle(color: colorScheme.onSurface.withOpacity(0.62)))
           : null,
       trailing: Switch(
         value: isOn,
-        activeColor: Colors.amber,
+        activeColor: colorScheme.primary,
         onChanged: (value) {
           setState(() {
             isOn = value;

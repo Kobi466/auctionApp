@@ -207,7 +207,8 @@ class _AdminWinnerDetailPageState extends State<AdminWinnerDetailPage> {
     final canRefund = item.rank >= 2 && item.rank <= 5;
     final canReviewPayment =
         item.activeOffer && item.winnerPaymentStatus == 'PAYMENT_SUBMITTED';
-    final hasViewedReceipt = _hasViewedReceipt(item);
+    final requiresReceipt = item.winnerPaymentMethod != 'COD';
+    final hasViewedReceipt = !requiresReceipt || _hasViewedReceipt(item);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -306,7 +307,9 @@ class _AdminWinnerDetailPageState extends State<AdminWinnerDetailPage> {
                       : () => _confirmWinnerPayment(),
                   icon: const Icon(Icons.verified_outlined),
                   label: Text(
-                    hasViewedReceipt ? 'Duyet thanh toan' : 'Can xem bien lai',
+                    hasViewedReceipt
+                        ? 'Duyet thanh toan'
+                        : 'Can xem bien lai',
                   ),
                 ),
               if (canReviewPayment)
@@ -335,12 +338,26 @@ class _AdminWinnerDetailPageState extends State<AdminWinnerDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Thanh toan: ${_paymentLabel(item.winnerPaymentStatus)}',
+            'Thanh toan: ${_paymentLabel(item.winnerPaymentStatus, item.winnerPaymentMethod)}',
             style: const TextStyle(
               color: Color(0xFF0F172A),
               fontWeight: FontWeight.w800,
             ),
           ),
+          if ((item.winnerPaymentMethod ?? '').isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              'Phuong thuc: ${_paymentMethodLabel(item.winnerPaymentMethod)}',
+              style: const TextStyle(color: Color(0xFF475569)),
+            ),
+          ],
+          if ((item.winnerShippingAddress ?? '').isNotEmpty) ...[
+            const SizedBox(height: 4),
+            SelectableText(
+              'Dia chi giao hang: ${item.winnerShippingAddress}',
+              style: const TextStyle(color: Color(0xFF475569)),
+            ),
+          ],
           if ((item.winnerPaymentRejectedCount ?? 0) > 0) ...[
             const SizedBox(height: 4),
             Text(
@@ -452,10 +469,14 @@ class _AdminWinnerDetailPageState extends State<AdminWinnerDetailPage> {
     await _runAction(
       successMessage: 'Da duyet thanh toan va tat toan coc nguoi thang',
       action: (token) async {
+        final activeItem = _activeOfferItem();
+        final adminNote = activeItem?.winnerPaymentMethod == 'COD'
+            ? 'Admin xac nhan thanh toan khi nhan hang'
+            : 'Admin da doi soat bank va xac nhan thanh toan';
         final ranking = await _winnerService.confirmWinnerPayment(
           accessToken: token,
           roomId: widget.winner.id,
-          adminNote: 'Admin da doi soat bank va xac nhan thanh toan',
+          adminNote: adminNote,
         );
         if (!mounted) return;
         setState(() => _ranking = ranking);
@@ -558,6 +579,13 @@ class _AdminWinnerDetailPageState extends State<AdminWinnerDetailPage> {
     setState(() => _viewedReceipts.add(_receiptKey(item)));
   }
 
+  WinnerRankingModel? _activeOfferItem() {
+    for (final item in _ranking) {
+      if (item.activeOffer) return item;
+    }
+    return null;
+  }
+
   String _formatMoney(num amount) {
     final raw = amount.round().toString();
     final buffer = StringBuffer();
@@ -592,13 +620,16 @@ class _AdminWinnerDetailPageState extends State<AdminWinnerDetailPage> {
     }
   }
 
-  String _paymentLabel(String? status) {
+  String _paymentLabel(String? status, String? method) {
     switch (status) {
       case 'WAITING_PAYMENT':
         return 'Cho user thanh toan';
       case 'WAITING_ACCEPTANCE':
         return 'Cho user dong y nhan san pham';
       case 'PAYMENT_SUBMITTED':
+        if (method == 'COD') {
+          return 'User chon thanh toan khi nhan hang';
+        }
         return 'User da gui bien lai';
       case 'PAYMENT_REJECTED':
         return 'Da tu choi bien lai';
@@ -606,6 +637,17 @@ class _AdminWinnerDetailPageState extends State<AdminWinnerDetailPage> {
         return 'Da xac nhan';
       default:
         return 'Dang xu ly';
+    }
+  }
+
+  String _paymentMethodLabel(String? method) {
+    switch (method) {
+      case 'COD':
+        return 'Thanh toan khi nhan hang';
+      case 'BANK_TRANSFER':
+        return 'Chuyen khoan';
+      default:
+        return 'Chua chon';
     }
   }
 }

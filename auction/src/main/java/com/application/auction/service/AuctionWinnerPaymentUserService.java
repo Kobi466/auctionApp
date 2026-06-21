@@ -38,6 +38,8 @@ public class AuctionWinnerPaymentUserService {
         ensureCurrentRankBidder(room, currentUser);
 
         room.setWinnerPaymentStatus(WinnerPaymentStatus.WAITING_PAYMENT);
+        room.setWinnerPaymentMethod(null);
+        room.setWinnerShippingAddress(null);
         room.setWinnerPaymentReceiptUrl(null);
         room.setWinnerPaymentUserNote(null);
         room.setWinnerPaymentAdminNote(null);
@@ -57,13 +59,30 @@ public class AuctionWinnerPaymentUserService {
 
         String receiptUrl = normalize(request == null ? null : request.getReceiptUrl());
         String userNote = normalize(request == null ? null : request.getUserNote());
-        String existingReceiptUrl = normalize(room.getWinnerPaymentReceiptUrl());
-        if (receiptUrl == null && userNote == null && existingReceiptUrl == null) {
+        String shippingAddress = normalize(request == null ? null : request.getShippingAddress());
+        String paymentMethod = normalize(request == null ? null : request.getPaymentMethod());
+        if (paymentMethod == null) {
+            paymentMethod = "BANK_TRANSFER";
+        }
+        paymentMethod = paymentMethod.toUpperCase();
+        if (!paymentMethod.equals("BANK_TRANSFER") && !paymentMethod.equals("COD")) {
             throw new AppException(ErrorCode.VALIDATION_ERROR);
         }
 
-        room.setWinnerPaymentReceiptUrl(receiptUrl == null ? existingReceiptUrl : receiptUrl);
-        room.setWinnerPaymentUserNote(userNote);
+        String existingReceiptUrl = normalize(room.getWinnerPaymentReceiptUrl());
+        if (paymentMethod.equals("BANK_TRANSFER") && receiptUrl == null && userNote == null && existingReceiptUrl == null) {
+            throw new AppException(ErrorCode.VALIDATION_ERROR);
+        }
+
+        room.setWinnerPaymentMethod(paymentMethod);
+        room.setWinnerShippingAddress(shippingAddress);
+        if (paymentMethod.equals("COD")) {
+            room.setWinnerPaymentReceiptUrl(null);
+            room.setWinnerPaymentUserNote(userNote == null ? "Thanh toan khi nhan hang" : userNote);
+        } else {
+            room.setWinnerPaymentReceiptUrl(receiptUrl == null ? existingReceiptUrl : receiptUrl);
+            room.setWinnerPaymentUserNote(userNote);
+        }
         room.setWinnerPaymentSubmittedAt(Instant.now());
         room.setWinnerPaymentStatus(WinnerPaymentStatus.PAYMENT_SUBMITTED);
         auctionRoomRepository.save(room);

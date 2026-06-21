@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../auction/data/auction_room_service.dart';
+import '../../../auction/data/models/auction_payment_config_model.dart';
 import '../../../auction/data/models/auction_room_summary_model.dart';
 import '../../../auth/data/auth_session.dart';
 import '../../../admin/winner_management/presentation/widgets/winner_receipt_preview.dart';
@@ -21,8 +22,11 @@ class WonProductsPage extends StatefulWidget {
 class _WonProductsPageState extends State<WonProductsPage> {
   final AuctionRoomService _service = AuctionRoomService();
   final Map<String, TextEditingController> _noteControllers = {};
+  final Map<String, TextEditingController> _shippingAddressControllers = {};
   final Map<String, PlatformFile> _selectedReceipts = {};
+  final Map<String, String> _selectedPaymentMethods = {};
   List<AuctionRoomSummaryModel> _items = const [];
+  AuctionPaymentConfigModel? _paymentConfig;
   bool _isLoading = true;
   String? _error;
   String? _submittingRoomId;
@@ -37,6 +41,9 @@ class _WonProductsPageState extends State<WonProductsPage> {
   @override
   void dispose() {
     for (final controller in _noteControllers.values) {
+      controller.dispose();
+    }
+    for (final controller in _shippingAddressControllers.values) {
       controller.dispose();
     }
     super.dispose();
@@ -59,9 +66,18 @@ class _WonProductsPageState extends State<WonProductsPage> {
 
     try {
       final items = await _service.getMyWinnerPayments(accessToken: token);
+      AuctionPaymentConfigModel? paymentConfig;
+      try {
+        paymentConfig = await _service.getActivePaymentConfig(
+          accessToken: token,
+        );
+      } catch (_) {
+        paymentConfig = null;
+      }
       if (!mounted) return;
       setState(() {
         _items = items;
+        _paymentConfig = paymentConfig;
         _isLoading = false;
       });
     } catch (error) {
@@ -95,7 +111,13 @@ class _WonProductsPageState extends State<WonProductsPage> {
 
     final receipt = _selectedReceipts[roomId];
     final note = _noteController(roomId).text.trim();
-    if (receipt == null && note.isEmpty) {
+    final shippingAddress = _shippingAddressController(roomId).text.trim();
+    final paymentMethod = _selectedPaymentMethods[roomId] ?? 'BANK_TRANSFER';
+    if (shippingAddress.isEmpty) {
+      _showError('Nhap dia chi giao hang');
+      return;
+    }
+    if (paymentMethod == 'BANK_TRANSFER' && receipt == null && note.isEmpty) {
       _showError('Chon tep bien lai hoac nhap ghi chu chuyen khoan');
       return;
     }
@@ -105,15 +127,26 @@ class _WonProductsPageState extends State<WonProductsPage> {
       await _service.submitWinnerPayment(
         accessToken: token,
         roomId: roomId,
-        receiptUrl: receipt == null ? null : await _receiptReference(receipt),
+        paymentMethod: paymentMethod,
+        shippingAddress: shippingAddress,
+        receiptUrl: paymentMethod == 'BANK_TRANSFER' && receipt != null
+            ? await _receiptReference(receipt)
+            : null,
         userNote: note.isEmpty ? null : note,
       );
       _noteController(roomId).clear();
+      _shippingAddressController(roomId).clear();
       _selectedReceipts.remove(roomId);
       await _load();
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Da gui bien lai cho admin')),
+        SnackBar(
+          content: Text(
+            paymentMethod == 'COD'
+                ? 'Da chon thanh toan khi nhan hang'
+                : 'Da gui bien lai cho admin',
+          ),
+        ),
       );
     } catch (error) {
       if (!mounted) return;
@@ -181,6 +214,13 @@ class _WonProductsPageState extends State<WonProductsPage> {
     return _noteControllers.putIfAbsent(roomId, TextEditingController.new);
   }
 
+  TextEditingController _shippingAddressController(String roomId) {
+    return _shippingAddressControllers.putIfAbsent(
+      roomId,
+      TextEditingController.new,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -219,10 +259,24 @@ class _WonProductsPageState extends State<WonProductsPage> {
                   return _WonProductCard(
                     item: item,
                     selectedReceipt: _selectedReceipts[roomId],
+                    selectedPaymentMethod:
+                        _selectedPaymentMethods[roomId] ?? 'BANK_TRANSFER',
+                    paymentConfig: _paymentConfig,
                     noteController: _noteController(roomId),
+                    shippingAddressController: _shippingAddressController(
+                      roomId,
+                    ),
                     isSubmitting: _submittingRoomId == roomId,
                     isAccepting: _acceptingRoomId == roomId,
                     onPickReceipt: () => _pickReceipt(roomId),
+                    onPaymentMethodChanged: (method) {
+                      setState(() {
+                        _selectedPaymentMethods[roomId] = method;
+                        if (method == 'COD') {
+                          _selectedReceipts.remove(roomId);
+                        }
+                      });
+                    },
                     onAcceptOffer: () => _acceptOffer(item),
                     onSubmit: () => _submit(item),
                   );
@@ -236,20 +290,28 @@ class _WonProductsPageState extends State<WonProductsPage> {
 class _WonProductCard extends StatelessWidget {
   final AuctionRoomSummaryModel item;
   final PlatformFile? selectedReceipt;
+  final String selectedPaymentMethod;
+  final AuctionPaymentConfigModel? paymentConfig;
   final TextEditingController noteController;
+  final TextEditingController shippingAddressController;
   final bool isSubmitting;
   final bool isAccepting;
   final VoidCallback onPickReceipt;
+  final ValueChanged<String> onPaymentMethodChanged;
   final VoidCallback onAcceptOffer;
   final VoidCallback onSubmit;
 
   const _WonProductCard({
     required this.item,
     required this.selectedReceipt,
+    required this.selectedPaymentMethod,
+    required this.paymentConfig,
     required this.noteController,
+    required this.shippingAddressController,
     required this.isSubmitting,
     required this.isAccepting,
     required this.onPickReceipt,
+    required this.onPaymentMethodChanged,
     required this.onAcceptOffer,
     required this.onSubmit,
   });
@@ -323,6 +385,15 @@ class _WonProductCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 2),
+                    const Text(
+                      'Con phai thanh toan',
+                      style: TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
                     Text(
                       formatVnd(item.winnerPaymentAmount),
                       style: const TextStyle(
@@ -386,11 +457,51 @@ class _WonProductCard extends StatelessWidget {
           ],
           if (canSubmit) ...[
             const SizedBox(height: 14),
-            _ReceiptPicker(
-              file: selectedReceipt,
-              onPressed: isSubmitting ? null : onPickReceipt,
+            _PaymentMethodSelector(
+              selectedMethod: selectedPaymentMethod,
+              onChanged: isSubmitting ? null : onPaymentMethodChanged,
             ),
-            const SizedBox(height: 10),
+            if (selectedPaymentMethod == 'BANK_TRANSFER') ...[
+              const SizedBox(height: 12),
+              _WinnerBankTransferBox(
+                item: item,
+                paymentConfig: paymentConfig,
+              ),
+              const SizedBox(height: 12),
+              _ReceiptPicker(
+                file: selectedReceipt,
+                onPressed: isSubmitting ? null : onPickReceipt,
+              ),
+            ] else ...[
+              const SizedBox(height: 12),
+              const _CodInfoBox(),
+            ],
+            const SizedBox(height: 12),
+            TextField(
+              controller: shippingAddressController,
+              minLines: 2,
+              maxLines: 4,
+              style: const TextStyle(
+                color: Color(0xFF111827),
+                fontWeight: FontWeight.w600,
+              ),
+              decoration: InputDecoration(
+                hintText: 'Dia chi giao hang',
+                hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                prefixIcon: const Icon(
+                  Icons.location_on_outlined,
+                  color: AppColors.primaryBlue,
+                ),
+                filled: true,
+                fillColor: const Color(0xFFF8FAFC),
+                contentPadding: const EdgeInsets.all(14),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             TextField(
               controller: noteController,
               minLines: 2,
@@ -400,7 +511,9 @@ class _WonProductCard extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
               decoration: InputDecoration(
-                hintText: 'Ghi chu chuyen khoan',
+                hintText: selectedPaymentMethod == 'COD'
+                    ? 'Ghi chu giao hang (khong bat buoc)'
+                    : 'Ghi chu chuyen khoan',
                 hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
                 filled: true,
                 fillColor: const Color(0xFFF8FAFC),
@@ -435,9 +548,13 @@ class _WonProductCard extends StatelessWidget {
                           color: Colors.white,
                         ),
                       )
-                    : const Icon(Icons.cloud_upload_outlined),
+                    : Icon(
+                        selectedPaymentMethod == 'COD'
+                            ? Icons.local_shipping_outlined
+                            : Icons.cloud_upload_outlined,
+                      ),
                 label: const Text(
-                  'Gui bien lai cho admin',
+                  'Xac nhan thanh toan',
                   style: TextStyle(fontWeight: FontWeight.w900),
                 ),
               ),
@@ -525,6 +642,300 @@ class _ProductImage extends StatelessWidget {
                 errorBuilder: (_, __, ___) => placeholder(),
               )
             : placeholder(),
+      ),
+    );
+  }
+}
+
+class _PaymentMethodSelector extends StatelessWidget {
+  final String selectedMethod;
+  final ValueChanged<String>? onChanged;
+
+  const _PaymentMethodSelector({
+    required this.selectedMethod,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: _PaymentMethodOption(
+            icon: Icons.qr_code_2_rounded,
+            title: 'Chuyen khoan',
+            subtitle: 'Quet QR ngan hang',
+            selected: selectedMethod == 'BANK_TRANSFER',
+            onTap: onChanged == null
+                ? null
+                : () => onChanged!.call('BANK_TRANSFER'),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: _PaymentMethodOption(
+            icon: Icons.local_shipping_outlined,
+            title: 'Nhan hang',
+            subtitle: 'Thanh toan COD',
+            selected: selectedMethod == 'COD',
+            onTap: onChanged == null ? null : () => onChanged!.call('COD'),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _PaymentMethodOption extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final bool selected;
+  final VoidCallback? onTap;
+
+  const _PaymentMethodOption({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = selected ? AppColors.primaryBlue : const Color(0xFF64748B);
+    return Material(
+      color: selected ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
+      borderRadius: BorderRadius.circular(16),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 92),
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: selected ? AppColors.primaryBlue : const Color(0xFFE2E8F0),
+              width: selected ? 1.5 : 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: color),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: Color(0xFF94A3B8),
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _WinnerBankTransferBox extends StatelessWidget {
+  final AuctionRoomSummaryModel item;
+  final AuctionPaymentConfigModel? paymentConfig;
+
+  const _WinnerBankTransferBox({
+    required this.item,
+    required this.paymentConfig,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final config = paymentConfig;
+    if (config == null) {
+      return const _InfoPanel(
+        icon: Icons.account_balance_outlined,
+        title: 'Chua co thong tin ngan hang',
+        message: 'Admin can cau hinh ngan hang active de hien QR.',
+      );
+    }
+
+    final transferContent = _winnerTransferContent(config, item);
+    final qrUrl = _buildWinnerVietQrUrl(
+      paymentConfig: config,
+      amount: item.winnerPaymentAmount ?? 0,
+      transferContent: transferContent,
+    );
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        children: [
+          Center(
+            child: qrUrl.isEmpty
+                ? const Icon(
+                    Icons.qr_code_2_rounded,
+                    size: 156,
+                    color: AppColors.primaryBlue,
+                  )
+                : Image.network(
+                    qrUrl,
+                    width: 190,
+                    height: 190,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => const Icon(
+                      Icons.qr_code_2_rounded,
+                      size: 156,
+                      color: AppColors.primaryBlue,
+                    ),
+                  ),
+          ),
+          const SizedBox(height: 12),
+          _PaymentInfoRow(label: 'Ngan hang', value: config.bankName),
+          _PaymentInfoRow(label: 'So tai khoan', value: config.accountNumber),
+          _PaymentInfoRow(label: 'Chu tai khoan', value: config.accountHolderName),
+          _PaymentInfoRow(
+            label: 'Con lai',
+            value: formatVnd(item.winnerPaymentAmount),
+          ),
+          _PaymentInfoRow(label: 'Noi dung', value: transferContent),
+        ],
+      ),
+    );
+  }
+}
+
+class _CodInfoBox extends StatelessWidget {
+  const _CodInfoBox();
+
+  @override
+  Widget build(BuildContext context) {
+    return const _InfoPanel(
+      icon: Icons.local_shipping_outlined,
+      title: 'Thanh toan khi nhan hang',
+      message: 'Admin se xac nhan don va doi soat khi giao san pham.',
+    );
+  }
+}
+
+class _InfoPanel extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String message;
+
+  const _InfoPanel({
+    required this.icon,
+    required this.title,
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEFF6FF),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(icon, color: AppColors.primaryBlue),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Color(0xFF111827),
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    color: Color(0xFF64748B),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentInfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _PaymentInfoRow({
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 102,
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Color(0xFF64748B),
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          Expanded(
+            child: SelectableText(
+              value,
+              style: const TextStyle(
+                color: Color(0xFF111827),
+                fontWeight: FontWeight.w900,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -686,4 +1097,81 @@ class _StateMessage extends StatelessWidget {
       ],
     );
   }
+}
+
+String _winnerTransferContent(
+  AuctionPaymentConfigModel paymentConfig,
+  AuctionRoomSummaryModel item,
+) {
+  final roomId = item.product.auctionRoom?.id ?? item.product.id;
+  final prefix = (paymentConfig.transferNotePrefix?.trim().isNotEmpty == true
+          ? paymentConfig.transferNotePrefix!.trim()
+          : 'AUC')
+      .toUpperCase();
+  final shortRoomId = roomId.length > 8 ? roomId.substring(0, 8) : roomId;
+  return '$prefix-WIN-$shortRoomId';
+}
+
+String _buildWinnerVietQrUrl({
+  required AuctionPaymentConfigModel paymentConfig,
+  required num amount,
+  required String transferContent,
+}) {
+  final templateUrl = paymentConfig.qrImageUrl.trim();
+  final amountText = amount.round().toString();
+  final encodedContent = Uri.encodeQueryComponent(transferContent);
+  final accountName =
+      Uri.encodeQueryComponent(paymentConfig.accountHolderName.trim());
+
+  if (templateUrl.contains('{amount}') ||
+      templateUrl.contains('{addInfo}') ||
+      templateUrl.contains('{accountName}') ||
+      templateUrl.contains('{content}')) {
+    return templateUrl
+        .replaceAll('{amount}', amountText)
+        .replaceAll('{addInfo}', encodedContent)
+        .replaceAll('{content}', encodedContent)
+        .replaceAll('{accountName}', accountName);
+  }
+
+  final bankCode = _resolveVietQrBankCode(paymentConfig.bankName);
+  final accountNumber = paymentConfig.accountNumber.trim();
+  if (bankCode.isEmpty || accountNumber.isEmpty) {
+    return templateUrl;
+  }
+
+  return 'https://img.vietqr.io/image/$bankCode-$accountNumber-compact2.png'
+      '?amount=$amountText'
+      '&addInfo=$encodedContent'
+      '&accountName=$accountName';
+}
+
+String _resolveVietQrBankCode(String bankName) {
+  final normalized = bankName
+      .trim()
+      .toUpperCase()
+      .replaceAll(RegExp(r'[^A-Z0-9]'), '');
+
+  const aliases = {
+    'MB': 'MB',
+    'MBBANK': 'MB',
+    'MILITARYBANK': 'MB',
+    'VIETCOMBANK': 'VCB',
+    'VCB': 'VCB',
+    'TECHCOMBANK': 'TCB',
+    'TCB': 'TCB',
+    'BIDV': 'BIDV',
+    'VIETINBANK': 'ICB',
+    'ICB': 'ICB',
+    'AGRIBANK': 'VBA',
+    'ACB': 'ACB',
+    'SACOMBANK': 'STB',
+    'STB': 'STB',
+    'VPBANK': 'VPB',
+    'VPB': 'VPB',
+    'TPBANK': 'TPB',
+    'TPB': 'TPB',
+  };
+
+  return aliases[normalized] ?? normalized;
 }

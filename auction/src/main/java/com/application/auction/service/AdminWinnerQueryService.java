@@ -101,6 +101,8 @@ public class AdminWinnerQueryService {
                 .activeOffer(active)
                 .winnerPaymentStatus(active && room.getWinnerPaymentStatus() != null
                         ? room.getWinnerPaymentStatus().name() : null)
+                .winnerPaymentMethod(active ? room.getWinnerPaymentMethod() : null)
+                .winnerShippingAddress(active ? room.getWinnerShippingAddress() : null)
                 .winnerPaymentReceiptUrl(active ? room.getWinnerPaymentReceiptUrl() : null)
                 .winnerPaymentUserNote(active ? room.getWinnerPaymentUserNote() : null)
                 .winnerPaymentAdminNote(active ? room.getWinnerPaymentAdminNote() : null)

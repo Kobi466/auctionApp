@@ -173,29 +173,7 @@ class _AdminAuctionDetailPageState extends State<AdminAuctionDetailPage> {
       );
     }
 
-    final winningBid = _cashFlowRanking.isEmpty ? null : _cashFlowRanking.first;
-    final depositAmount = room.depositAmount;
-    final approvedDepositCountFromRanking = _cashFlowRanking
-        .where((item) => item.depositStatus == 'APPROVED')
-        .length;
-    final approvedDepositCount =
-        _roomSummary?.participants.length ?? approvedDepositCountFromRanking;
-    final collectedDeposit = approvedDepositCount * depositAmount;
-    final forfeitedDeposit =
-        _cashFlowRanking
-            .where((item) => item.depositStatus == 'FORFEITED')
-            .length *
-        depositAmount;
-    final refundedDeposit =
-        _cashFlowRanking
-            .where((item) => item.depositStatus == 'REFUNDED')
-            .length *
-        depositAmount;
-    final settledDeposit =
-        _cashFlowRanking
-            .where((item) => item.depositStatus == 'SETTLED')
-            .length *
-        depositAmount;
+    final totals = _cashFlowTotals(room.depositAmount);
 
     return _sectionCard(
       child: Column(
@@ -232,17 +210,7 @@ class _AdminAuctionDetailPageState extends State<AdminAuctionDetailPage> {
             ),
           ],
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _moneyBox('Gia thang', formatVnd(winningBid?.amount)),
-              _moneyBox('Coc dang giu', formatVnd(collectedDeposit)),
-              _moneyBox('Coc mat', formatVnd(forfeitedDeposit)),
-              _moneyBox('Coc da hoan', formatVnd(refundedDeposit)),
-              _moneyBox('Coc tat toan', formatVnd(settledDeposit)),
-            ],
-          ),
+          _cashFlowSummary(totals),
           const SizedBox(height: 16),
           if (_isLoadingCashFlow)
             const Center(
@@ -264,11 +232,214 @@ class _AdminAuctionDetailPageState extends State<AdminAuctionDetailPage> {
                   style: TextStyle(color: Color(0xFF64748B), height: 1.35),
                 ),
               ),
+            _rankingTable(totals),
+            const SizedBox(height: 14),
             ..._cashFlowRanking.map(_cashFlowRankTile),
           ],
         ],
       ),
     );
+  }
+
+  _CashFlowTotals _cashFlowTotals(num depositAmount) {
+    final winningBid =
+        _cashFlowRanking.isEmpty ? null : _cashFlowRanking.first.amount;
+    final remainingWinnerPayment = _roomSummary?.winnerPaymentAmount ?? 0;
+    final activeWinnerStatus = _roomSummary?.winnerPaymentStatus;
+    var approvedCount = 0;
+    var forfeitedCount = 0;
+    var refundedCount = 0;
+    var settledCount = 0;
+
+    for (final item in _cashFlowRanking) {
+      switch (item.depositStatus) {
+        case 'APPROVED':
+          approvedCount++;
+          break;
+        case 'FORFEITED':
+          forfeitedCount++;
+          break;
+        case 'REFUNDED':
+          refundedCount++;
+          break;
+        case 'SETTLED':
+          settledCount++;
+          break;
+      }
+    }
+
+    final heldDeposit = approvedCount * depositAmount;
+    final forfeitedDeposit = forfeitedCount * depositAmount;
+    final refundedDeposit = refundedCount * depositAmount;
+    final settledDeposit = settledCount * depositAmount;
+    final expectedRevenue = (winningBid ?? 0) + forfeitedDeposit;
+    final confirmedRevenue =
+        activeWinnerStatus == 'PAID' ? (winningBid ?? 0) + forfeitedDeposit : forfeitedDeposit + settledDeposit;
+    final pendingReceivable =
+        activeWinnerStatus == 'PAID' ? 0 : remainingWinnerPayment;
+    final netPosition = expectedRevenue - refundedDeposit;
+
+    return _CashFlowTotals(
+      winningBid: winningBid ?? 0,
+      remainingWinnerPayment: remainingWinnerPayment,
+      heldDeposit: heldDeposit,
+      forfeitedDeposit: forfeitedDeposit,
+      refundedDeposit: refundedDeposit,
+      settledDeposit: settledDeposit,
+      expectedRevenue: expectedRevenue,
+      confirmedRevenue: confirmedRevenue,
+      pendingReceivable: pendingReceivable,
+      netPosition: netPosition,
+      approvedCount: approvedCount,
+      forfeitedCount: forfeitedCount,
+      refundedCount: refundedCount,
+      settledCount: settledCount,
+    );
+  }
+
+  Widget _cashFlowSummary(_CashFlowTotals totals) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 10,
+          runSpacing: 10,
+          children: [
+            _moneyBox('Tong du kien thu', formatVnd(totals.expectedRevenue)),
+            _moneyBox('Da xac nhan thu', formatVnd(totals.confirmedRevenue)),
+            _moneyBox('Con phai thu', formatVnd(totals.pendingReceivable)),
+            _moneyBox('Lai/lo tam tinh', formatVnd(totals.netPosition)),
+            _moneyBox('Coc dang giu', formatVnd(totals.heldDeposit)),
+            _moneyBox('Coc mat', formatVnd(totals.forfeitedDeposit)),
+            _moneyBox('Coc da hoan', formatVnd(totals.refundedDeposit)),
+            _moneyBox('Coc tat toan', formatVnd(totals.settledDeposit)),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Text(
+          'Lai/lo tam tinh = gia thang + coc mat - coc da hoan. Gia von/phi van hanh chua duoc tru vi he thong chua co truong chi phi.',
+          style: TextStyle(
+            color: const Color(0xFF64748B).withValues(alpha: 0.9),
+            fontSize: 12,
+            height: 1.35,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _rankingTable(_CashFlowTotals totals) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Bang xep hang va dong tien',
+            style: TextStyle(
+              color: Color(0xFF0F172A),
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ..._cashFlowRanking.map((item) {
+            final depositValue = _rankDepositValue(item, widget.product.auctionRoom?.depositAmount ?? 0);
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 34,
+                    child: Text(
+                      '#${item.rank}',
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      item.userName.isEmpty ? item.userEmail : item.userName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      formatVnd(item.amount),
+                      textAlign: TextAlign.right,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 3,
+                    child: Text(
+                      '${_depositLabel(item.depositStatus)} ${formatVnd(depositValue)}',
+                      textAlign: TextAlign.right,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Color(0xFF64748B),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+          const Divider(height: 18),
+          _summaryLine('Tong du kien thu', totals.expectedRevenue),
+          _summaryLine('Tong hoan/tra ra', totals.refundedDeposit),
+          _summaryLine('Lai/lo tam tinh', totals.netPosition),
+        ],
+      ),
+    );
+  }
+
+  Widget _summaryLine(String label, num value) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Color(0xFF475569),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          Text(
+            formatVnd(value),
+            style: const TextStyle(
+              color: Color(0xFF0F172A),
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  num _rankDepositValue(WinnerRankingModel item, num depositAmount) {
+    switch (item.depositStatus) {
+      case 'APPROVED':
+      case 'FORFEITED':
+      case 'REFUNDED':
+      case 'SETTLED':
+        return depositAmount;
+      default:
+        return 0;
+    }
   }
 
   Widget _sectionCard({required Widget child}) {
@@ -338,7 +509,8 @@ class _AdminAuctionDetailPageState extends State<AdminAuctionDetailPage> {
         item.depositStatus != 'SETTLED';
     final canConfirmPayment =
         item.activeOffer && item.winnerPaymentStatus == 'PAYMENT_SUBMITTED';
-    final hasViewedReceipt = _hasViewedReceipt(item);
+    final requiresReceipt = item.winnerPaymentMethod != 'COD';
+    final hasViewedReceipt = !requiresReceipt || _hasViewedReceipt(item);
     final canRefund =
         _canManageWinnerFlow &&
         item.rank >= 2 &&
@@ -427,17 +599,19 @@ class _AdminAuctionDetailPageState extends State<AdminAuctionDetailPage> {
                 FilledButton.icon(
                   onPressed: _isCashFlowBusy || !hasViewedReceipt
                       ? null
-                      : () => _confirmWinnerPayment(item.rank),
+                      : () => _confirmWinnerPayment(item),
                   icon: const Icon(Icons.verified_outlined),
                   label: Text(
-                    hasViewedReceipt
-                        ? 'Xac nhan da nhan tien'
-                        : 'Can xem bien lai',
+                    item.winnerPaymentMethod == 'COD'
+                        ? 'Cap nhat giao hang'
+                        : hasViewedReceipt
+                            ? 'Xac nhan da nhan tien'
+                            : 'Can xem bien lai',
                   ),
                 ),
               if (canConfirmPayment)
                 OutlinedButton.icon(
-                  onPressed: _isCashFlowBusy
+                  onPressed: _isCashFlowBusy || item.winnerPaymentMethod == 'COD'
                       ? null
                       : () => _rejectWinnerPayment(item.rank),
                   icon: const Icon(Icons.report_gmailerrorred_outlined),
@@ -471,12 +645,26 @@ class _AdminAuctionDetailPageState extends State<AdminAuctionDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Thanh toan: ${_winnerPaymentLabel(item.winnerPaymentStatus)}',
+            'Thanh toan: ${_winnerPaymentLabel(item.winnerPaymentStatus, item.winnerPaymentMethod)}',
             style: const TextStyle(
               color: Color(0xFF0F172A),
               fontWeight: FontWeight.w800,
             ),
           ),
+          if ((item.winnerPaymentMethod ?? '').isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              'Phuong thuc: ${_paymentMethodLabel(item.winnerPaymentMethod)}',
+              style: const TextStyle(color: Color(0xFF475569)),
+            ),
+          ],
+          if ((item.winnerShippingAddress ?? '').isNotEmpty) ...[
+            const SizedBox(height: 6),
+            SelectableText(
+              'Dia chi giao hang: ${item.winnerShippingAddress}',
+              style: const TextStyle(color: Color(0xFF475569)),
+            ),
+          ],
           if ((item.winnerPaymentRejectedCount ?? 0) > 0) ...[
             const SizedBox(height: 6),
             Text(
@@ -580,14 +768,19 @@ class _AdminAuctionDetailPageState extends State<AdminAuctionDetailPage> {
     );
   }
 
-  Future<void> _confirmWinnerPayment(int rank) async {
+  Future<void> _confirmWinnerPayment(WinnerRankingModel item) async {
+    final isCod = item.winnerPaymentMethod == 'COD';
     await _runCashFlowAction(
-      successMessage: 'Da xac nhan thanh toan hang $rank',
+      successMessage: isCod
+          ? 'Da cap nhat giao hang hang ${item.rank}'
+          : 'Da xac nhan thanh toan hang ${item.rank}',
       action: (token, roomId) async {
         final ranking = await _winnerService.confirmWinnerPayment(
           accessToken: token,
           roomId: roomId,
-          adminNote: 'Admin da doi soat bank va xac nhan da nhan tien',
+          adminNote: isCod
+              ? 'Admin xac nhan giao hang va thanh toan khi nhan hang'
+              : 'Admin da doi soat bank va xac nhan da nhan tien',
         );
         if (mounted) {
           setState(() => _cashFlowRanking = ranking);
@@ -820,13 +1013,16 @@ class _AdminAuctionDetailPageState extends State<AdminAuctionDetailPage> {
     }
   }
 
-  String _winnerPaymentLabel(String? status) {
+  String _winnerPaymentLabel(String? status, String? method) {
     switch (status) {
       case 'WAITING_PAYMENT':
         return 'cho user thanh toan';
       case 'WAITING_ACCEPTANCE':
         return 'cho user dong y nhan san pham';
       case 'PAYMENT_SUBMITTED':
+        if (method == 'COD') {
+          return 'user chon thanh toan khi nhan hang';
+        }
         return 'user da gui bien lai';
       case 'PAID':
         return 'da xac nhan thanh toan';
@@ -839,5 +1035,50 @@ class _AdminAuctionDetailPageState extends State<AdminAuctionDetailPage> {
     }
   }
 
+  String _paymentMethodLabel(String? method) {
+    switch (method) {
+      case 'COD':
+        return 'thanh toan khi nhan hang';
+      case 'BANK_TRANSFER':
+        return 'chuyen khoan';
+      default:
+        return 'chua chon';
+    }
+  }
+
   String _two(int value) => value.toString().padLeft(2, '0');
+}
+
+class _CashFlowTotals {
+  final num winningBid;
+  final num remainingWinnerPayment;
+  final num heldDeposit;
+  final num forfeitedDeposit;
+  final num refundedDeposit;
+  final num settledDeposit;
+  final num expectedRevenue;
+  final num confirmedRevenue;
+  final num pendingReceivable;
+  final num netPosition;
+  final int approvedCount;
+  final int forfeitedCount;
+  final int refundedCount;
+  final int settledCount;
+
+  const _CashFlowTotals({
+    required this.winningBid,
+    required this.remainingWinnerPayment,
+    required this.heldDeposit,
+    required this.forfeitedDeposit,
+    required this.refundedDeposit,
+    required this.settledDeposit,
+    required this.expectedRevenue,
+    required this.confirmedRevenue,
+    required this.pendingReceivable,
+    required this.netPosition,
+    required this.approvedCount,
+    required this.forfeitedCount,
+    required this.refundedCount,
+    required this.settledCount,
+  });
 }

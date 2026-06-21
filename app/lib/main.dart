@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_controller.dart';
 import 'features/auth/presentation/pages/login_screen.dart';
-import 'features/admin/auction/presentation/pages/admin_auction_list_page.dart';
-import 'features/admin/auction/presentation/pages/admin_auction_detail_page.dart';
-import 'features/auction/presentation/pages/auction_room_page.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ThemeController(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -15,11 +19,17 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Auction App',
-      theme: AppTheme.lightTheme,
-      home: const LoginScreen(),
+    return Consumer<ThemeController>(
+      builder: (context, themeController, _) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          title: 'Auction App',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: themeController.themeMode,
+          home: const LoginScreen(),
+        );
+      },
     );
   }
 }

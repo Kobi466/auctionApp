@@ -2,6 +2,7 @@ import '../../../core/network/api_client.dart';
 import '../../../core/network/api_response.dart';
 import 'models/auction_room_access_model.dart';
 import 'models/auction_room_summary_model.dart';
+import 'models/auction_payment_config_model.dart';
 import 'models/bid_model.dart';
 
 class AuctionRoomService {
@@ -74,6 +75,37 @@ class AuctionRoomService {
     );
   }
 
+  Future<AuctionPaymentConfigModel> getActivePaymentConfig({
+    required String accessToken,
+  }) async {
+    final response = await _apiClient.get(
+      '/auction-payment-config',
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+
+    final statusCode = response['statusCode'] as int;
+    final body = response['body'] as Map<String, dynamic>;
+    final rawBody = response['rawBody']?.toString() ?? '';
+    final apiResponse = ApiResponse<AuctionPaymentConfigModel>.fromJson(
+      body,
+      (json) => AuctionPaymentConfigModel.fromJson(json as Map<String, dynamic>),
+    );
+
+    if (statusCode >= 200 && statusCode < 300 && apiResponse.isSuccess) {
+      final config = apiResponse.data;
+      if (config != null) return config;
+    }
+
+    throw Exception(
+      _message(
+        apiResponse.message,
+        rawBody,
+        statusCode,
+        'Khong tai duoc thong tin chuyen khoan',
+      ),
+    );
+  }
+
   Future<AuctionRoomAccessModel> joinAuctionRoom({
     required String accessToken,
     required String roomCode,
@@ -140,13 +172,20 @@ class AuctionRoomService {
   Future<AuctionRoomSummaryModel> submitWinnerPayment({
     required String accessToken,
     required String roomId,
+    required String paymentMethod,
+    String? shippingAddress,
     String? receiptUrl,
     String? userNote,
   }) async {
     final response = await _apiClient.put(
       '/auction-rooms/$roomId/winner-payment',
       headers: {'Authorization': 'Bearer $accessToken'},
-      body: {'receiptUrl': receiptUrl, 'userNote': userNote},
+      body: {
+        'paymentMethod': paymentMethod,
+        'shippingAddress': shippingAddress,
+        'receiptUrl': receiptUrl,
+        'userNote': userNote,
+      },
     );
 
     final statusCode = response['statusCode'] as int;

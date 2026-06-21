@@ -18,14 +18,36 @@ public class DatabaseSchemaMigrationConfig {
     @Bean
     ApplicationRunner auctionDepositStatusMigration() {
         return args -> {
-            jdbcTemplate.execute("""
-                    ALTER TABLE auction_deposits
-                    MODIFY status VARCHAR(30) NOT NULL
-                    """);
+            createAuctionDepositsIfMissing();
+            relaxLegacyColumnIfPresent("auction_deposits", "status", "VARCHAR(30) NOT NULL");
             relaxLegacyColumnIfPresent("products", "status", "VARCHAR(30) NOT NULL");
             migrateAuctionRooms();
             migrateBids();
         };
+    }
+
+    private void createAuctionDepositsIfMissing() {
+        if (!tableExists("auction_deposits")) {
+            jdbcTemplate.execute("""
+                    CREATE TABLE auction_deposits (
+                        id CHAR(36) NOT NULL,
+                        auction_room_id CHAR(36) NOT NULL,
+                        product_id CHAR(36) NOT NULL,
+                        user_id CHAR(36) NOT NULL,
+                        required_amount DECIMAL(19, 2) NOT NULL,
+                        transfer_content VARCHAR(120) NOT NULL,
+                        status VARCHAR(30) NOT NULL,
+                        admin_note VARCHAR(255) NULL,
+                        user_note VARCHAR(255) NULL,
+                        payment_submitted_at TIMESTAMP(6) NULL,
+                        approved_at TIMESTAMP(6) NULL,
+                        created_at TIMESTAMP(6) NOT NULL,
+                        updated_at TIMESTAMP(6) NULL,
+                        PRIMARY KEY (id),
+                        UNIQUE KEY uk_auction_deposits_transfer_content (transfer_content)
+                    )
+                    """);
+        }
     }
 
     private void migrateAuctionRooms() {
@@ -43,6 +65,8 @@ public class DatabaseSchemaMigrationConfig {
         addColumnIfMissing("auction_rooms", "winner_notified", "BOOLEAN NOT NULL DEFAULT FALSE");
         addColumnIfMissing("auction_rooms", "current_winner_rank", "INT NULL");
         addColumnIfMissing("auction_rooms", "winner_payment_status", "VARCHAR(30) NULL");
+        addColumnIfMissing("auction_rooms", "winner_payment_method", "VARCHAR(30) NULL");
+        addColumnIfMissing("auction_rooms", "winner_shipping_address", "VARCHAR(1000) NULL");
         addColumnIfMissing("auction_rooms", "winner_payment_receipt_url", "VARCHAR(500) NULL");
         relaxLegacyColumnIfPresent("auction_rooms", "winner_payment_receipt_url", "LONGTEXT NULL");
         addColumnIfMissing("auction_rooms", "winner_payment_user_note", "VARCHAR(1000) NULL");
@@ -52,7 +76,7 @@ public class DatabaseSchemaMigrationConfig {
         addColumnIfMissing("auction_rooms", "winner_payment_confirmed_at", "TIMESTAMP(6) NULL");
         relaxLegacyColumnIfPresent("auction_rooms", "minimum_bid", "DECIMAL(19, 2) NULL DEFAULT 0.00");
 
-        if (columnExists("auction_rooms", "starting_price")) {
+        if (tableExists("auction_rooms") && columnExists("auction_rooms", "starting_price")) {
             jdbcTemplate.execute("""
                     UPDATE auction_rooms
                     SET current_price = starting_price
@@ -60,12 +84,14 @@ public class DatabaseSchemaMigrationConfig {
                     """);
         }
 
-        jdbcTemplate.execute("""
-                UPDATE auction_rooms ar
-                JOIN products p ON p.id = ar.product_id
-                SET ar.seller_id = p.created_by_admin_id
-                WHERE ar.seller_id IS NULL
-                """);
+        if (tableExists("auction_rooms") && tableExists("products")) {
+            jdbcTemplate.execute("""
+                    UPDATE auction_rooms ar
+                    JOIN products p ON p.id = ar.product_id
+                    SET ar.seller_id = p.created_by_admin_id
+                    WHERE ar.seller_id IS NULL
+                    """);
+        }
     }
 
     private void migrateBids() {
@@ -94,16 +120,18 @@ public class DatabaseSchemaMigrationConfig {
                     """);
         }
 
-        jdbcTemplate.execute("""
-                UPDATE bids
-                SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP(6)),
-                    timestamp = COALESCE(timestamp, CURRENT_TIMESTAMP(6))
-                WHERE created_at IS NULL OR timestamp IS NULL
-                """);
+        if (tableExists("bids")) {
+            jdbcTemplate.execute("""
+                    UPDATE bids
+                    SET created_at = COALESCE(created_at, CURRENT_TIMESTAMP(6)),
+                        timestamp = COALESCE(timestamp, CURRENT_TIMESTAMP(6))
+                    WHERE created_at IS NULL OR timestamp IS NULL
+                    """);
+        }
     }
 
     private void addColumnIfMissing(String tableName, String columnName, String columnDefinition) {
-        if (!columnExists(tableName, columnName)) {
+        if (tableExists(tableName) && !columnExists(tableName, columnName)) {
             jdbcTemplate.execute("ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + columnDefinition);
         }
     }
@@ -122,6 +150,16 @@ public class DatabaseSchemaMigrationConfig {
                   AND table_name = ?
                   AND column_name = ?
                 """, Integer.class, tableName, columnName);
+        return count != null && count > 0;
+    }
+
+    private boolean tableExists(String tableName) {
+        Integer count = jdbcTemplate.queryForObject("""
+                SELECT COUNT(*)
+                FROM information_schema.tables
+                WHERE table_schema = DATABASE()
+                  AND table_name = ?
+                """, Integer.class, tableName);
         return count != null && count > 0;
     }
 }
