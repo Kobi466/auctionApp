@@ -2,6 +2,7 @@ package com.application.auction.service;
 
 
 import com.application.auction.dto.request.ProfileUpdateRequest;
+import com.application.auction.dto.request.ProfilePreferenceUpdateRequest;
 import com.application.auction.dto.response.ProfileResponse;
 import com.application.auction.entity.Profile;
 import com.application.auction.entity.User;
@@ -11,12 +12,19 @@ import com.application.auction.exception.AppException;
 import com.application.auction.mapper.ProfileMapper;
 import com.application.auction.repository.ProfileRepository;
 import com.application.auction.repository.UserRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +34,7 @@ public class ProfileService {
     ProfileRepository profileRepository;
     UserRepository userRepository;
     ProfileMapper profileMapper;
+    ObjectMapper objectMapper;
 
     @Transactional
     public Profile ensureProfileExists(User user) {
@@ -127,6 +136,52 @@ public class ProfileService {
         userRepository.save(currentUser);
         Profile savedProfile = profileRepository.save(profile);
         return profileMapper.toProfileResponse(savedProfile);
+    }
+
+    @Transactional
+    public ProfileResponse updateMyPreferences(ProfilePreferenceUpdateRequest request) {
+        User currentUser = getCurrentUser();
+        Profile profile = ensureProfileExists(currentUser);
+        Map<String, Object> preferences = readPreferences(profile.getPreferences());
+
+        if (request.getLanguage() != null) {
+            String language = request.getLanguage().trim().toLowerCase();
+            if (!Set.of("vi", "en").contains(language)) {
+                throw new AppException(ErrorCode.LANGUAGE_NOT_SUPPORTED);
+            }
+            preferences.put("language", language);
+        }
+
+        if (request.getTheme() != null) {
+            String theme = request.getTheme().trim().toUpperCase();
+            if (!Set.of("LIGHT", "DARK").contains(theme)) {
+                throw new AppException(ErrorCode.THEME_NOT_SUPPORTED);
+            }
+            preferences.put("theme", theme);
+        }
+
+        try {
+            profile.setPreferences(objectMapper.writeValueAsString(preferences));
+        } catch (JsonProcessingException exception) {
+            throw new AppException(ErrorCode.UNCATEGORIZED_EXCEPTION);
+        }
+
+        return profileMapper.toProfileResponse(profileRepository.save(profile));
+    }
+
+    private Map<String, Object> readPreferences(String rawPreferences) {
+        if (rawPreferences == null || rawPreferences.isBlank()) {
+            return new LinkedHashMap<>();
+        }
+
+        try {
+            return objectMapper.readValue(
+                    rawPreferences,
+                    new TypeReference<LinkedHashMap<String, Object>>() { }
+            );
+        } catch (JsonProcessingException exception) {
+            return new LinkedHashMap<>();
+        }
     }
 
     private User getCurrentUser() {

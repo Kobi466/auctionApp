@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 
@@ -11,10 +12,7 @@ import '../../domain/profile_repository_impl.dart';
 class EditSettingScreen extends StatefulWidget {
   final ProfileResponse setting;
 
-  const EditSettingScreen({
-    super.key,
-    required this.setting,
-  });
+  const EditSettingScreen({super.key, required this.setting});
 
   @override
   State<EditSettingScreen> createState() => _EditSettingScreenState();
@@ -85,7 +83,7 @@ class _EditSettingScreenState extends State<EditSettingScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          content: AppText(e.toString().replaceFirst('Exception: ', '')),
           backgroundColor: Colors.red,
         ),
       );
@@ -100,7 +98,7 @@ class _EditSettingScreenState extends State<EditSettingScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Không tìm thấy access token'),
+          content: AppText('Không tìm thấy access token'),
           backgroundColor: Colors.red,
         ),
       );
@@ -125,7 +123,7 @@ class _EditSettingScreenState extends State<EditSettingScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          content: AppText(e.toString().replaceFirst('Exception: ', '')),
           backgroundColor: Colors.red,
         ),
       );
@@ -183,10 +181,10 @@ class _EditSettingScreenState extends State<EditSettingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text('Edit Setting'),
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        title: AppText('Edit Setting'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -221,16 +219,20 @@ class _EditSettingScreenState extends State<EditSettingScreen> {
               TextButton.icon(
                 onPressed: _pickImage,
                 icon: const Icon(Icons.upload_file),
-                label: const Text('Chon anh tu thiet bi'),
+                label: AppText('Chon anh tu thiet bi'),
               ),
               const SizedBox(height: 24),
               TextFormField(
                 controller: _fullNameController,
                 validator: (value) => _validateRequired(value, 'Ten'),
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Ten hien thi',
-                  labelStyle: TextStyle(color: Colors.amber),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                decoration: InputDecoration(
+                  labelText: AppTranslator.translate(context, 'Ten hien thi'),
+                  labelStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -238,20 +240,28 @@ class _EditSettingScreenState extends State<EditSettingScreen> {
                 controller: _emailController,
                 validator: _validateEmail,
                 keyboardType: TextInputType.emailAddress,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  labelStyle: TextStyle(color: Colors.amber),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                decoration: InputDecoration(
+                  labelText: AppTranslator.translate(context, 'Email'),
+                  labelStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
               TextFormField(
                 controller: _phoneController,
                 keyboardType: TextInputType.phone,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'So dien thoai',
-                  labelStyle: TextStyle(color: Colors.amber),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                decoration: InputDecoration(
+                  labelText: AppTranslator.translate(context, 'So dien thoai'),
+                  labelStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -260,10 +270,17 @@ class _EditSettingScreenState extends State<EditSettingScreen> {
                 keyboardType: TextInputType.url,
                 minLines: 2,
                 maxLines: 4,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  labelText: 'Avatar URL / Base64',
-                  labelStyle: TextStyle(color: Colors.amber),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                decoration: InputDecoration(
+                  labelText: AppTranslator.translate(
+                    context,
+                    'Avatar URL / Base64',
+                  ),
+                  labelStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
                 ),
                 onChanged: (value) {
                   setState(() {
@@ -279,7 +296,7 @@ class _EditSettingScreenState extends State<EditSettingScreen> {
                   foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: Text(_isSaving ? 'DANG LUU...' : 'SAVE SETTING'),
+                child: AppText(_isSaving ? 'DANG LUU...' : 'SAVE SETTING'),
               ),
             ],
           ),

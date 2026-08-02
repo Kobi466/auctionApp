@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -50,7 +51,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     final room = product?.auctionRoom;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           SingleChildScrollView(
@@ -63,13 +64,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
+                      AppText(
                         product == null
                             ? 'ROLEX'
                             : '${product.brand} - ${product.categoryId}',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Color(0xFF6366F1),
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
@@ -77,9 +78,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(
+                      AppText(
                         product?.name ?? 'Rolex Submariner Date 2023',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF1E293B),
@@ -88,16 +89,18 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       const SizedBox(height: 12),
                       Row(
                         children: [
-                          const Text(
+                          AppText(
                             'Gia khoi diem: ',
                             style: TextStyle(
                               color: Color(0xFF64748B),
                               fontSize: 16,
                             ),
                           ),
-                          Text(
-                            formatVnd(room?.minimumBid ?? product?.startingPrice),
-                            style: const TextStyle(
+                          AppText(
+                            formatVnd(
+                              room?.minimumBid ?? product?.startingPrice,
+                            ),
+                            style: TextStyle(
                               color: Color(0xFF2563EB),
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -163,7 +166,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildCircleIcon(Icons.arrow_back, onTap: () => Navigator.pop(context)),
+          _buildCircleIcon(
+            Icons.arrow_back,
+            onTap: () => Navigator.pop(context),
+          ),
           Row(
             children: [
               _buildCircleIcon(Icons.share_outlined),
@@ -185,7 +191,11 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           color: Colors.white.withOpacity(0.9),
           shape: BoxShape.circle,
         ),
-        child: Icon(icon, color: const Color(0xFF1E293B), size: 20),
+        child: Icon(
+          icon,
+          color: Theme.of(context).colorScheme.onSurface,
+          size: 20,
+        ),
       ),
     );
   }
@@ -198,9 +208,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         Container(
           width: double.infinity,
           height: 380,
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.only(
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surface,
+            borderRadius: const BorderRadius.only(
               bottomLeft: Radius.circular(32),
               bottomRight: Radius.circular(32),
             ),
@@ -225,11 +235,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       child: Image(
                         image: appImageProvider(images[index]),
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => const Icon(
-                          Icons.image_not_supported_outlined,
-                          color: Color(0xFF94A3B8),
-                          size: 64,
-                        ),
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Color(0xFF94A3B8),
+                              size: 64,
+                            ),
                       ),
                     );
                   },
@@ -273,10 +284,26 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       crossAxisSpacing: 12,
       childAspectRatio: 2.2,
       children: [
-        _buildInfoCard(Icons.check_circle_outline, 'TRANG THAI', product?.status ?? 'LIVE'),
-        _buildInfoCard(Icons.verified_outlined, 'XAC THUC', product?.authenticity ?? 'Dang kiem tra'),
-        _buildInfoCard(Icons.business_rounded, 'THUONG HIEU', product?.brand ?? 'Rolex'),
-        _buildInfoCard(Icons.category_outlined, 'DANH MUC', product?.categoryId ?? 'Auction'),
+        _buildInfoCard(
+          Icons.check_circle_outline,
+          'TRANG THAI',
+          product?.status ?? 'LIVE',
+        ),
+        _buildInfoCard(
+          Icons.verified_outlined,
+          'XAC THUC',
+          product?.authenticity ?? 'Dang kiem tra',
+        ),
+        _buildInfoCard(
+          Icons.business_rounded,
+          'THUONG HIEU',
+          product?.brand ?? 'Rolex',
+        ),
+        _buildInfoCard(
+          Icons.category_outlined,
+          'DANH MUC',
+          product?.categoryId ?? 'Auction',
+        ),
       ],
     );
   }
@@ -285,7 +312,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: const Color(0xFFEEF2FF)),
       ),
@@ -298,21 +325,21 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text(
+                AppText(
                   label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 10,
                     color: Color(0xFF94A3B8),
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                Text(
+                AppText(
                   value,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     color: Color(0xFF1E293B),
                     fontWeight: FontWeight.bold,
@@ -336,7 +363,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -344,12 +371,16 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: const Color(0xFF64748B)),
+              Icon(
+                icon,
+                size: 18,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(
+                child: AppText(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF64748B),
@@ -360,18 +391,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
+          AppText(
             content,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 14,
               color: Color(0xFF334155),
               height: 1.5,
             ),
           ),
-          if (footer != null) ...[
-            const SizedBox(height: 16),
-            footer,
-          ],
+          if (footer != null) ...[const SizedBox(height: 16), footer],
         ],
       ),
     );
@@ -391,7 +419,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
@@ -401,7 +429,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             children: [
               Icon(Icons.list_alt, size: 18, color: Color(0xFF64748B)),
               SizedBox(width: 8),
-              Text(
+              AppText(
                 'THONG SO SAN PHAM',
                 style: TextStyle(
                   fontSize: 13,
@@ -419,22 +447,19 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       entry.key,
-                      style: const TextStyle(
-                        color: Color(0xFF64748B),
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: Color(0xFF64748B), fontSize: 13),
                     ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
-                    child: Text(
+                    child: AppText(
                       entry.value,
                       textAlign: TextAlign.right,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Color(0xFF1E293B),
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
@@ -463,7 +488,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           Icon(Icons.verified, size: 16, color: Color(0xFF2563EB)),
           SizedBox(width: 6),
           Flexible(
-            child: Text(
+            child: AppText(
               'CHUNG CHI SO DI KEM',
               style: TextStyle(
                 color: Color(0xFF2563EB),
@@ -495,7 +520,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           MediaQuery.of(context).padding.bottom + 16,
         ),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(32),
             topRight: Radius.circular(32),
@@ -517,7 +542,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    AppText(
                       'GIA KHOI DIEM',
                       style: TextStyle(
                         fontSize: 10,
@@ -526,9 +551,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
+                    AppText(
                       formatVnd(room?.minimumBid ?? _product?.startingPrice),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 18,
                         color: Color(0xFF2563EB),
                         fontWeight: FontWeight.w900,
@@ -539,7 +564,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    const Text(
+                    AppText(
                       'TRANG THAI',
                       style: TextStyle(
                         fontSize: 10,
@@ -548,9 +573,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
+                    AppText(
                       _roomStatusLabel(roomStatus),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         color: Color(0xFF1E293B),
                         fontWeight: FontWeight.bold,
@@ -568,9 +593,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 onPressed: room == null || _product == null
                     ? null
                     : () => AuctionRegistrationFlow.start(
-                          context,
-                          product: _product!,
-                        ),
+                        context,
+                        product: _product!,
+                      ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF2563EB),
                   disabledBackgroundColor: const Color(0xFFCBD5E1),
@@ -579,13 +604,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   ),
                   elevation: 0,
                 ),
-                child: Text(
+                child: AppText(
                   isLive
                       ? 'Vao phong dau gia'
                       : isScheduled
-                          ? 'Dang ky dat coc'
-                          : 'Phien da ket thuc',
-                  style: const TextStyle(
+                      ? 'Dang ky dat coc'
+                      : 'Phien da ket thuc',
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -638,7 +663,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFDBEAFE)),
       ),
@@ -650,7 +675,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                AppText(
                   'NGAY GIO BAT DAU',
                   style: TextStyle(
                     fontSize: 10,
@@ -659,9 +684,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
+                AppText(
                   _formatStartTime(startTime),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     color: Color(0xFF1E293B),
                     fontWeight: FontWeight.w800,
@@ -686,5 +711,4 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     final minute = local.minute.toString().padLeft(2, '0');
     return '$day/$month/${local.year} $hour:$minute';
   }
-
 }

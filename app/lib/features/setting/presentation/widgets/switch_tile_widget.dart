@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 class SwitchTileWidget extends StatefulWidget {
@@ -44,11 +45,15 @@ class _SwitchTileWidgetState extends State<SwitchTileWidget> {
 
     return ListTile(
       leading: Icon(widget.icon, color: colorScheme.onSurface),
-      title: Text(widget.title,
-          style: TextStyle(color: colorScheme.onSurface)),
+      title: AppText(
+        widget.title,
+        style: TextStyle(color: colorScheme.onSurface),
+      ),
       subtitle: widget.subtitle != null
-          ? Text(widget.subtitle!,
-          style: TextStyle(color: colorScheme.onSurface.withOpacity(0.62)))
+          ? AppText(
+              widget.subtitle!,
+              style: TextStyle(color: colorScheme.onSurface.withOpacity(0.62)),
+            )
           : null,
       trailing: Switch(
         value: isOn,

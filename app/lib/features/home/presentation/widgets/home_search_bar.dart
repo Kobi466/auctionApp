@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 class HomeSearchBar extends StatelessWidget {
@@ -10,21 +11,21 @@ class HomeSearchBar extends StatelessWidget {
       child: Container(
         height: 48,
         decoration: BoxDecoration(
-          color: const Color(0xFFF1F3FF),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16),
         ),
-        child: const TextField(
+        child: TextField(
           decoration: InputDecoration(
             border: InputBorder.none,
             prefixIcon: Icon(
               Icons.search,
-              color: Color(0xFF94A3B8),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            hintText: 'Tìm kiếm vật phẩm, thương hiệu...',
-            hintStyle: TextStyle(
-              color: Color(0xFF94A3B8),
-              fontSize: 14,
+            hintText: AppTranslator.translate(
+              context,
+              'Tìm kiếm vật phẩm, thương hiệu...',
             ),
+            hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
             contentPadding: EdgeInsets.symmetric(vertical: 14),
           ),
         ),

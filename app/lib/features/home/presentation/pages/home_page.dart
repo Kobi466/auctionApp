@@ -1,15 +1,11 @@
 import 'package:flutter/material.dart';
 import '../../../auth/data/auth_session.dart';
-import '../../../../core/theme/app_colors.dart';
 import '../../data/models/product_model.dart';
 import '../../data/product_service.dart';
-import '../widgets/banner_slider.dart';
 import '../widgets/ending_soon_section.dart';
 import '../widgets/home_app_bar.dart';
 import '../widgets/home_search_bar.dart';
 import '../widgets/live_auction_section.dart';
-import '../widgets/trending_new_section.dart';
-import '../widgets/wishlist_section.dart';
 import '../widgets/custom_bottom_navigation.dart';
 
 class HomePage extends StatefulWidget {
@@ -33,9 +29,7 @@ class _ProjectNameHomePageState extends State<HomePage> {
     final accessToken = AuthSession.instance.accessToken ?? '';
 
     if (accessToken.isNotEmpty) {
-      _productsFuture = _productService.getProducts(
-        accessToken: accessToken,
-      );
+      _productsFuture = _productService.getProducts(accessToken: accessToken);
     } else {
       _productsFuture = Future.value([]);
     }
@@ -51,7 +45,7 @@ class _ProjectNameHomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FF),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: FutureBuilder<List<ProductModel>>(
           future: _productsFuture,
@@ -67,16 +61,10 @@ class _ProjectNameHomePageState extends State<HomePage> {
                   children: [
                     const HomeAppBar(),
                     const HomeSearchBar(),
-                    const SizedBox(height: 16),
-                    BannerSlider(products: products),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     LiveAuctionSection(products: products),
                     const SizedBox(height: 24),
                     EndingSoonSection(products: products),
-                    const SizedBox(height: 24),
-                    TrendingNewSection(products: products),
-                    const SizedBox(height: 24),
-                    const WishlistSection(),
                     const SizedBox(height: 100),
                   ],
                 ),

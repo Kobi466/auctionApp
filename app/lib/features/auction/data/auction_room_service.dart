@@ -88,7 +88,8 @@ class AuctionRoomService {
     final rawBody = response['rawBody']?.toString() ?? '';
     final apiResponse = ApiResponse<AuctionPaymentConfigModel>.fromJson(
       body,
-      (json) => AuctionPaymentConfigModel.fromJson(json as Map<String, dynamic>),
+      (json) =>
+          AuctionPaymentConfigModel.fromJson(json as Map<String, dynamic>),
     );
 
     if (statusCode >= 200 && statusCode < 300 && apiResponse.isSuccess) {

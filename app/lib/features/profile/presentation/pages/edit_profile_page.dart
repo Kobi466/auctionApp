@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../auth/data/auth_session.dart';
@@ -9,10 +10,7 @@ import '../widgets/edit_profile_text_field.dart';
 class EditProfilePage extends StatefulWidget {
   final ProfileResponse? profile;
 
-  const EditProfilePage({
-    super.key,
-    this.profile,
-  });
+  const EditProfilePage({super.key, this.profile});
 
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
@@ -44,7 +42,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FF),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -52,7 +50,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1C1E)),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: AppText(
           'Chỉnh sửa cá nhân',
           style: TextStyle(
             color: Color(0xFF1A1C1E),
@@ -72,7 +70,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 imageUrl: _avatarUrl,
                 onCameraTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Chưa hỗ trợ đổi ảnh tại đây')),
+                    const SnackBar(
+                      content: AppText('Chưa hỗ trợ đổi ảnh tại đây'),
+                    ),
                   );
                 },
               ),
@@ -130,7 +130,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
           ),
           elevation: 0,
         ),
-        child: Text(
+        child: AppText(
           _isSaving ? 'Đang lưu...' : 'Lưu thay đổi',
           style: TextStyle(
             color: Colors.white,
@@ -150,7 +150,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   String get _avatarUrl {
-    if (_avatar.isNotEmpty && !_avatar.startsWith('data:image/')) return _avatar;
+    if (_avatar.isNotEmpty && !_avatar.startsWith('data:image/'))
+      return _avatar;
     return 'https://i.pravatar.cc/300?u=${widget.profile?.userId ?? 'profile'}';
   }
 
@@ -174,7 +175,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Đã cập nhật thông tin thành công')),
+        const SnackBar(content: AppText('Đã cập nhật thông tin thành công')),
       );
       Navigator.pop(context, updatedProfile);
     } catch (error) {
@@ -187,7 +188,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(content: AppText(message), backgroundColor: Colors.red),
     );
   }
 }

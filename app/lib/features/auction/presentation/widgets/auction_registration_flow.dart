@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -144,14 +145,14 @@ class AuctionRegistrationFlow {
     return showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Cần xác minh KYC'),
-        content: const Text(
+        title: AppText('Cần xác minh KYC'),
+        content: AppText(
           'Bạn cần hoàn tất KYC trước khi đăng ký đấu giá vào phòng.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Để sau'),
+            child: AppText('Để sau'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -165,7 +166,7 @@ class AuctionRegistrationFlow {
               backgroundColor: AppColors.primaryBlue,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Chuyển sang KYC'),
+            child: AppText('Chuyển sang KYC'),
           ),
         ],
       ),
@@ -188,14 +189,14 @@ class AuctionRegistrationFlow {
         return StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
-              title: const Text('Tiêu chuẩn cộng đồng'),
+              title: AppText('Tiêu chuẩn cộng đồng'),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxHeight: 260),
                     child: SingleChildScrollView(
-                      child: Text(
+                      child: AppText(
                         rules.isEmpty
                             ? 'Vui lòng đọc kỹ quy định trước khi tham gia đấu giá.'
                             : rules,
@@ -208,7 +209,7 @@ class AuctionRegistrationFlow {
                     value: agreed,
                     contentPadding: EdgeInsets.zero,
                     controlAffinity: ListTileControlAffinity.leading,
-                    title: const Text(
+                    title: AppText(
                       'Tôi đồng ý với tiêu chuẩn cộng đồng và quy chế đấu giá.',
                     ),
                     onChanged: submitting
@@ -223,9 +224,10 @@ class AuctionRegistrationFlow {
               ),
               actions: [
                 TextButton(
-                  onPressed:
-                      submitting ? null : () => Navigator.pop(dialogContext),
-                  child: const Text('Hủy'),
+                  onPressed: submitting
+                      ? null
+                      : () => Navigator.pop(dialogContext),
+                  child: AppText('Hủy'),
                 ),
                 ElevatedButton(
                   onPressed: !agreed || submitting
@@ -241,7 +243,11 @@ class AuctionRegistrationFlow {
                             );
                             if (!dialogContext.mounted) return;
                             Navigator.pop(dialogContext);
-                            await _showConfirmedPayment(context, accessToken, status);
+                            await _showConfirmedPayment(
+                              context,
+                              accessToken,
+                              status,
+                            );
                           } catch (error) {
                             if (!dialogContext.mounted) return;
                             setDialogState(() {
@@ -267,7 +273,7 @@ class AuctionRegistrationFlow {
                             color: Colors.white,
                           ),
                         )
-                      : const Text('Tiếp tục'),
+                      : AppText('Tiếp tục'),
                 ),
               ],
             );
@@ -333,12 +339,12 @@ class AuctionRegistrationFlow {
     return showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Thông tin vào phòng'),
+        title: AppText('Thông tin vào phòng'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            AppText(
               'Tiền cọc đã được admin duyệt. Bạn có thể dùng mã phòng và mật khẩu dưới đây để vào phòng đấu giá.',
             ),
             const SizedBox(height: 16),
@@ -350,7 +356,7 @@ class AuctionRegistrationFlow {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Đóng'),
+            child: AppText('Đóng'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(dialogContext),
@@ -358,7 +364,7 @@ class AuctionRegistrationFlow {
               backgroundColor: AppColors.primaryBlue,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Đã hiểu'),
+            child: AppText('Đã hiểu'),
           ),
         ],
       ),
@@ -379,7 +385,7 @@ class AuctionRegistrationFlow {
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setDialogState) {
           return AlertDialog(
-            title: const Text('Chuyển khoản đăng ký'),
+            title: AppText('Chuyển khoản đăng ký'),
             content: SingleChildScrollView(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -409,20 +415,28 @@ class AuctionRegistrationFlow {
                     ),
                   const SizedBox(height: 16),
                   _InfoRow(label: 'Ngân hàng', value: paymentConfig.bankName),
-                  _InfoRow(label: 'Số tài khoản', value: paymentConfig.accountNumber),
+                  _InfoRow(
+                    label: 'Số tài khoản',
+                    value: paymentConfig.accountNumber,
+                  ),
                   _InfoRow(
                     label: 'Chủ tài khoản',
                     value: paymentConfig.accountHolderName,
                   ),
-                  _InfoRow(label: 'Số tiền', value: formatVnd(deposit.requiredAmount)),
+                  _InfoRow(
+                    label: 'Số tiền',
+                    value: formatVnd(deposit.requiredAmount),
+                  ),
                   _InfoRow(label: 'Nội dung', value: deposit.transferContent),
                 ],
               ),
             ),
             actions: [
               TextButton(
-                onPressed: submitting ? null : () => Navigator.pop(dialogContext),
-                child: const Text('Đóng'),
+                onPressed: submitting
+                    ? null
+                    : () => Navigator.pop(dialogContext),
+                child: AppText('Đóng'),
               ),
               ElevatedButton(
                 onPressed: submitting
@@ -473,7 +487,7 @@ class AuctionRegistrationFlow {
                           color: Colors.white,
                         ),
                       )
-                    : const Text('Đã chuyển khoản'),
+                    : AppText('Đã chuyển khoản'),
               ),
             ],
           );
@@ -486,14 +500,14 @@ class AuctionRegistrationFlow {
     return showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Đang chờ admin duyệt'),
-        content: const Text(
+        title: AppText('Đang chờ admin duyệt'),
+        content: AppText(
           'Bạn đã xác nhận chuyển khoản. Yêu cầu đăng ký đấu giá đang chờ admin kiểm tra tiền cọc.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('Đóng'),
+            child: AppText('Đóng'),
           ),
           ElevatedButton(
             onPressed: () {
@@ -507,7 +521,7 @@ class AuctionRegistrationFlow {
               backgroundColor: AppColors.primaryBlue,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Xem chờ duyệt'),
+            child: AppText('Xem chờ duyệt'),
           ),
         ],
       ),
@@ -518,8 +532,8 @@ class AuctionRegistrationFlow {
     return showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Chua den gio dau gia'),
-        content: const Text(
+        title: AppText('Chua den gio dau gia'),
+        content: AppText(
           'Tien coc cua ban da duoc duyet. Phong se mo khi den thoi gian dau gia.',
         ),
         actions: [
@@ -529,7 +543,7 @@ class AuctionRegistrationFlow {
               backgroundColor: AppColors.primaryBlue,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Da hieu'),
+            child: AppText('Da hieu'),
           ),
         ],
       ),
@@ -540,8 +554,8 @@ class AuctionRegistrationFlow {
     return showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Phien dau gia da bat dau'),
-        content: const Text(
+        title: AppText('Phien dau gia da bat dau'),
+        content: AppText(
           'Da qua thoi gian dang ky dat coc. Chi tai khoan da duoc duyet truoc do moi co the vao phong.',
         ),
         actions: [
@@ -551,7 +565,7 @@ class AuctionRegistrationFlow {
               backgroundColor: AppColors.primaryBlue,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Da hieu'),
+            child: AppText('Da hieu'),
           ),
         ],
       ),
@@ -562,8 +576,8 @@ class AuctionRegistrationFlow {
     return showDialog<void>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Phien dau gia da ket thuc'),
-        content: const Text(
+        title: AppText('Phien dau gia da ket thuc'),
+        content: AppText(
           'San pham nay da qua thoi gian dau gia nen khong the dang ky hoac vao phong.',
         ),
         actions: [
@@ -573,7 +587,7 @@ class AuctionRegistrationFlow {
               backgroundColor: AppColors.primaryBlue,
               foregroundColor: Colors.white,
             ),
-            child: const Text('Da hieu'),
+            child: AppText('Da hieu'),
           ),
         ],
       ),
@@ -587,7 +601,7 @@ class AuctionRegistrationFlow {
   }) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(message),
+        content: AppText(message),
         backgroundColor: isError ? Colors.red : null,
       ),
     );
@@ -600,8 +614,9 @@ class AuctionRegistrationFlow {
     final templateUrl = paymentConfig.qrImageUrl.trim();
     final amount = deposit.requiredAmount.round().toString();
     final transferContent = Uri.encodeQueryComponent(deposit.transferContent);
-    final accountName =
-        Uri.encodeQueryComponent(paymentConfig.accountHolderName.trim());
+    final accountName = Uri.encodeQueryComponent(
+      paymentConfig.accountHolderName.trim(),
+    );
 
     if (templateUrl.contains('{amount}') ||
         templateUrl.contains('{addInfo}') ||
@@ -627,10 +642,10 @@ class AuctionRegistrationFlow {
   }
 
   static String _resolveVietQrBankCode(String bankName) {
-    final normalized = bankName
-        .trim()
-        .toUpperCase()
-        .replaceAll(RegExp(r'[^A-Z0-9]'), '');
+    final normalized = bankName.trim().toUpperCase().replaceAll(
+      RegExp(r'[^A-Z0-9]'),
+      '',
+    );
 
     const aliases = {
       'MB': 'MB',
@@ -661,10 +676,7 @@ class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _InfoRow({
-    required this.label,
-    required this.value,
-  });
+  const _InfoRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -675,7 +687,7 @@ class _InfoRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 104,
-            child: Text(
+            child: AppText(
               label,
               style: const TextStyle(
                 color: Color(0xFF64748B),

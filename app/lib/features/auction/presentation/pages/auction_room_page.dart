@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -181,7 +182,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
         _winnerNoteController.clear();
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Da gui bien lai cho admin kiem tra')),
+        const SnackBar(content: AppText('Da gui bien lai cho admin kiem tra')),
       );
     } catch (error) {
       _showError(error.toString().replaceFirst('Exception: ', ''));
@@ -205,9 +206,9 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
       );
       if (!mounted) return;
       setState(() => _summary = summary);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Da dong y nhan san pham')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: AppText('Da dong y nhan san pham')),
+      );
     } catch (error) {
       _showError(error.toString().replaceFirst('Exception: ', ''));
     } finally {
@@ -325,14 +326,17 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
         ? 'Da co nguoi dat gia cao hon ban'
         : notification.message;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: AppColors.primaryBlue),
+      SnackBar(
+        content: AppText(message),
+        backgroundColor: AppColors.primaryBlue,
+      ),
     );
   }
 
   void _showError(String message) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(content: AppText(message), backgroundColor: Colors.red),
     );
   }
 
@@ -341,7 +345,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
     final summary = _summary;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: _buildAppBar(),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -396,13 +400,13 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
 
   PreferredSizeWidget _buildAppBar() {
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       elevation: 0,
       centerTitle: true,
       automaticallyImplyLeading: false,
       title: Column(
         children: [
-          const Text(
+          AppText(
             'Phong dau gia',
             style: TextStyle(
               color: Color(0xFF1E293B),
@@ -422,7 +426,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
                 ),
               ),
               const SizedBox(width: 4),
-              Text(
+              AppText(
                 _isRealtimeConnected ? 'TRUC TIEP' : 'DANG NOI',
                 style: const TextStyle(
                   color: Colors.red,
@@ -452,7 +456,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
           children: [
             const Icon(Icons.error_outline, size: 48, color: Color(0xFF94A3B8)),
             const SizedBox(height: 12),
-            Text(
+            AppText(
               message,
               textAlign: TextAlign.center,
               style: const TextStyle(
@@ -461,7 +465,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
               ),
             ),
             const SizedBox(height: 16),
-            ElevatedButton(onPressed: _loadRoom, child: const Text('Tai lai')),
+            ElevatedButton(onPressed: _loadRoom, child: AppText('Tai lai')),
           ],
         ),
       ),
@@ -475,13 +479,13 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
         width: double.infinity,
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFF),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(18),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            AppText(
               'Nguoi da dang ky dau gia',
               style: TextStyle(
                 color: Color(0xFF1E293B),
@@ -491,7 +495,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
             ),
             const SizedBox(height: 10),
             if (participants.isEmpty)
-              const Text(
+              AppText(
                 'Chua co nguoi dang ky',
                 style: TextStyle(color: Color(0xFF64748B), fontSize: 12),
               )
@@ -509,7 +513,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
                         backgroundColor: AppColors.primaryBlue.withValues(
                           alpha: 0.12,
                         ),
-                        child: Text(
+                        child: AppText(
                           participant.userName.isEmpty
                               ? '?'
                               : participant.userName[0].toUpperCase(),
@@ -520,7 +524,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
                           ),
                         ),
                       ),
-                      label: Text(participant.userName),
+                      label: AppText(participant.userName),
                     );
                   },
                 ),
@@ -548,7 +552,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
+                child: AppText(
                   'Dan dau: $leadingName',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -559,7 +563,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
                   ),
                 ),
               ),
-              const Text(
+              AppText(
                 'NHAP TIEN CONG THEM',
                 style: TextStyle(
                   color: Color(0xFF1E293B),
@@ -577,7 +581,9 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
                   height: 56,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFF),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(28),
                     border: Border.all(color: const Color(0xFFF1F5F9)),
                   ),
@@ -590,9 +596,12 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF1E293B),
                     ),
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: 'Nhap tien cong',
+                      hintText: AppTranslator.translate(
+                        context,
+                        'Nhap tien cong',
+                      ),
                       suffixText: 'VNĐ',
                     ),
                   ),
@@ -618,7 +627,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
                           color: Colors.white,
                         ),
                       )
-                    : Text(
+                    : AppText(
                         _bidCooldownSeconds > 0
                             ? '${_bidCooldownSeconds}s'
                             : 'DAT GIA',
@@ -631,7 +640,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
             const SizedBox(height: 8),
             Align(
               alignment: Alignment.centerLeft,
-              child: Text(
+              child: AppText(
                 availabilityMessage,
                 style: const TextStyle(
                   color: Color(0xFF64748B),
@@ -661,14 +670,14 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFF),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: const Color(0xFFE2E8F0)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            AppText(
               'Thanh toan dau gia hang ${summary.currentWinnerRank ?? '-'}',
               style: const TextStyle(
                 color: Color(0xFF1E293B),
@@ -677,7 +686,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
+            AppText(
               'Con phai thanh toan sau khi tru coc: ${formatVnd(summary.winnerPaymentAmount)}',
               style: const TextStyle(
                 color: Color(0xFF0F172A),
@@ -685,7 +694,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
               ),
             ),
             const SizedBox(height: 6),
-            Text(
+            AppText(
               _winnerPaymentStatusText(
                 status,
                 summary.winnerPaymentRejectedCount,
@@ -713,7 +722,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.check_circle_outline),
-                  label: const Text('Dong y nhan san pham'),
+                  label: AppText('Dong y nhan san pham'),
                 ),
               ),
             ],
@@ -721,8 +730,11 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
               const SizedBox(height: 12),
               TextField(
                 controller: _winnerReceiptController,
-                decoration: const InputDecoration(
-                  labelText: 'Link bien lai / ma giao dich',
+                decoration: InputDecoration(
+                  labelText: AppTranslator.translate(
+                    context,
+                    'Link bien lai / ma giao dich',
+                  ),
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -731,8 +743,11 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
                 controller: _winnerNoteController,
                 minLines: 2,
                 maxLines: 3,
-                decoration: const InputDecoration(
-                  labelText: 'Ghi chu chuyen khoan',
+                decoration: InputDecoration(
+                  labelText: AppTranslator.translate(
+                    context,
+                    'Ghi chu chuyen khoan',
+                  ),
                   border: OutlineInputBorder(),
                 ),
               ),
@@ -750,7 +765,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.receipt_long_outlined),
-                  label: const Text('Gui bien lai cho admin'),
+                  label: AppText('Gui bien lai cho admin'),
                 ),
               ),
             ],
@@ -769,7 +784,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              AppText(
                 'Lich su dau gia',
                 style: TextStyle(
                   fontSize: 20,
@@ -788,7 +803,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
                           ),
                         );
                       },
-                child: const Text(
+                child: AppText(
                   'XEM TAT CA',
                   style: TextStyle(
                     color: AppColors.primaryBlue,
@@ -803,7 +818,7 @@ class _AuctionRoomPageState extends State<AuctionRoomPage> {
           if (bids.isEmpty)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 16),
-              child: Text(
+              child: AppText(
                 'Chua co luot dau nao',
                 style: TextStyle(color: Color(0xFF64748B)),
               ),

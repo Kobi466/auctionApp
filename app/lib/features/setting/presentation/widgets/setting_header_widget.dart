@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -27,10 +28,7 @@ class ProfileHeaderWidget extends StatelessWidget {
       children: [
         Stack(
           children: [
-            CircleAvatar(
-              radius: 45,
-              backgroundImage: imageProvider,
-            ),
+            CircleAvatar(radius: 45, backgroundImage: imageProvider),
             if (isVerified)
               Positioned(
                 bottom: 0,
@@ -47,7 +45,7 @@ class ProfileHeaderWidget extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        Text(
+        AppText(
           fullName,
           style: TextStyle(
             color: colorScheme.onSurface,
@@ -55,11 +53,8 @@ class ProfileHeaderWidget extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        Text(
-          email,
-          style: TextStyle(color: colorScheme.primary),
-        ),
-        Text(
+        AppText(email, style: TextStyle(color: colorScheme.primary)),
+        AppText(
           (bio != null && bio!.trim().isNotEmpty) ? bio! : 'Elite Member',
           style: TextStyle(color: colorScheme.onSurface.withOpacity(0.62)),
           textAlign: TextAlign.center,

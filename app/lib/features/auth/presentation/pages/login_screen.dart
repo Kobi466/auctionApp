@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/network/api_client.dart';
@@ -20,10 +21,7 @@ import 'register_screen.dart';
 class LoginScreen extends StatefulWidget {
   final String initialEmail;
 
-  const LoginScreen({
-    super.key,
-    this.initialEmail = '',
-  });
+  const LoginScreen({super.key, this.initialEmail = ''});
 
   @override
   State<LoginScreen> createState() => LoginScreenState();
@@ -76,7 +74,7 @@ class LoginScreenState extends State<LoginScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
+          content: AppText(
             response.message.isNotEmpty
                 ? response.message
                 : 'Dang nhap thanh cong',
@@ -100,9 +98,8 @@ class LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => isAdmin
-              ? const AdminDashboardPage()
-              : const HomePage(),
+          builder: (_) =>
+              isAdmin ? const AdminDashboardPage() : const HomePage(),
         ),
       );
     } catch (e) {
@@ -110,7 +107,7 @@ class LoginScreenState extends State<LoginScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          content: AppText(e.toString().replaceFirst('Exception: ', '')),
           backgroundColor: Colors.red,
         ),
       );
@@ -127,9 +124,7 @@ class LoginScreenState extends State<LoginScreen> {
   void onRegisterPressed() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const RegisterScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const RegisterScreen()),
     );
   }
 
@@ -142,7 +137,7 @@ class LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -159,7 +154,10 @@ class LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 8),
                     AuthTextFieldWidget(
                       controller: emailController,
-                      hintText: 'example@gmail.com',
+                      hintText: AppTranslator.translate(
+                        context,
+                        'example@gmail.com',
+                      ),
                       validator: Validators.validateEmail,
                       keyboardType: TextInputType.emailAddress,
                     ),
@@ -168,7 +166,10 @@ class LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 8),
                     AuthTextFieldWidget(
                       controller: passwordController,
-                      hintText: 'Nhap mat khau',
+                      hintText: AppTranslator.translate(
+                        context,
+                        'Nhap mat khau',
+                      ),
                       validator: Validators.validatePassword,
                       obscureText: obscurePassword,
                       suffixIcon: IconButton(
@@ -177,7 +178,7 @@ class LoginScreenState extends State<LoginScreen> {
                           obscurePassword
                               ? Icons.visibility_off_outlined
                               : Icons.visibility_outlined,
-                          color: AppColors.lightHint,
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ),
@@ -185,7 +186,7 @@ class LoginScreenState extends State<LoginScreen> {
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: onForgotPressed,
-                        child: Text(
+                        child: AppText(
                           'Quen mat khau?',
                           style: AppTextStyles.registerLinkLight.copyWith(
                             fontSize: 13,
@@ -199,9 +200,7 @@ class LoginScreenState extends State<LoginScreen> {
                       onPressed: onLoginPressed,
                     ),
                     const SizedBox(height: 32),
-                    RegisterPromptWidget(
-                      onRegister: onRegisterPressed,
-                    ),
+                    RegisterPromptWidget(onRegister: onRegisterPressed),
                   ],
                 ),
               ),

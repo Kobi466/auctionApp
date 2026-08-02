@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 class KycStatusDialog extends StatelessWidget {
@@ -15,9 +16,7 @@ class KycStatusDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(32),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
       elevation: 0,
       backgroundColor: Colors.transparent,
       child: _buildContent(context),
@@ -28,7 +27,7 @@ class KycStatusDialog extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(32),
       ),
       child: Column(
@@ -51,17 +50,23 @@ class KycStatusDialog extends StatelessWidget {
             width: 80,
             height: 80,
             decoration: BoxDecoration(
-              color: isSuccess ? const Color(0xFFF0FDF4) : const Color(0xFFEFF6FF),
+              color: isSuccess
+                  ? const Color(0xFFF0FDF4)
+                  : const Color(0xFFEFF6FF),
               shape: BoxShape.circle,
             ),
             child: Icon(
-              isSuccess ? Icons.check_circle_rounded : Icons.access_time_filled_rounded,
-              color: isSuccess ? const Color(0xFF22C55E) : const Color(0xFF3B82F6),
+              isSuccess
+                  ? Icons.check_circle_rounded
+                  : Icons.access_time_filled_rounded,
+              color: isSuccess
+                  ? const Color(0xFF22C55E)
+                  : const Color(0xFF3B82F6),
               size: 40,
             ),
           ),
           const SizedBox(height: 24),
-          Text(
+          AppText(
             title,
             textAlign: TextAlign.center,
             style: const TextStyle(
@@ -71,13 +76,10 @@ class KycStatusDialog extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          AppText(
             message,
             textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 14,
-              color: Color(0xFF64748B),
-            ),
+            style: const TextStyle(fontSize: 14, color: Color(0xFF64748B)),
           ),
           const SizedBox(height: 8),
         ],

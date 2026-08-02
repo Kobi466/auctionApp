@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../auction/presentation/widgets/auction_registration_flow.dart';
@@ -7,10 +8,7 @@ import 'live_auction_card.dart';
 class LiveAuctionSection extends StatelessWidget {
   final List<ProductModel> products;
 
-  const LiveAuctionSection({
-    super.key,
-    required this.products,
-  });
+  const LiveAuctionSection({super.key, required this.products});
 
   List<ProductModel> get _liveProducts {
     final liveProducts = products
@@ -21,13 +19,8 @@ class LiveAuctionSection extends StatelessWidget {
       return liveProducts.take(5).toList();
     }
 
-    return products
-        .where((product) {
-          final status = _effectiveRoomStatus(product);
-          return status == 'SCHEDULED' || status == 'LIVE';
-        })
-        .take(5)
-        .toList();
+    // Trang chủ vẫn hiển thị dữ liệu sản phẩm khi sản phẩm chưa được tạo phòng.
+    return products.take(5).toList();
   }
 
   @override
@@ -45,7 +38,7 @@ class LiveAuctionSection extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Text(
+                  AppText(
                     'Đấu giá trực tiếp',
                     style: TextStyle(
                       fontSize: 18,
@@ -54,16 +47,13 @@ class LiveAuctionSection extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 4),
-                  Text(
+                  AppText(
                     'Cơ hội sở hữu ngay lúc này',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF94A3B8),
-                    ),
+                    style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
                   ),
                 ],
               ),
-              const Text(
+              AppText(
                 'Tất cả',
                 style: TextStyle(
                   fontSize: 12,
@@ -81,7 +71,7 @@ class LiveAuctionSection extends StatelessWidget {
             child: SizedBox(
               height: 80,
               child: Center(
-                child: Text(
+                child: AppText(
                   'Chưa có sản phẩm đấu giá',
                   style: TextStyle(color: Color(0xFF64748B)),
                 ),
@@ -105,10 +95,8 @@ class LiveAuctionSection extends StatelessWidget {
                       ? 'Đang cập nhật'
                       : formatVnd(product.auctionRoom?.minimumBid),
                   timeLeft: _formatTimeLeft(product.auctionRoom?.endTime),
-                  onRegister: () => AuctionRegistrationFlow.start(
-                    context,
-                    product: product,
-                  ),
+                  onRegister: () =>
+                      AuctionRegistrationFlow.start(context, product: product),
                 );
               },
             ),

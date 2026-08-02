@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
@@ -20,9 +21,9 @@ class AuctionPriceCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.02),
@@ -34,23 +35,34 @@ class AuctionPriceCard extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildPriceInfo('GIÁ GỐC', formatVnd(startingPrice)),
+          _buildPriceInfo(context, 'GIÁ GỐC', formatVnd(startingPrice)),
           Container(width: 1, height: 32, color: const Color(0xFFF1F5F9)),
-          _buildPriceInfo('GIÁ HIỆN TẠI', formatVnd(currentPrice), isBlue: true),
+          _buildPriceInfo(
+            context,
+            'GIÁ HIỆN TẠI',
+            formatVnd(currentPrice),
+            isBlue: true,
+          ),
           Container(width: 1, height: 32, color: const Color(0xFFF1F5F9)),
-          _buildPriceInfo('KẾT THÚC', endTime, isRed: true),
+          _buildPriceInfo(context, 'KẾT THÚC', endTime, isRed: true),
         ],
       ),
     );
   }
 
-  Widget _buildPriceInfo(String label, String value, {bool isBlue = false, bool isRed = false}) {
+  Widget _buildPriceInfo(
+    BuildContext context,
+    String label,
+    String value, {
+    bool isBlue = false,
+    bool isRed = false,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        AppText(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 10,
             color: Color(0xFF94A3B8),
             fontWeight: FontWeight.bold,
@@ -58,14 +70,16 @@ class AuctionPriceCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
+        AppText(
           value,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: isBlue 
-                ? AppColors.primaryBlue 
-                : (isRed ? Colors.red : const Color(0xFF1E293B)),
+            color: isBlue
+                ? AppColors.primaryBlue
+                : (isRed
+                      ? Colors.red
+                      : Theme.of(context).colorScheme.onSurface),
           ),
         ),
       ],

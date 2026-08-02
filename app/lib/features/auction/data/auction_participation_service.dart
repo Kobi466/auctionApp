@@ -53,8 +53,14 @@ class AuctionParticipationService {
       if (deposit != null) return deposit;
     }
 
-    throw Exception(_message(apiResponse.message, rawBody, statusCode,
-        'Không gửi được xác nhận chuyển khoản'));
+    throw Exception(
+      _message(
+        apiResponse.message,
+        rawBody,
+        statusCode,
+        'Không gửi được xác nhận chuyển khoản',
+      ),
+    );
   }
 
   Future<List<AuctionDepositModel>> getMyDeposits({
@@ -71,7 +77,10 @@ class AuctionParticipationService {
     final apiResponse = ApiResponse<List<AuctionDepositModel>>.fromJson(
       body,
       (json) => (json as List<dynamic>)
-          .map((item) => AuctionDepositModel.fromJson(item as Map<String, dynamic>))
+          .map(
+            (item) =>
+                AuctionDepositModel.fromJson(item as Map<String, dynamic>),
+          )
           .toList(),
     );
 
@@ -79,8 +88,14 @@ class AuctionParticipationService {
       return apiResponse.data ?? const [];
     }
 
-    throw Exception(_message(apiResponse.message, rawBody, statusCode,
-        'Không tải được danh sách chờ duyệt'));
+    throw Exception(
+      _message(
+        apiResponse.message,
+        rawBody,
+        statusCode,
+        'Không tải được danh sách chờ duyệt',
+      ),
+    );
   }
 
   Future<AuctionRoomAccessModel> getRoomAccess({
@@ -105,8 +120,14 @@ class AuctionParticipationService {
       if (roomAccess != null) return roomAccess;
     }
 
-    throw Exception(_message(apiResponse.message, rawBody, statusCode,
-        'Khong lay duoc thong tin vao phong'));
+    throw Exception(
+      _message(
+        apiResponse.message,
+        rawBody,
+        statusCode,
+        'Khong lay duoc thong tin vao phong',
+      ),
+    );
   }
 
   AuctionParticipationStatusModel _parseStatusResponse(
@@ -128,7 +149,9 @@ class AuctionParticipationService {
       if (status != null) return status;
     }
 
-    throw Exception(_message(apiResponse.message, rawBody, statusCode, fallback));
+    throw Exception(
+      _message(apiResponse.message, rawBody, statusCode, fallback),
+    );
   }
 
   String _message(

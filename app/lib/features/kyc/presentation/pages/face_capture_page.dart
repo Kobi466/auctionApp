@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -135,7 +136,7 @@ class _FaceCapturePageState extends State<FaceCapturePage> {
             right: 0,
             child: Column(
               children: [
-                const Text(
+                AppText(
                   'Căn chỉnh khuôn mặt vào giữa khung hình',
                   style: TextStyle(
                     color: Colors.white,

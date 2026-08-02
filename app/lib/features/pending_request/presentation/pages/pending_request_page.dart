@@ -1,7 +1,9 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auction/data/auction_participation_service.dart';
 import '../../../auction/data/models/auction_deposit_model.dart';
 import '../../../auction/data/models/auction_room_access_model.dart';
@@ -46,7 +48,7 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
     if (accessToken == null || accessToken.isEmpty) {
       setState(() {
         _isLoading = false;
-        _errorMessage = 'Vui lòng đăng nhập để xem yêu cầu chờ duyệt';
+        _errorMessage = AppLocalizations.of(context)!.loginToViewRequests;
       });
       return;
     }
@@ -100,7 +102,8 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
     return result;
   }
 
-  List<String> get _categories {
+  List<String> _categories(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final pendingCount = _deposits
         .where((item) => item.status == 'PENDING_APPROVAL')
         .length;
@@ -108,9 +111,9 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
         .where((item) => item.status == 'APPROVED' || item.status == 'SETTLED')
         .length;
     return [
-      'Tất cả (${_deposits.length})',
-      'Chờ duyệt ($pendingCount)',
-      'Đã duyệt ($approvedCount)',
+      l10n.allCount(_deposits.length),
+      l10n.pendingCount(pendingCount),
+      l10n.approvedCount(approvedCount),
     ];
   }
 
@@ -138,7 +141,7 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -162,7 +165,7 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
       child: Container(
         height: 50,
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           borderRadius: BorderRadius.circular(25),
           boxShadow: [
             BoxShadow(
@@ -174,12 +177,12 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
         ),
         child: TextField(
           controller: _searchController,
-          decoration: const InputDecoration(
-            hintText: 'Tìm kiếm yêu cầu...',
+          decoration: InputDecoration(
+            hintText: AppLocalizations.of(context)!.searchRequests,
             hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
-            prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8)),
+            prefixIcon: const Icon(Icons.search, color: Color(0xFF94A3B8)),
             border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: 15),
+            contentPadding: const EdgeInsets.symmetric(vertical: 15),
           ),
         ),
       ),
@@ -187,12 +190,13 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
   }
 
   Widget _buildCategories() {
+    final categories = _categories(context);
     return SizedBox(
       height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
-        itemCount: _categories.length,
+        itemCount: categories.length,
         itemBuilder: (context, index) {
           final isSelected = _selectedCategoryIndex == index;
           return Padding(
@@ -204,16 +208,16 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
                 decoration: BoxDecoration(
                   color: isSelected
                       ? AppColors.primaryBlue
-                      : const Color(0xFFF1F5F9),
+                      : Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Center(
-                  child: Text(
-                    _categories[index],
+                  child: AppText(
+                    categories[index],
                     style: TextStyle(
                       color: isSelected
                           ? Colors.white
-                          : const Color(0xFF64748B),
+                          : Theme.of(context).colorScheme.onSurfaceVariant,
                       fontWeight: isSelected
                           ? FontWeight.bold
                           : FontWeight.w500,
@@ -230,6 +234,7 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
   }
 
   Widget _buildBody() {
+    final l10n = AppLocalizations.of(context)!;
     if (_isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -237,9 +242,9 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
     if (_errorMessage != null) {
       return _MessageState(
         icon: Icons.error_outline_rounded,
-        title: 'Không tải được yêu cầu',
+        title: l10n.cannotLoadRequests,
         message: _errorMessage!,
-        actionLabel: 'Thử lại',
+        actionLabel: l10n.tryAgain,
         onAction: _loadDeposits,
       );
     }
@@ -248,10 +253,9 @@ class _PendingRequestPageState extends State<PendingRequestPage> {
     if (deposits.isEmpty) {
       return _MessageState(
         icon: Icons.assignment_outlined,
-        title: 'Chưa có yêu cầu',
-        message:
-            'Yêu cầu đã chuyển khoản sẽ hiển thị tại đây để chờ admin duyệt.',
-        actionLabel: 'Tải lại',
+        title: l10n.noRequests,
+        message: l10n.noRequestsMessage,
+        actionLabel: l10n.reload,
         onAction: _loadDeposits,
       );
     }
@@ -338,25 +342,32 @@ class _MessageState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, color: const Color(0xFF94A3B8), size: 42),
+            Icon(
+              icon,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+              size: 42,
+            ),
             const SizedBox(height: 12),
-            Text(
+            AppText(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Color(0xFF1E293B),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurface,
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
               ),
             ),
             const SizedBox(height: 8),
-            Text(
+            AppText(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Color(0xFF64748B), fontSize: 13),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 13,
+              ),
             ),
             const SizedBox(height: 16),
-            TextButton(onPressed: onAction, child: Text(actionLabel)),
+            TextButton(onPressed: onAction, child: AppText(actionLabel)),
           ],
         ),
       ),

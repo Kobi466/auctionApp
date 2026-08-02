@@ -1,0 +1,64 @@
+{
+  "@@locale": "en",
+  "settings": "Account Settings",
+  "preferences": "PREFERENCES",
+  "language": "Language",
+  "vietnamese": "Vietnamese",
+  "english": "English",
+  "darkMode": "Dark Mode",
+  "darkEnabled": "Dark interface enabled",
+  "lightEnabled": "Light interface enabled",
+  "preferenceSyncFailed": "Saved on this device but could not sync with the server",
+  "navHome": "Home",
+  "navProducts": "Products",
+  "navPending": "Pending",
+  "navBidRoom": "Bid room",
+  "navProfile": "Profile",
+  "searchRequests": "Search requests...",
+  "allCount": "All ({count})",
+  "pendingCount": "Pending ({count})",
+  "approvedCount": "Approved ({count})",
+  "noRequests": "No requests yet",
+  "noRequestsMessage": "Transferred deposit requests will appear here for admin approval.",
+  "reload": "Reload",
+  "cannotLoadRequests": "Could not load requests",
+  "tryAgain": "Try again",
+  "loginToViewRequests": "Please sign in to view pending requests"
+  ,"profileTitle": "Profile"
+  ,"auctionActivity": "AUCTION ACTIVITY"
+  ,"mySellingItems": "My selling items"
+  ,"auctionHistory": "Auction history"
+  ,"wonProducts": "Won products"
+  ,"favorites": "Favorites"
+  ,"securityIdentity": "SECURITY AND IDENTITY"
+  ,"identityVerification": "Identity verification"
+  ,"changePassword": "Change password"
+  ,"settingsSection": "SETTINGS"
+  ,"notifications": "Notifications"
+  ,"verified": "Verified"
+  ,"pendingApproval": "Pending approval"
+  ,"rejectedRetry": "Rejected - Tap to retry"
+  ,"notVerified": "Not verified"
+  ,"loading": "Loading..."
+  ,"emailNotUpdated": "Email not updated"
+  ,"user": "User"
+  ,"logout": "Log out"
+  ,"logoutSuccess": "Logged out successfully"
+  ,"withdraw": "Withdraw"
+  ,"withdrawable": "Available to withdraw"
+  ,"lockedDeposit": "Locked deposit"
+  ,"history": "History"
+  ,"withdrawHistory": "Withdrawal history"
+  ,"maximumAmount": "Maximum: {amount}"
+  ,"amount": "Amount"
+  ,"bank": "Bank"
+  ,"accountNumber": "Account number"
+  ,"accountHolder": "Account holder"
+  ,"branch": "Branch"
+  ,"note": "Note"
+  ,"submitForApproval": "Submit for admin approval"
+  ,"noWithdrawalRequests": "No withdrawal requests"
+  ,"transferred": "Transferred"
+  ,"rejected": "Rejected"
+  ,"pending": "Pending"
+}

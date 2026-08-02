@@ -1,8 +1,15 @@
-import 'package:flutter/material.dart';
+import 'package:app/core/localization/app_translator.dart';
+import 'dart:convert';
 
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../../../../core/localization/locale_controller.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/theme_controller.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 import '../../../auth/data/auth_service.dart';
 import '../../../auth/data/auth_session.dart';
 import '../../../auth/domain/auth_repository.dart';
@@ -29,7 +36,6 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   bool _isNotificationEnabled = true;
-  bool _isDarkModeEnabled = false;
   late final KycController _kycController;
   final ProfileService _profileService = ProfileService();
   final AuctionParticipationService _auctionService =
@@ -69,6 +75,8 @@ class _ProfilePageState extends State<ProfilePage> {
         accessToken: accessToken,
       );
       if (!mounted) return;
+      await _applyServerPreferences(profile.preferences);
+      if (!mounted) return;
       setState(() {
         _profile = profile;
         _isProfileLoading = false;
@@ -78,11 +86,91 @@ class _ProfilePageState extends State<ProfilePage> {
       setState(() => _isProfileLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error.toString().replaceFirst('Exception: ', '')),
+          content: AppText(error.toString().replaceFirst('Exception: ', '')),
           backgroundColor: Colors.red,
         ),
       );
     }
+  }
+
+  Future<void> _applyServerPreferences(String rawPreferences) async {
+    final localeController = context.read<LocaleController>();
+    final themeController = context.read<ThemeController>();
+    try {
+      final decoded = jsonDecode(rawPreferences);
+      if (decoded is! Map<String, dynamic>) return;
+
+      final language = decoded['language']?.toString().toLowerCase();
+      final theme = decoded['theme']?.toString().toUpperCase();
+      if (language == 'vi' || language == 'en') {
+        await localeController.setLocale(language!);
+      }
+      if (theme == 'LIGHT' || theme == 'DARK') {
+        await themeController.setDarkMode(theme == 'DARK');
+      }
+    } on FormatException {
+      // Keep the settings stored on this device for legacy invalid JSON.
+    }
+  }
+
+  Future<void> _changeDarkMode(bool enabled) async {
+    await context.read<ThemeController>().setDarkMode(enabled);
+    await _syncPreferences(theme: enabled ? 'DARK' : 'LIGHT');
+  }
+
+  Future<void> _changeLanguage(String languageCode) async {
+    await context.read<LocaleController>().setLocale(languageCode);
+    if (mounted) Navigator.of(context).pop();
+    await _syncPreferences(language: languageCode);
+  }
+
+  Future<void> _syncPreferences({String? language, String? theme}) async {
+    final accessToken = AuthSession.instance.accessToken;
+    if (accessToken == null || accessToken.isEmpty) return;
+
+    try {
+      final profile = await _profileService.updatePreferences(
+        accessToken: accessToken,
+        language: language,
+        theme: theme,
+      );
+      if (mounted) setState(() => _profile = profile);
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: AppText(AppLocalizations.of(context)!.preferenceSyncFailed),
+        ),
+      );
+    }
+  }
+
+  void _showLanguagePicker() {
+    final selected = context.read<LocaleController>().locale.languageCode;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      builder: (sheetContext) {
+        final l10n = AppLocalizations.of(sheetContext)!;
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                title: AppText(l10n.vietnamese),
+                trailing: selected == 'vi' ? const Icon(Icons.check) : null,
+                onTap: () => _changeLanguage('vi'),
+              ),
+              ListTile(
+                title: AppText(l10n.english),
+                trailing: selected == 'en' ? const Icon(Icons.check) : null,
+                onTap: () => _changeLanguage('en'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _loadWalletSummary() async {
@@ -150,9 +238,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Đăng xuất thành công')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: AppText(AppLocalizations.of(context)!.logoutSuccess)),
+      );
 
       _navigateToLogin();
     } catch (e) {
@@ -160,7 +248,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          content: AppText(e.toString().replaceFirst('Exception: ', '')),
           backgroundColor: Colors.red,
         ),
       );
@@ -211,15 +299,15 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Future<void> _handleWithdraw() async {
     if (_withdrawableBalance <= 0) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Chua co so du co the rut')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: AppText('Chua co so du co the rut')),
+      );
       return;
     }
     final submitted = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -262,7 +350,7 @@ class _ProfilePageState extends State<ProfilePage> {
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -272,15 +360,20 @@ class _ProfilePageState extends State<ProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final themeController = context.watch<ThemeController>();
+    final localeController = context.watch<LocaleController>();
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FF),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text(
-          'Cá nhân',
+        title: AppText(
+          l10n.profileTitle,
           style: TextStyle(
-            color: Color(0xFF1A1C1E),
+            color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -326,44 +419,47 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 32),
                 _buildSection(
-                  title: 'HOẠT ĐỘNG ĐẤU GIÁ',
+                  title: l10n.auctionActivity,
                   children: [
                     _buildMenuItem(
                       Icons.local_offer_outlined,
-                      'Đồ tôi đang bán',
+                      l10n.mySellingItems,
                     ),
-                    _buildMenuItem(Icons.gavel_outlined, 'Lịch sử đấu giá'),
+                    _buildMenuItem(Icons.gavel_outlined, l10n.auctionHistory),
                     _buildMenuItem(
                       Icons.emoji_events_outlined,
-                      'Sản phẩm đã thắng',
+                      l10n.wonProducts,
                     ),
                     _buildMenuItem(
                       Icons.favorite_border_rounded,
-                      'Danh sách yêu thích',
+                      l10n.favorites,
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
                 _buildSection(
-                  title: 'BẢO MẬT VÀ ĐỊNH DANH',
+                  title: l10n.securityIdentity,
                   trailing: _isKycVerified ? _buildVerifiedBadge() : null,
                   children: [
                     _buildMenuItem(
                       Icons.badge_outlined,
-                      'Xác minh danh tính',
+                      l10n.identityVerification,
                       subtitle: _getKycSubtitle(),
                       onTap: _handleKycTap,
                     ),
-                    _buildMenuItem(Icons.lock_outline_rounded, 'Đổi mật khẩu'),
+                    _buildMenuItem(
+                      Icons.lock_outline_rounded,
+                      l10n.changePassword,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
                 _buildSection(
-                  title: 'CÀI ĐẶT',
+                  title: l10n.settingsSection,
                   children: [
                     _buildToggleItem(
                       Icons.notifications_none_rounded,
-                      'Thông báo',
+                      l10n.notifications,
                       _isNotificationEnabled,
                       (value) {
                         setState(() => _isNotificationEnabled = value);
@@ -371,16 +467,17 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     _buildMenuItem(
                       Icons.language_rounded,
-                      'Ngôn ngữ',
-                      trailingText: 'Tiếng Việt',
+                      l10n.language,
+                      trailingText: localeController.locale.languageCode == 'vi'
+                          ? l10n.vietnamese
+                          : l10n.english,
+                      onTap: _showLanguagePicker,
                     ),
                     _buildToggleItem(
                       Icons.dark_mode_outlined,
-                      'Chế độ tối',
-                      _isDarkModeEnabled,
-                      (value) {
-                        setState(() => _isDarkModeEnabled = value);
-                      },
+                      l10n.darkMode,
+                      themeController.isDarkMode,
+                      _changeDarkMode,
                     ),
                   ],
                 ),
@@ -397,11 +494,12 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   String? _getKycSubtitle() {
+    final l10n = AppLocalizations.of(context)!;
     final status = _kycController.status?.toUpperCase();
-    if (_isKycVerified) return 'Đã xác thực';
-    if (status == 'PENDING') return 'Đang chờ duyệt';
-    if (status == 'REJECTED') return 'Bị từ chối - Nhấn để thử lại';
-    return 'Chưa xác thực';
+    if (_isKycVerified) return l10n.verified;
+    if (status == 'PENDING') return l10n.pendingApproval;
+    if (status == 'REJECTED') return l10n.rejectedRetry;
+    return l10n.notVerified;
   }
 
   bool get _isKycVerified => _kycController.status?.toUpperCase() == 'VERIFIED';
@@ -453,17 +551,17 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
         const SizedBox(height: 16),
-        Text(
-          _isProfileLoading ? 'Đang tải...' : name,
-          style: const TextStyle(
+        AppText(
+          _isProfileLoading ? AppLocalizations.of(context)!.loading : name,
+          style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF1A1C1E),
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          email.isEmpty ? 'Chưa cập nhật email' : email,
+        AppText(
+          email.isEmpty ? AppLocalizations.of(context)!.emailNotUpdated : email,
           style: const TextStyle(fontSize: 14, color: Colors.grey),
         ),
       ],
@@ -475,7 +573,7 @@ class _ProfilePageState extends State<ProfilePage> {
     if (fullName.isNotEmpty) return fullName;
     final email = profile?.email.trim() ?? '';
     if (email.isNotEmpty) return email.split('@').first;
-    return 'Người dùng';
+    return AppLocalizations.of(context)!.user;
   }
 
   String _profileAvatar(ProfileResponse? profile) {
@@ -495,12 +593,12 @@ class _ProfilePageState extends State<ProfilePage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            AppText(
               title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
                 letterSpacing: 0.5,
               ),
             ),
@@ -510,7 +608,7 @@ class _ProfilePageState extends State<ProfilePage> {
         const SizedBox(height: 12),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
@@ -542,16 +640,16 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         child: Icon(icon, color: AppColors.primaryBlue, size: 20),
       ),
-      title: Text(
+      title: AppText(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF1A1C1E),
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
       subtitle: subtitle != null
-          ? Text(
+          ? AppText(
               subtitle,
               style: TextStyle(
                 fontSize: 12,
@@ -563,7 +661,7 @@ class _ProfilePageState extends State<ProfilePage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (trailingText != null)
-            Text(
+            AppText(
               trailingText,
               style: const TextStyle(
                 color: AppColors.primaryBlue,
@@ -595,12 +693,12 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         child: Icon(icon, color: AppColors.primaryBlue, size: 20),
       ),
-      title: Text(
+      title: AppText(
         title,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 15,
           fontWeight: FontWeight.w600,
-          color: Color(0xFF1A1C1E),
+          color: Theme.of(context).colorScheme.onSurface,
         ),
       ),
       trailing: Switch(
@@ -623,7 +721,7 @@ class _ProfilePageState extends State<ProfilePage> {
         children: [
           Icon(Icons.verified_user, color: Colors.purple, size: 12),
           SizedBox(width: 4),
-          Text(
+          AppText(
             'VERIFIED',
             style: TextStyle(
               color: Colors.purple,
@@ -642,8 +740,8 @@ class _ProfilePageState extends State<ProfilePage> {
       child: TextButton.icon(
         onPressed: _logout,
         icon: const Icon(Icons.logout, color: Colors.redAccent),
-        label: const Text(
-          'Đăng xuất',
+        label: AppText(
+          AppLocalizations.of(context)!.logout,
           style: TextStyle(
             color: Colors.redAccent,
             fontWeight: FontWeight.bold,
@@ -738,9 +836,9 @@ class _WithdrawalFormSheetState extends State<_WithdrawalFormSheet> {
         userNote: userNote,
       );
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Da gui yeu cau rut tien')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: AppText('Da gui yeu cau rut tien')),
+      );
       Navigator.pop(context, true);
     } catch (error) {
       if (!mounted) return;
@@ -751,12 +849,13 @@ class _WithdrawalFormSheetState extends State<_WithdrawalFormSheet> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(content: AppText(message), backgroundColor: Colors.red),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.only(
         left: 20,
@@ -769,17 +868,17 @@ class _WithdrawalFormSheetState extends State<_WithdrawalFormSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Rut tien',
-              style: TextStyle(
+            AppText(
+              l10n.withdraw,
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w900,
                 color: Color(0xFF1E293B),
               ),
             ),
             const SizedBox(height: 6),
-            Text(
-              'Toi da: ${formatVnd(widget.maxAmount)}',
+            AppText(
+              l10n.maximumAmount(formatVnd(widget.maxAmount)),
               style: const TextStyle(
                 color: Color(0xFF64748B),
                 fontWeight: FontWeight.w600,
@@ -788,15 +887,15 @@ class _WithdrawalFormSheetState extends State<_WithdrawalFormSheet> {
             const SizedBox(height: 18),
             _Input(
               controller: _amountController,
-              label: 'So tien',
+              label: l10n.amount,
               keyboardType: TextInputType.number,
               isMoney: true,
             ),
-            _Input(controller: _bankController, label: 'Ngan hang'),
-            _Input(controller: _accountController, label: 'So tai khoan'),
-            _Input(controller: _holderController, label: 'Chu tai khoan'),
-            _Input(controller: _branchController, label: 'Chi nhanh'),
-            _Input(controller: _noteController, label: 'Ghi chu', maxLines: 2),
+            _Input(controller: _bankController, label: l10n.bank),
+            _Input(controller: _accountController, label: l10n.accountNumber),
+            _Input(controller: _holderController, label: l10n.accountHolder),
+            _Input(controller: _branchController, label: l10n.branch),
+            _Input(controller: _noteController, label: l10n.note, maxLines: 2),
             const SizedBox(height: 16),
             SizedBox(
               width: double.infinity,
@@ -819,9 +918,9 @@ class _WithdrawalFormSheetState extends State<_WithdrawalFormSheet> {
                           strokeWidth: 2,
                         ),
                       )
-                    : const Text(
-                        'Gui admin xet duyet',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                    : AppText(
+                        l10n.submitForApproval,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
               ),
             ),
@@ -839,6 +938,7 @@ class _WithdrawalHistorySheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -846,9 +946,9 @@ class _WithdrawalHistorySheet extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Lich su rut tien',
-              style: TextStyle(
+            AppText(
+              l10n.withdrawHistory,
+              style: const TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.w900,
                 color: Color(0xFF1E293B),
@@ -856,9 +956,9 @@ class _WithdrawalHistorySheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             if (withdrawals.isEmpty)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Center(child: Text('Chua co yeu cau rut tien')),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 24),
+                child: Center(child: AppText(l10n.noWithdrawalRequests)),
               )
             else
               Flexible(
@@ -871,7 +971,9 @@ class _WithdrawalHistorySheet extends StatelessWidget {
                       margin: const EdgeInsets.only(bottom: 10),
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFF),
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Column(
@@ -880,7 +982,7 @@ class _WithdrawalHistorySheet extends StatelessWidget {
                           Row(
                             children: [
                               Expanded(
-                                child: Text(
+                                child: AppText(
                                   formatVnd(withdrawal.amount),
                                   style: const TextStyle(
                                     color: AppColors.primaryBlue,
@@ -892,7 +994,7 @@ class _WithdrawalHistorySheet extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 6),
-                          Text(
+                          AppText(
                             '${withdrawal.bankName} - ${withdrawal.accountNumber}',
                             style: const TextStyle(
                               color: Color(0xFF475569),
@@ -901,7 +1003,7 @@ class _WithdrawalHistorySheet extends StatelessWidget {
                           ),
                           if ((withdrawal.adminNote ?? '').isNotEmpty) ...[
                             const SizedBox(height: 4),
-                            Text(
+                            AppText(
                               'Admin: ${withdrawal.adminNote}',
                               style: const TextStyle(
                                 color: Color(0xFF64748B),
@@ -969,8 +1071,8 @@ class _StatusText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      _label(status),
+    return AppText(
+      _label(context, status),
       style: TextStyle(
         color: _color(status),
         fontSize: 12,
@@ -979,14 +1081,15 @@ class _StatusText extends StatelessWidget {
     );
   }
 
-  String _label(String status) {
+  String _label(BuildContext context, String status) {
+    final l10n = AppLocalizations.of(context)!;
     switch (status) {
       case 'COMPLETED':
-        return 'Da chuyen';
+        return l10n.transferred;
       case 'REJECTED':
-        return 'Tu choi';
+        return l10n.rejected;
       default:
-        return 'Cho duyet';
+        return l10n.pending;
     }
   }
 

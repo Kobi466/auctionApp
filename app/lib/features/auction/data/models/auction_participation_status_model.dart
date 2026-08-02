@@ -30,7 +30,9 @@ class AuctionParticipationStatusModel {
       auctionRules: json['auctionRules']?.toString() ?? '',
       agreedToRules: json['agreedToRules'] == true,
       deposit: json['deposit'] is Map<String, dynamic>
-          ? AuctionDepositModel.fromJson(json['deposit'] as Map<String, dynamic>)
+          ? AuctionDepositModel.fromJson(
+              json['deposit'] as Map<String, dynamic>,
+            )
           : null,
       paymentConfig: json['paymentConfig'] is Map<String, dynamic>
           ? AuctionPaymentConfigModel.fromJson(

@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 class HomeAppBar extends StatelessWidget {
@@ -26,7 +27,7 @@ class HomeAppBar extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              const Text(
+              AppText(
                 'ReBid',
                 style: TextStyle(
                   color: Color(0xFF2563EB),
@@ -42,7 +43,7 @@ class HomeAppBar extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(

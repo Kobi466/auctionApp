@@ -1,6 +1,7 @@
 package com.application.auction.controller;
 
 import com.application.auction.dto.request.ProfileUpdateRequest;
+import com.application.auction.dto.request.ProfilePreferenceUpdateRequest;
 import com.application.auction.dto.response.ApiResponse;
 import com.application.auction.dto.response.ProfileResponse;
 import com.application.auction.service.ProfileService;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,6 +37,15 @@ public class ProfileController {
     public ApiResponse<ProfileResponse> updateMyProfile(@RequestBody ProfileUpdateRequest request) {
         return ApiResponse.<ProfileResponse>builder()
                 .result(profileService.updateMyProfile(request))
+                .build();
+    }
+
+    @PatchMapping("/me/preferences")
+    public ApiResponse<ProfileResponse> updateMyPreferences(
+            @RequestBody ProfilePreferenceUpdateRequest request
+    ) {
+        return ApiResponse.<ProfileResponse>builder()
+                .result(profileService.updateMyPreferences(request))
                 .build();
     }
 }

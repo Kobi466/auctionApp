@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../../home/data/models/product_model.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -6,10 +7,7 @@ import '../../../../core/utils/image_provider_helper.dart';
 class AuctionProductHeader extends StatefulWidget {
   final ProductModel product;
 
-  const AuctionProductHeader({
-    super.key,
-    required this.product,
-  });
+  const AuctionProductHeader({super.key, required this.product});
 
   @override
   State<AuctionProductHeader> createState() => _AuctionProductHeaderState();
@@ -24,14 +22,15 @@ class _AuctionProductHeaderState extends State<AuctionProductHeader> {
     super.initState();
     // Kết hợp mainImageUrl và danh sách imageUrls
     _images = [
-      if (widget.product.mainImageUrl != null && widget.product.mainImageUrl!.isNotEmpty)
+      if (widget.product.mainImageUrl != null &&
+          widget.product.mainImageUrl!.isNotEmpty)
         widget.product.mainImageUrl!,
       ...widget.product.imageUrls,
     ].where((img) => img.isNotEmpty).toSet().toList();
 
     // Fallback nếu không có ảnh nào
     if (_images.isEmpty) {
-      _images = ['']; 
+      _images = [''];
     }
   }
 
@@ -50,24 +49,24 @@ class _AuctionProductHeaderState extends State<AuctionProductHeader> {
             });
           },
         ),
-        
+
         Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
+              AppText(
                 '${widget.product.brand.toUpperCase()} • ${widget.product.subTitle ?? "WATCH"}',
-                style: const TextStyle(
+                style: TextStyle(
                   color: Color(0xFF4F7DFF),
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
+              AppText(
                 widget.product.name,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF1E293B),
@@ -134,7 +133,7 @@ class _ImageCarousel extends StatelessWidget {
             },
           ),
         ),
-        
+
         // Chỉ số trang x/y
         Positioned(
           bottom: 16,
@@ -145,11 +144,11 @@ class _ImageCarousel extends StatelessWidget {
               color: Colors.black.withOpacity(0.6),
               borderRadius: BorderRadius.circular(20),
             ),
-            child: Text(
+            child: AppText(
               '${currentIndex + 1}/${images.length}',
-              style: const TextStyle(
-                color: Colors.white, 
-                fontSize: 12, 
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -169,8 +168,8 @@ class _ImageCarousel extends StatelessWidget {
                   height: 3,
                   margin: const EdgeInsets.symmetric(horizontal: 2),
                   decoration: BoxDecoration(
-                    color: currentIndex == index 
-                        ? AppColors.primaryBlue 
+                    color: currentIndex == index
+                        ? AppColors.primaryBlue
                         : Colors.transparent,
                     borderRadius: BorderRadius.circular(2),
                   ),
@@ -201,25 +200,29 @@ class _InfoBadge extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: const Color(0xFFF8FAFF),
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(color: const Color(0xFFF1F5F9)),
         ),
         child: Row(
           children: [
-            Icon(icon, size: 20, color: const Color(0xFF64748B)),
+            Icon(
+              icon,
+              size: 20,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  AppText(
                     title,
-                    style: const TextStyle(fontSize: 9, color: Color(0xFF94A3B8)),
+                    style: TextStyle(fontSize: 9, color: Color(0xFF94A3B8)),
                   ),
-                  Text(
+                  AppText(
                     value,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF1E293B),
@@ -228,7 +231,7 @@ class _InfoBadge extends StatelessWidget {
                   ),
                 ],
               ),
-            )
+            ),
           ],
         ),
       ),

@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 class SectionTitleWidget extends StatelessWidget {
@@ -13,10 +14,7 @@ class SectionTitleWidget extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       child: Align(
         alignment: Alignment.centerLeft,
-        child: Text(
-          title,
-          style: TextStyle(color: color),
-        ),
+        child: AppText(title, style: TextStyle(color: color)),
       ),
     );
   }

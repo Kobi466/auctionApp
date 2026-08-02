@@ -1,24 +1,27 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../data/models/product_model.dart';
 
 class TrendingNewSection extends StatelessWidget {
   final List<ProductModel> products;
 
-  const TrendingNewSection({
-    super.key,
-    required this.products,
-  });
+  const TrendingNewSection({super.key, required this.products});
 
   @override
   Widget build(BuildContext context) {
     final trendingCount = products
-        .where((product) => product.tags.any((tag) => tag.toLowerCase().contains('trend')))
+        .where(
+          (product) =>
+              product.tags.any((tag) => tag.toLowerCase().contains('trend')),
+        )
         .length;
 
     final sortedProducts = products.toList()
       ..sort((first, second) {
-        final firstTime = first.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-        final secondTime = second.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final firstTime =
+            first.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final secondTime =
+            second.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0);
         return secondTime.compareTo(firstTime);
       });
 
@@ -30,6 +33,7 @@ class TrendingNewSection extends StatelessWidget {
         children: [
           Expanded(
             child: _buildCard(
+              context: context,
               title: 'Sản phẩm xu hướng',
               subtitle: trendingCount > 0
                   ? '$trendingCount Sản phẩm đang được quan tâm'
@@ -39,12 +43,13 @@ class TrendingNewSection extends StatelessWidget {
               bgColor: const Color(0xFFE9EFFF),
               iconColor: const Color(0xFF4F7DFF),
               btnColor: const Color(0xFFD3DFFF),
-              textColor: const Color(0xFF1E293B),
+              textColor: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: _buildCard(
+              context: context,
               title: 'Vừa mới đăng',
               subtitle: latestProduct != null
                   ? latestProduct.name
@@ -64,6 +69,7 @@ class TrendingNewSection extends StatelessWidget {
   }
 
   Widget _buildCard({
+    required BuildContext context,
     required String title,
     required String subtitle,
     required String buttonText,
@@ -85,7 +91,7 @@ class TrendingNewSection extends StatelessWidget {
         children: [
           Icon(icon, color: iconColor, size: 24),
           const SizedBox(height: 12),
-          Text(
+          AppText(
             title,
             style: TextStyle(
               fontSize: 14,
@@ -94,11 +100,13 @@ class TrendingNewSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
+          AppText(
             subtitle,
             style: TextStyle(
               fontSize: 10,
-              color: isDark ? Colors.white.withOpacity(0.6) : const Color(0xFF64748B),
+              color: isDark
+                  ? Colors.white.withOpacity(0.6)
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 16),
@@ -109,7 +117,7 @@ class TrendingNewSection extends StatelessWidget {
               color: btnColor,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Text(
+            child: AppText(
               buttonText,
               style: TextStyle(
                 fontSize: 10,

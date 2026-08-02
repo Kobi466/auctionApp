@@ -8,7 +8,7 @@ class KycDataEntity {
   final String? nationality;
   final String? placeOfOrigin;
   final String? residentialAddress;
-  
+
   final File? idFrontImage;
   final File? idBackImage;
   final File? faceImage;

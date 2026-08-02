@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -112,7 +113,7 @@ class _Step1PersonalInfoState extends State<Step1PersonalInfo> {
             children: options
                 .map(
                   (option) => ListTile(
-                    title: Text(option),
+                    title: AppText(option),
                     onTap: () => Navigator.pop(context, option),
                   ),
                 )
@@ -146,7 +147,10 @@ class _Step1PersonalInfoState extends State<Step1PersonalInfo> {
             children: [
               KycTextField(
                 label: 'So CMND/CCCD',
-                hintText: 'Nhap so the cua ban',
+                hintText: AppTranslator.translate(
+                  context,
+                  'Nhap so the cua ban',
+                ),
                 controller: _idNumberController,
                 keyboardType: TextInputType.number,
                 onChanged: (_) => _updateData(controller),
@@ -154,7 +158,10 @@ class _Step1PersonalInfoState extends State<Step1PersonalInfo> {
               const SizedBox(height: 16),
               KycTextField(
                 label: 'Ho va ten day du',
-                hintText: 'Vi du: NGUYEN VAN A',
+                hintText: AppTranslator.translate(
+                  context,
+                  'Vi du: NGUYEN VAN A',
+                ),
                 controller: _fullNameController,
                 onChanged: (_) => _updateData(controller),
               ),
@@ -166,7 +173,7 @@ class _Step1PersonalInfoState extends State<Step1PersonalInfo> {
             children: [
               KycTextField(
                 label: 'Ngay sinh',
-                hintText: 'yyyy-mm-dd',
+                hintText: AppTranslator.translate(context, 'yyyy-mm-dd'),
                 controller: _dobController,
                 suffixIcon: const Icon(Icons.calendar_today_outlined, size: 20),
                 readOnly: true,
@@ -175,7 +182,7 @@ class _Step1PersonalInfoState extends State<Step1PersonalInfo> {
               const SizedBox(height: 16),
               KycTextField(
                 label: 'Gioi tinh',
-                hintText: 'Chon gioi tinh',
+                hintText: AppTranslator.translate(context, 'Chon gioi tinh'),
                 controller: _genderController,
                 suffixIcon: const Icon(Icons.keyboard_arrow_down, size: 24),
                 readOnly: true,
@@ -184,7 +191,7 @@ class _Step1PersonalInfoState extends State<Step1PersonalInfo> {
               const SizedBox(height: 16),
               KycTextField(
                 label: 'Quoc tich',
-                hintText: 'Viet Nam',
+                hintText: AppTranslator.translate(context, 'Viet Nam'),
                 controller: _nationalityController,
                 onChanged: (_) => _updateData(controller),
               ),
@@ -196,14 +203,20 @@ class _Step1PersonalInfoState extends State<Step1PersonalInfo> {
             children: [
               KycTextField(
                 label: 'Que quan',
-                hintText: 'Tinh/Thanh pho, Quan/Huyen',
+                hintText: AppTranslator.translate(
+                  context,
+                  'Tinh/Thanh pho, Quan/Huyen',
+                ),
                 controller: _placeOfOriginController,
                 onChanged: (_) => _updateData(controller),
               ),
               const SizedBox(height: 16),
               KycTextField(
                 label: 'Noi thuong tru',
-                hintText: 'So nha, ten duong, phuong/xa...',
+                hintText: AppTranslator.translate(
+                  context,
+                  'So nha, ten duong, phuong/xa...',
+                ),
                 controller: _residentialAddressController,
                 onChanged: (_) => _updateData(controller),
               ),
@@ -228,7 +241,7 @@ class _Step1PersonalInfoState extends State<Step1PersonalInfo> {
           const Icon(Icons.info, color: AppColors.primaryBlue, size: 20),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(
+            child: AppText(
               'Vui long cung cap thong tin chinh xac theo CMND/CCCD de qua trinh xac minh dien ra nhanh hon.',
               style: AppTextStyles.registerSubtitleLight.copyWith(
                 fontSize: 13,
@@ -248,7 +261,7 @@ class _Step1PersonalInfoState extends State<Step1PersonalInfo> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -272,7 +285,7 @@ class _Step1PersonalInfoState extends State<Step1PersonalInfo> {
                 ),
               ),
               const SizedBox(width: 10),
-              Text(
+              AppText(
                 title,
                 style: AppTextStyles.registerTitleLight.copyWith(fontSize: 18),
               ),

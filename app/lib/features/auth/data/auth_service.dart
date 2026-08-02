@@ -14,10 +14,7 @@ class AuthService {
   }) async {
     final response = await apiClient.post(
       '/auth/login',
-      body: {
-        'email': email,
-        'password': password,
-      },
+      body: {'email': email, 'password': password},
     );
 
     final apiResponse = ApiResponse<TokenResponse>.fromJson(
@@ -31,11 +28,12 @@ class AuthService {
 
     throw Exception(
       _extractErrorMessage(
-      statusCode: _statusCode(response),
-      apiMessage: apiResponse.message,
-      rawBody: _rawBody(response),
-      fallbackMessage: 'Đăng nhập thất bại',
-    ));
+        statusCode: _statusCode(response),
+        apiMessage: apiResponse.message,
+        rawBody: _rawBody(response),
+        fallbackMessage: 'Đăng nhập thất bại',
+      ),
+    );
   }
 
   Future<ApiResponse<UserResponse>> register({
@@ -72,36 +70,39 @@ class AuthService {
 
     final apiResponse = ApiResponse<UserResponse>.fromJson(body, null);
 
-    throw Exception(_extractErrorMessage(
-      statusCode: _statusCode(response),
-      apiMessage: apiResponse.message,
-      rawBody: _rawBody(response),
-      fallbackMessage: 'Đăng ký thất bại',
-    ));
+    throw Exception(
+      _extractErrorMessage(
+        statusCode: _statusCode(response),
+        apiMessage: apiResponse.message,
+        rawBody: _rawBody(response),
+        fallbackMessage: 'Đăng ký thất bại',
+      ),
+    );
   }
 
-  Future<void> logout({
-    required String token,
-  }) async {
+  Future<void> logout({required String token}) async {
     final response = await apiClient.post(
       '/auth/logout',
-      body: {
-        'token': token,
-      },
+      body: {'token': token},
     );
 
-    final apiResponse = ApiResponse<void>.fromJson(_responseBody(response), null);
+    final apiResponse = ApiResponse<void>.fromJson(
+      _responseBody(response),
+      null,
+    );
 
     if (_isSuccessful(response) && apiResponse.isSuccess) {
       return;
     }
 
-    throw Exception(_extractErrorMessage(
-      statusCode: _statusCode(response),
-      apiMessage: apiResponse.message,
-      rawBody: _rawBody(response),
-      fallbackMessage: 'Đăng xuất thất bại',
-    ));
+    throw Exception(
+      _extractErrorMessage(
+        statusCode: _statusCode(response),
+        apiMessage: apiResponse.message,
+        rawBody: _rawBody(response),
+        fallbackMessage: 'Đăng xuất thất bại',
+      ),
+    );
   }
 
   int _statusCode(Map<String, dynamic> response) {

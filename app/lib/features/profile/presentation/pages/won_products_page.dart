@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -141,7 +142,7 @@ class _WonProductsPageState extends State<WonProductsPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
+          content: AppText(
             paymentMethod == 'COD'
                 ? 'Da chon thanh toan khi nhan hang'
                 : 'Da gui bien lai cho admin',
@@ -169,9 +170,9 @@ class _WonProductsPageState extends State<WonProductsPage> {
       await _service.acceptWinnerOffer(accessToken: token, roomId: roomId);
       await _load();
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Da dong y nhan san pham')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: AppText('Da dong y nhan san pham')),
+      );
     } catch (error) {
       if (!mounted) return;
       _showError(error.toString().replaceFirst('Exception: ', ''));
@@ -206,7 +207,7 @@ class _WonProductsPageState extends State<WonProductsPage> {
 
   void _showError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
+      SnackBar(content: AppText(message), backgroundColor: Colors.red),
     );
   }
 
@@ -224,7 +225,7 @@ class _WonProductsPageState extends State<WonProductsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8FF),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -232,7 +233,7 @@ class _WonProductsPageState extends State<WonProductsPage> {
           icon: const Icon(Icons.arrow_back, color: Color(0xFF1E293B)),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: AppText(
           'San pham da thang',
           style: TextStyle(
             color: Color(0xFF1E293B),
@@ -327,7 +328,7 @@ class _WonProductCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
@@ -349,11 +350,11 @@ class _WonProductCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    AppText(
                       product.name,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Color(0xFF111827),
                         fontWeight: FontWeight.w900,
                         fontSize: 16,
@@ -366,9 +367,9 @@ class _WonProductCard extends StatelessWidget {
                     ),
                     if ((item.winnerPaymentRejectedCount ?? 0) > 0) ...[
                       const SizedBox(height: 8),
-                      Text(
+                      AppText(
                         'Lan gui lai ${item.winnerPaymentRejectedCount}/3',
-                        style: const TextStyle(
+                        style: TextStyle(
                           color: Color(0xFFEF4444),
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
@@ -376,16 +377,16 @@ class _WonProductCard extends StatelessWidget {
                       ),
                     ],
                     const SizedBox(height: 10),
-                    Text(
+                    AppText(
                       'Hang ${item.currentWinnerRank ?? '-'}',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Color(0xFF64748B),
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
                     const SizedBox(height: 2),
-                    const Text(
+                    AppText(
                       'Con phai thanh toan',
                       style: TextStyle(
                         color: Color(0xFF64748B),
@@ -394,9 +395,9 @@ class _WonProductCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
+                    AppText(
                       formatVnd(item.winnerPaymentAmount),
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: AppColors.primaryBlue,
                         fontWeight: FontWeight.w900,
                         fontSize: 18,
@@ -415,7 +416,7 @@ class _WonProductCard extends StatelessWidget {
           ],
           if (canAccept) ...[
             const SizedBox(height: 14),
-            const Text(
+            AppText(
               'Nguoi xep hang truoc da bi loai. Ban co muon nhan san pham voi gia da dau khong?',
               style: TextStyle(
                 color: Color(0xFF64748B),
@@ -448,7 +449,7 @@ class _WonProductCard extends StatelessWidget {
                         ),
                       )
                     : const Icon(Icons.check_circle_outline),
-                label: const Text(
+                label: AppText(
                   'Dong y nhan san pham',
                   style: TextStyle(fontWeight: FontWeight.w900),
                 ),
@@ -463,10 +464,7 @@ class _WonProductCard extends StatelessWidget {
             ),
             if (selectedPaymentMethod == 'BANK_TRANSFER') ...[
               const SizedBox(height: 12),
-              _WinnerBankTransferBox(
-                item: item,
-                paymentConfig: paymentConfig,
-              ),
+              _WinnerBankTransferBox(item: item, paymentConfig: paymentConfig),
               const SizedBox(height: 12),
               _ReceiptPicker(
                 file: selectedReceipt,
@@ -481,13 +479,13 @@ class _WonProductCard extends StatelessWidget {
               controller: shippingAddressController,
               minLines: 2,
               maxLines: 4,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Color(0xFF111827),
                 fontWeight: FontWeight.w600,
               ),
               decoration: InputDecoration(
-                hintText: 'Dia chi giao hang',
-                hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                hintText: AppTranslator.translate(context, 'Dia chi giao hang'),
+                hintStyle: TextStyle(color: Color(0xFF94A3B8)),
                 prefixIcon: const Icon(
                   Icons.location_on_outlined,
                   color: AppColors.primaryBlue,
@@ -506,7 +504,7 @@ class _WonProductCard extends StatelessWidget {
               controller: noteController,
               minLines: 2,
               maxLines: 3,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Color(0xFF111827),
                 fontWeight: FontWeight.w600,
               ),
@@ -514,7 +512,7 @@ class _WonProductCard extends StatelessWidget {
                 hintText: selectedPaymentMethod == 'COD'
                     ? 'Ghi chu giao hang (khong bat buoc)'
                     : 'Ghi chu chuyen khoan',
-                hintStyle: const TextStyle(color: Color(0xFF94A3B8)),
+                hintStyle: TextStyle(color: Color(0xFF94A3B8)),
                 filled: true,
                 fillColor: const Color(0xFFF8FAFC),
                 contentPadding: const EdgeInsets.all(14),
@@ -553,7 +551,7 @@ class _WonProductCard extends StatelessWidget {
                             ? Icons.local_shipping_outlined
                             : Icons.cloud_upload_outlined,
                       ),
-                label: const Text(
+                label: AppText(
                   'Xac nhan thanh toan',
                   style: TextStyle(fontWeight: FontWeight.w900),
                 ),
@@ -703,7 +701,9 @@ class _PaymentMethodOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = selected ? AppColors.primaryBlue : const Color(0xFF64748B);
+    final color = selected
+        ? AppColors.primaryBlue
+        : Theme.of(context).colorScheme.onSurfaceVariant;
     return Material(
       color: selected ? const Color(0xFFEFF6FF) : const Color(0xFFF8FAFC),
       borderRadius: BorderRadius.circular(16),
@@ -725,7 +725,7 @@ class _PaymentMethodOption extends StatelessWidget {
             children: [
               Icon(icon, color: color),
               const SizedBox(height: 8),
-              Text(
+              AppText(
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
@@ -736,11 +736,11 @@ class _PaymentMethodOption extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 2),
-              Text(
+              AppText(
                 subtitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   color: Color(0xFF94A3B8),
                   fontWeight: FontWeight.w600,
                   fontSize: 11,
@@ -784,7 +784,7 @@ class _WinnerBankTransferBox extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
@@ -812,7 +812,10 @@ class _WinnerBankTransferBox extends StatelessWidget {
           const SizedBox(height: 12),
           _PaymentInfoRow(label: 'Ngan hang', value: config.bankName),
           _PaymentInfoRow(label: 'So tai khoan', value: config.accountNumber),
-          _PaymentInfoRow(label: 'Chu tai khoan', value: config.accountHolderName),
+          _PaymentInfoRow(
+            label: 'Chu tai khoan',
+            value: config.accountHolderName,
+          ),
           _PaymentInfoRow(
             label: 'Con lai',
             value: formatVnd(item.winnerPaymentAmount),
@@ -853,7 +856,7 @@ class _InfoPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
@@ -873,17 +876,17 @@ class _InfoPanel extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AppText(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Color(0xFF111827),
                     fontWeight: FontWeight.w900,
                   ),
                 ),
                 const SizedBox(height: 3),
-                Text(
+                AppText(
                   message,
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Color(0xFF64748B),
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -902,10 +905,7 @@ class _PaymentInfoRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _PaymentInfoRow({
-    required this.label,
-    required this.value,
-  });
+  const _PaymentInfoRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
@@ -916,9 +916,9 @@ class _PaymentInfoRow extends StatelessWidget {
         children: [
           SizedBox(
             width: 102,
-            child: Text(
+            child: AppText(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Color(0xFF64748B),
                 fontWeight: FontWeight.w700,
                 fontSize: 12,
@@ -928,7 +928,7 @@ class _PaymentInfoRow extends StatelessWidget {
           Expanded(
             child: SelectableText(
               value,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Color(0xFF111827),
                 fontWeight: FontWeight.w900,
                 fontSize: 12,
@@ -983,21 +983,21 @@ class _ReceiptPicker extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    AppText(
                       selected ? file!.name : 'Chon tep bien lai',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Color(0xFF111827),
                         fontWeight: FontWeight.w900,
                       ),
                     ),
                     const SizedBox(height: 3),
-                    Text(
+                    AppText(
                       selected
                           ? _formatFileSize(file!.size)
                           : 'Anh JPG, PNG hoac PDF',
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Color(0xFF64748B),
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
@@ -1037,7 +1037,7 @@ class _StatusPill extends StatelessWidget {
         color: color.withAlpha(24),
         borderRadius: BorderRadius.circular(999),
       ),
-      child: Text(
+      child: AppText(
         label,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
@@ -1070,10 +1070,10 @@ class _StateMessage extends StatelessWidget {
           color: Color(0xFF94A3B8),
         ),
         const SizedBox(height: 12),
-        Text(
+        AppText(
           message,
           textAlign: TextAlign.center,
-          style: const TextStyle(
+          style: TextStyle(
             color: Color(0xFF64748B),
             fontWeight: FontWeight.w800,
           ),
@@ -1090,7 +1090,7 @@ class _StateMessage extends StatelessWidget {
                   borderRadius: BorderRadius.circular(18),
                 ),
               ),
-              child: const Text('Tai lai'),
+              child: AppText('Tai lai'),
             ),
           ),
         ],
@@ -1104,10 +1104,11 @@ String _winnerTransferContent(
   AuctionRoomSummaryModel item,
 ) {
   final roomId = item.product.auctionRoom?.id ?? item.product.id;
-  final prefix = (paymentConfig.transferNotePrefix?.trim().isNotEmpty == true
-          ? paymentConfig.transferNotePrefix!.trim()
-          : 'AUC')
-      .toUpperCase();
+  final prefix =
+      (paymentConfig.transferNotePrefix?.trim().isNotEmpty == true
+              ? paymentConfig.transferNotePrefix!.trim()
+              : 'AUC')
+          .toUpperCase();
   final shortRoomId = roomId.length > 8 ? roomId.substring(0, 8) : roomId;
   return '$prefix-WIN-$shortRoomId';
 }
@@ -1120,8 +1121,9 @@ String _buildWinnerVietQrUrl({
   final templateUrl = paymentConfig.qrImageUrl.trim();
   final amountText = amount.round().toString();
   final encodedContent = Uri.encodeQueryComponent(transferContent);
-  final accountName =
-      Uri.encodeQueryComponent(paymentConfig.accountHolderName.trim());
+  final accountName = Uri.encodeQueryComponent(
+    paymentConfig.accountHolderName.trim(),
+  );
 
   if (templateUrl.contains('{amount}') ||
       templateUrl.contains('{addInfo}') ||
@@ -1147,10 +1149,10 @@ String _buildWinnerVietQrUrl({
 }
 
 String _resolveVietQrBankCode(String bankName) {
-  final normalized = bankName
-      .trim()
-      .toUpperCase()
-      .replaceAll(RegExp(r'[^A-Z0-9]'), '');
+  final normalized = bankName.trim().toUpperCase().replaceAll(
+    RegExp(r'[^A-Z0-9]'),
+    '',
+  );
 
   const aliases = {
     'MB': 'MB',

@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 class ActionButtonWidget extends StatelessWidget {
@@ -21,19 +22,15 @@ class ActionButtonWidget extends StatelessWidget {
       width: double.infinity,
       child: isOutlined
           ? OutlinedButton(
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: color),
-        ),
-        onPressed: onPressed,
-        child: Text(text, style: TextStyle(color: color)),
-      )
+              style: OutlinedButton.styleFrom(side: BorderSide(color: color)),
+              onPressed: onPressed,
+              child: AppText(text, style: TextStyle(color: color)),
+            )
           : ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-        ),
-        onPressed: onPressed,
-        child: Text(text),
-      ),
+              style: ElevatedButton.styleFrom(backgroundColor: color),
+              onPressed: onPressed,
+              child: AppText(text),
+            ),
     );
   }
 }

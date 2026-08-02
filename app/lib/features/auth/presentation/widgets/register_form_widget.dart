@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
@@ -46,11 +47,11 @@ class RegisterFormWidget extends StatelessWidget {
           const SizedBox(height: 10),
           RegisterTextFieldWidget(
             controller: fullNameController,
-            hintText: 'Nhập họ và tên',
+            hintText: AppTranslator.translate(context, 'Nhập họ và tên'),
             validator: Validators.validateFullName,
-            prefixIcon: const Icon(
+            prefixIcon: Icon(
               Icons.person_outline,
-              color: AppColors.lightSubText,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 18),
@@ -59,12 +60,12 @@ class RegisterFormWidget extends StatelessWidget {
           const SizedBox(height: 10),
           RegisterTextFieldWidget(
             controller: emailController,
-            hintText: 'example@gmail.com',
+            hintText: AppTranslator.translate(context, 'example@gmail.com'),
             validator: Validators.validateEmail,
             keyboardType: TextInputType.emailAddress,
-            prefixIcon: const Icon(
+            prefixIcon: Icon(
               Icons.email_outlined,
-              color: AppColors.lightSubText,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 18),
@@ -73,7 +74,7 @@ class RegisterFormWidget extends StatelessWidget {
           const SizedBox(height: 10),
           RegisterTextFieldWidget(
             controller: phoneController,
-            hintText: 'Nhập số điện thoại',
+            hintText: AppTranslator.translate(context, 'Nhập số điện thoại'),
             keyboardType: TextInputType.phone,
             validator: (value) {
               if (value == null || value.isEmpty) {
@@ -81,9 +82,9 @@ class RegisterFormWidget extends StatelessWidget {
               }
               return null;
             },
-            prefixIcon: const Icon(
+            prefixIcon: Icon(
               Icons.phone_outlined,
-              color: AppColors.lightSubText,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 18),
@@ -92,12 +93,12 @@ class RegisterFormWidget extends StatelessWidget {
           const SizedBox(height: 10),
           RegisterTextFieldWidget(
             controller: passwordController,
-            hintText: 'Nhập mật khẩu',
+            hintText: AppTranslator.translate(context, 'Nhập mật khẩu'),
             validator: Validators.validatePassword,
             obscureText: obscurePassword,
-            prefixIcon: const Icon(
+            prefixIcon: Icon(
               Icons.lock_outline,
-              color: AppColors.lightSubText,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             suffixIcon: IconButton(
               onPressed: onTogglePassword,
@@ -105,7 +106,7 @@ class RegisterFormWidget extends StatelessWidget {
                 obscurePassword
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
-                color: AppColors.lightSubText,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),
@@ -115,7 +116,7 @@ class RegisterFormWidget extends StatelessWidget {
           const SizedBox(height: 10),
           RegisterTextFieldWidget(
             controller: confirmPasswordController,
-            hintText: 'Nhập lại mật khẩu',
+            hintText: AppTranslator.translate(context, 'Nhập lại mật khẩu'),
             validator: (value) {
               return Validators.validateConfirmPassword(
                 value,
@@ -123,9 +124,9 @@ class RegisterFormWidget extends StatelessWidget {
               );
             },
             obscureText: obscureConfirmPassword,
-            prefixIcon: const Icon(
+            prefixIcon: Icon(
               Icons.verified_user_outlined,
-              color: AppColors.lightSubText,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             suffixIcon: IconButton(
               onPressed: onToggleConfirmPassword,
@@ -133,16 +134,13 @@ class RegisterFormWidget extends StatelessWidget {
                 obscureConfirmPassword
                     ? Icons.visibility_off_outlined
                     : Icons.visibility_outlined,
-                color: AppColors.lightSubText,
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
             ),
           ),
           const SizedBox(height: 20),
 
-          RegisterTermsWidget(
-            value: acceptedTerms,
-            onChanged: onTermsChanged,
-          ),
+          RegisterTermsWidget(value: acceptedTerms, onChanged: onTermsChanged),
         ],
       ),
     );

@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/utils/image_provider_helper.dart';
@@ -23,7 +24,7 @@ class LiveAuctionCard extends StatelessWidget {
     return Container(
       width: 280,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -39,8 +40,9 @@ class LiveAuctionCard extends StatelessWidget {
           Stack(
             children: [
               ClipRRect(
-                borderRadius:
-                    const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
                 child: Image(
                   image: appImageProvider(imageUrl),
                   height: 160,
@@ -57,8 +59,10 @@ class LiveAuctionCard extends StatelessWidget {
                 top: 12,
                 left: 12,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.pinkAccent.withOpacity(0.8),
                     borderRadius: BorderRadius.circular(20),
@@ -67,7 +71,7 @@ class LiveAuctionCard extends StatelessWidget {
                     children: [
                       CircleAvatar(radius: 3, backgroundColor: Colors.white),
                       SizedBox(width: 4),
-                      Text(
+                      AppText(
                         'TRỰC TIẾP',
                         style: TextStyle(
                           color: Colors.white,
@@ -83,18 +87,23 @@ class LiveAuctionCard extends StatelessWidget {
                 bottom: 12,
                 right: 12,
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black.withOpacity(0.6),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.access_time,
-                          color: Colors.white, size: 12),
+                      const Icon(
+                        Icons.access_time,
+                        color: Colors.white,
+                        size: 12,
+                      ),
                       const SizedBox(width: 4),
-                      Text(
+                      AppText(
                         timeLeft,
                         style: const TextStyle(
                           color: Colors.white,
@@ -113,7 +122,7 @@ class LiveAuctionCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AppText(
                   title,
                   style: const TextStyle(
                     fontSize: 14,
@@ -130,7 +139,7 @@ class LiveAuctionCard extends StatelessWidget {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        AppText(
                           'GIÁ HIỆN TẠI',
                           style: TextStyle(
                             fontSize: 8,
@@ -138,7 +147,7 @@ class LiveAuctionCard extends StatelessWidget {
                             color: Color(0xFF94A3B8),
                           ),
                         ),
-                        Text(
+                        AppText(
                           currentPrice,
                           style: const TextStyle(
                             fontSize: 14,
@@ -166,7 +175,7 @@ class LiveAuctionCard extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: const Text(
+                        child: AppText(
                           'Đăng ký đấu giá',
                           style: TextStyle(
                             color: Colors.white,

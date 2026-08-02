@@ -6,9 +6,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
   final ProfileService _service = ProfileService();
 
   @override
-  Future<ProfileResponse> getProfile({
-    required String accessToken,
-  }) {
+  Future<ProfileResponse> getProfile({required String accessToken}) {
     return _service.getProfile(accessToken: accessToken);
   }
 

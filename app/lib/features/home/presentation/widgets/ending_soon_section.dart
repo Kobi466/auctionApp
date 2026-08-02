@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../data/models/product_model.dart';
@@ -6,22 +7,22 @@ import 'ending_soon_card.dart';
 class EndingSoonSection extends StatelessWidget {
   final List<ProductModel> products;
 
-  const EndingSoonSection({
-    super.key,
-    required this.products,
-  });
+  const EndingSoonSection({super.key, required this.products});
 
   List<ProductModel> get _endingSoonProducts {
-    final items = products
-        .where((product) =>
-            _effectiveRoomStatus(product) == 'LIVE' &&
-            product.auctionRoom?.endTime != null)
-        .toList()
-      ..sort((first, second) {
-        final firstEndTime = first.auctionRoom!.endTime!;
-        final secondEndTime = second.auctionRoom!.endTime!;
-        return firstEndTime.compareTo(secondEndTime);
-      });
+    final items =
+        products
+            .where(
+              (product) =>
+                  _effectiveRoomStatus(product) == 'LIVE' &&
+                  product.auctionRoom?.endTime != null,
+            )
+            .toList()
+          ..sort((first, second) {
+            final firstEndTime = first.auctionRoom!.endTime!;
+            final secondEndTime = second.auctionRoom!.endTime!;
+            return firstEndTime.compareTo(secondEndTime);
+          });
 
     return items.take(5).toList();
   }
@@ -40,7 +41,7 @@ class EndingSoonSection extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: const [
-                  Text(
+                  AppText(
                     'Sap ket thuc',
                     style: TextStyle(
                       fontSize: 18,
@@ -49,12 +50,9 @@ class EndingSoonSection extends StatelessWidget {
                     ),
                   ),
                   SizedBox(height: 4),
-                  Text(
+                  AppText(
                     'Chi con vai phut cuoi',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF94A3B8),
-                    ),
+                    style: TextStyle(fontSize: 12, color: Color(0xFF94A3B8)),
                   ),
                 ],
               ),
@@ -73,7 +71,7 @@ class EndingSoonSection extends StatelessWidget {
             child: SizedBox(
               height: 80,
               child: Center(
-                child: Text(
+                child: AppText(
                   'Chua co san pham sap ket thuc',
                   style: TextStyle(color: Color(0xFF64748B)),
                 ),

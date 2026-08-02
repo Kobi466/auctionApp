@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -21,15 +22,15 @@ class Step3FaceRecognition extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 8),
-          Text(
+          AppText(
             'Xác thực khuôn mặt',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
-              color: const Color(0xFF1A1C1E),
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          AppText(
             'Vui lòng thực hiện chụp ảnh chân dung của bạn để đảm bảo tính bảo mật và xác minh danh tính chính chủ.',
             style: TextStyle(
               color: Colors.grey[600],
@@ -40,34 +41,41 @@ class Step3FaceRecognition extends StatelessWidget {
           const SizedBox(height: 32),
           DocumentScanCard(
             title: 'Ảnh chân dung',
-            hintText: faceImage != null ? 'Đã chụp ảnh chân dung' : 'Nhấn để chụp chân dung',
-            infoText: 'Cần nhìn thẳng vào camera, không đeo kính râm hoặc khẩu trang. Đảm bảo khuôn mặt rõ nét.',
+            hintText: faceImage != null
+                ? 'Đã chụp ảnh chân dung'
+                : 'Nhấn để chụp chân dung',
+            infoText:
+                'Cần nhìn thẳng vào camera, không đeo kính râm hoặc khẩu trang. Đảm bảo khuôn mặt rõ nét.',
             hasImage: faceImage != null,
             imagePath: faceImage?.path,
             onTap: () async {
               final File? capturedFile = await Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => const FaceCapturePage()),
+                MaterialPageRoute(
+                  builder: (context) => const FaceCapturePage(),
+                ),
               );
-              
+
               if (capturedFile != null) {
-                controller.updateData(controller.kycData.copyWith(faceImage: capturedFile));
+                controller.updateData(
+                  controller.kycData.copyWith(faceImage: capturedFile),
+                );
               }
             },
           ),
           const SizedBox(height: 24),
-          _buildTipsSection(),
+          _buildTipsSection(context),
           const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  Widget _buildTipsSection() {
+  Widget _buildTipsSection(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -80,7 +88,7 @@ class Step3FaceRecognition extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          AppText(
             'Mẹo chụp ảnh đẹp',
             style: AppTextStyles.registerTitleLight.copyWith(fontSize: 18),
           ),
@@ -94,14 +102,19 @@ class Step3FaceRecognition extends StatelessWidget {
           _buildTipItem(
             icon: Icons.face_retouching_off_outlined,
             title: 'Không che mặt',
-            subtitle: 'Vui lòng tháo kính râm, khẩu trang hoặc mũ trước khi chụp.',
+            subtitle:
+                'Vui lòng tháo kính râm, khẩu trang hoặc mũ trước khi chụp.',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildTipItem({required IconData icon, required String title, required String subtitle}) {
+  Widget _buildTipItem({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+  }) {
     return Row(
       children: [
         Container(
@@ -117,10 +130,12 @@ class Step3FaceRecognition extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: AppTextStyles.registerLabelLight),
-              Text(
+              AppText(title, style: AppTextStyles.registerLabelLight),
+              AppText(
                 subtitle,
-                style: AppTextStyles.registerSubtitleLight.copyWith(fontSize: 12),
+                style: AppTextStyles.registerSubtitleLight.copyWith(
+                  fontSize: 12,
+                ),
               ),
             ],
           ),

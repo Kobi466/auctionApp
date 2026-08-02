@@ -1,0 +1,64 @@
+{
+  "@@locale": "vi",
+  "settings": "Cài đặt tài khoản",
+  "preferences": "TÙY CHỌN",
+  "language": "Ngôn ngữ",
+  "vietnamese": "Tiếng Việt",
+  "english": "Tiếng Anh",
+  "darkMode": "Chế độ tối",
+  "darkEnabled": "Giao diện tối đang bật",
+  "lightEnabled": "Giao diện sáng đang bật",
+  "preferenceSyncFailed": "Đã lưu trên thiết bị nhưng chưa đồng bộ được với máy chủ",
+  "navHome": "Trang chủ",
+  "navProducts": "Sản phẩm",
+  "navPending": "Chờ duyệt",
+  "navBidRoom": "Phòng bid",
+  "navProfile": "Cá nhân",
+  "searchRequests": "Tìm kiếm yêu cầu...",
+  "allCount": "Tất cả ({count})",
+  "pendingCount": "Chờ duyệt ({count})",
+  "approvedCount": "Đã duyệt ({count})",
+  "noRequests": "Chưa có yêu cầu",
+  "noRequestsMessage": "Yêu cầu đã chuyển khoản sẽ hiển thị tại đây để chờ admin duyệt.",
+  "reload": "Tải lại",
+  "cannotLoadRequests": "Không tải được yêu cầu",
+  "tryAgain": "Thử lại",
+  "loginToViewRequests": "Vui lòng đăng nhập để xem yêu cầu chờ duyệt"
+  ,"profileTitle": "Cá nhân"
+  ,"auctionActivity": "HOẠT ĐỘNG ĐẤU GIÁ"
+  ,"mySellingItems": "Đồ tôi đang bán"
+  ,"auctionHistory": "Lịch sử đấu giá"
+  ,"wonProducts": "Sản phẩm đã thắng"
+  ,"favorites": "Danh sách yêu thích"
+  ,"securityIdentity": "BẢO MẬT VÀ ĐỊNH DANH"
+  ,"identityVerification": "Xác minh danh tính"
+  ,"changePassword": "Đổi mật khẩu"
+  ,"settingsSection": "CÀI ĐẶT"
+  ,"notifications": "Thông báo"
+  ,"verified": "Đã xác thực"
+  ,"pendingApproval": "Đang chờ duyệt"
+  ,"rejectedRetry": "Bị từ chối - Nhấn để thử lại"
+  ,"notVerified": "Chưa xác thực"
+  ,"loading": "Đang tải..."
+  ,"emailNotUpdated": "Chưa cập nhật email"
+  ,"user": "Người dùng"
+  ,"logout": "Đăng xuất"
+  ,"logoutSuccess": "Đăng xuất thành công"
+  ,"withdraw": "Rút tiền"
+  ,"withdrawable": "Có thể rút"
+  ,"lockedDeposit": "Tiền cọc đang giữ"
+  ,"history": "Lịch sử"
+  ,"withdrawHistory": "Lịch sử rút tiền"
+  ,"maximumAmount": "Tối đa: {amount}"
+  ,"amount": "Số tiền"
+  ,"bank": "Ngân hàng"
+  ,"accountNumber": "Số tài khoản"
+  ,"accountHolder": "Chủ tài khoản"
+  ,"branch": "Chi nhánh"
+  ,"note": "Ghi chú"
+  ,"submitForApproval": "Gửi admin xét duyệt"
+  ,"noWithdrawalRequests": "Chưa có yêu cầu rút tiền"
+  ,"transferred": "Đã chuyển"
+  ,"rejected": "Từ chối"
+  ,"pending": "Chờ duyệt"
+}

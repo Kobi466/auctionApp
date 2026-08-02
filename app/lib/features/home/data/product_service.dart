@@ -5,14 +5,10 @@ import 'models/product_model.dart';
 class ProductService {
   final ApiClient _apiClient = ApiClient();
 
-  Future<List<ProductModel>> getProducts({
-    required String accessToken,
-  }) async {
+  Future<List<ProductModel>> getProducts({required String accessToken}) async {
     final response = await _apiClient.get(
       '/products',
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-      },
+      headers: {'Authorization': 'Bearer $accessToken'},
     );
 
     final int statusCode = response['statusCode'] as int;
@@ -34,8 +30,8 @@ class ProductService {
       apiResponse.message.isNotEmpty
           ? apiResponse.message
           : rawBody.isNotEmpty
-              ? 'HTTP $statusCode: $rawBody'
-              : 'Khong tai duoc danh sach san pham',
+          ? 'HTTP $statusCode: $rawBody'
+          : 'Khong tai duoc danh sach san pham',
     );
   }
 
@@ -45,9 +41,7 @@ class ProductService {
   }) async {
     final response = await _apiClient.post(
       '/products',
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-      },
+      headers: {'Authorization': 'Bearer $accessToken'},
       body: body,
     );
 
@@ -69,8 +63,8 @@ class ProductService {
       apiResponse.message.isNotEmpty
           ? apiResponse.message
           : rawBody.isNotEmpty
-              ? 'HTTP $statusCode: $rawBody'
-              : 'Khong tao duoc san pham',
+          ? 'HTTP $statusCode: $rawBody'
+          : 'Khong tao duoc san pham',
     );
   }
 
@@ -81,9 +75,7 @@ class ProductService {
   }) async {
     final response = await _apiClient.put(
       '/products/$productId',
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-      },
+      headers: {'Authorization': 'Bearer $accessToken'},
       body: body,
     );
 
@@ -105,8 +97,8 @@ class ProductService {
       apiResponse.message.isNotEmpty
           ? apiResponse.message
           : rawBody.isNotEmpty
-              ? 'HTTP $statusCode: $rawBody'
-              : 'Khong cap nhat duoc san pham',
+          ? 'HTTP $statusCode: $rawBody'
+          : 'Khong cap nhat duoc san pham',
     );
   }
 
@@ -116,9 +108,7 @@ class ProductService {
   }) async {
     final response = await _apiClient.delete(
       '/products/$productId',
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-      },
+      headers: {'Authorization': 'Bearer $accessToken'},
     );
 
     final int statusCode = response['statusCode'] as int;
@@ -135,8 +125,8 @@ class ProductService {
       apiResponse.message.isNotEmpty
           ? apiResponse.message
           : rawBody.isNotEmpty
-              ? 'HTTP $statusCode: $rawBody'
-              : 'Khong xoa duoc san pham',
+          ? 'HTTP $statusCode: $rawBody'
+          : 'Khong xoa duoc san pham',
     );
   }
 }

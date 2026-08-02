@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -31,7 +32,7 @@ class UserProductCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -65,14 +66,17 @@ class UserProductCard extends StatelessWidget {
                 top: 6,
                 left: 6,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: isLive
                         ? Colors.pink.withOpacity(0.9)
                         : Colors.indigo.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(
+                  child: AppText(
                     isLive ? 'LIVE' : 'SẮP ĐẤU GIÁ',
                     style: const TextStyle(
                       color: Colors.white,
@@ -89,7 +93,7 @@ class UserProductCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AppText(
                   title,
                   style: const TextStyle(
                     fontSize: 15,
@@ -109,14 +113,15 @@ class UserProductCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Expanded(
-                      child: Text(
+                      child: AppText(
                         isLive ? time : 'Bắt đầu sau: $time',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 12,
-                          color:
-                              isLive ? const Color(0xFF2563EB) : Colors.orange,
+                          color: isLive
+                              ? const Color(0xFF2563EB)
+                              : Colors.orange,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -124,7 +129,7 @@ class UserProductCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
+                AppText(
                   price,
                   style: const TextStyle(
                     fontSize: 18,
@@ -141,7 +146,7 @@ class UserProductCard extends StatelessWidget {
                       color: Colors.grey,
                     ),
                     const SizedBox(width: 4),
-                    Text(
+                    AppText(
                       '$participants',
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
@@ -163,7 +168,7 @@ class UserProductCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: const Text(
+                        child: AppText(
                           'Chi tiết',
                           style: TextStyle(
                             fontSize: 11,
@@ -187,7 +192,7 @@ class UserProductCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(16),
                           ),
                         ),
-                        child: const Text(
+                        child: AppText(
                           'Đấu giá',
                           style: TextStyle(
                             fontSize: 11,

@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 class CategoryList extends StatelessWidget {
@@ -27,7 +28,7 @@ class CategoryList extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: Theme.of(context).colorScheme.surface,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
@@ -43,7 +44,7 @@ class CategoryList extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
+              AppText(
                 categories[index]['label'] as String,
                 style: const TextStyle(
                   fontSize: 11,

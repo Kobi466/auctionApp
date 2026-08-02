@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -20,12 +21,12 @@ class Step4ReviewInfo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          AppText(
             'Kiem tra thong tin',
             style: AppTextStyles.registerTitleLight.copyWith(fontSize: 28),
           ),
           const SizedBox(height: 8),
-          Text(
+          AppText(
             'Vui long kiem tra ky thong tin truoc khi gui yeu cau KYC.',
             style: AppTextStyles.registerSubtitleLight,
           ),
@@ -35,6 +36,7 @@ class Step4ReviewInfo extends StatelessWidget {
           ],
           const SizedBox(height: 24),
           _buildInfoSection(
+            context: context,
             title: 'Thong tin ca nhan',
             icon: Icons.person_outline,
             children: [
@@ -49,6 +51,7 @@ class Step4ReviewInfo extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           _buildInfoSection(
+            context: context,
             title: 'Giay to va anh chan dung',
             icon: Icons.badge_outlined,
             children: [
@@ -90,17 +93,14 @@ class Step4ReviewInfo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          AppText(
             'Trang thai hien tai: $status',
-            style: TextStyle(
-              color: textColor,
-              fontWeight: FontWeight.w700,
-            ),
+            style: TextStyle(color: textColor, fontWeight: FontWeight.w700),
           ),
           if (controller.rejectedReason != null &&
               controller.rejectedReason!.trim().isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text(
+            AppText(
               controller.rejectedReason!,
               style: TextStyle(color: textColor),
             ),
@@ -111,6 +111,7 @@ class Step4ReviewInfo extends StatelessWidget {
   }
 
   Widget _buildInfoSection({
+    required BuildContext context,
     required String title,
     required IconData icon,
     required List<Widget> children,
@@ -118,7 +119,7 @@ class Step4ReviewInfo extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -135,7 +136,7 @@ class Step4ReviewInfo extends StatelessWidget {
             children: [
               Icon(icon, color: AppColors.primaryBlue, size: 20),
               const SizedBox(width: 8),
-              Text(
+              AppText(
                 title,
                 style: AppTextStyles.registerLabelLight.copyWith(fontSize: 16),
               ),
@@ -154,7 +155,7 @@ class Step4ReviewInfo extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          AppText(
             label,
             style: AppTextStyles.registerSubtitleLight.copyWith(
               fontSize: 11,
@@ -163,7 +164,7 @@ class Step4ReviewInfo extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
+          AppText(
             (value != null && value.trim().isNotEmpty)
                 ? value.trim()
                 : 'Chua cap nhat',
@@ -181,7 +182,7 @@ class Step4ReviewInfo extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Text(
+        AppText(
           label,
           style: AppTextStyles.registerSubtitleLight.copyWith(fontSize: 11),
         ),

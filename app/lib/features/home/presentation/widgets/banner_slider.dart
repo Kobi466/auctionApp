@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 import '../../data/models/product_model.dart';
@@ -5,10 +6,7 @@ import '../../data/models/product_model.dart';
 class BannerSlider extends StatelessWidget {
   final List<ProductModel> products;
 
-  const BannerSlider({
-    super.key,
-    required this.products,
-  });
+  const BannerSlider({super.key, required this.products});
 
   @override
   Widget build(BuildContext context) {
@@ -40,12 +38,15 @@ class BannerSlider extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withOpacity(0.12),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: const Text(
+                child: AppText(
                   'Du lieu tu backend',
                   style: TextStyle(
                     color: Colors.white,
@@ -57,7 +58,7 @@ class BannerSlider extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          Text(
+          AppText(
             featuredProduct != null
                 ? featuredProduct.name
                 : 'Sản phẩm đấu giá hôm nay',
@@ -68,7 +69,7 @@ class BannerSlider extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
+          AppText(
             featuredProduct != null
                 ? (featuredProduct.shortDescription?.trim().isNotEmpty ?? false)
                       ? featuredProduct.shortDescription!.trim()
@@ -110,10 +111,7 @@ class BannerSlider extends StatelessWidget {
     );
   }
 
-  Widget _buildMetric({
-    required String label,
-    required String value,
-  }) {
+  Widget _buildMetric({required String label, required String value}) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -123,7 +121,7 @@ class BannerSlider extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          AppText(
             value,
             style: const TextStyle(
               color: Colors.white,
@@ -132,7 +130,7 @@ class BannerSlider extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
+          AppText(
             label,
             style: TextStyle(
               color: Colors.white.withOpacity(0.68),

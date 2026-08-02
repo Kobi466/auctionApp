@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 
@@ -24,9 +25,9 @@ class EditProfileTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        AppText(
           label,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
             color: Color(0xFF64748B),
@@ -39,7 +40,9 @@ class EditProfileTextField extends StatelessWidget {
           keyboardType: keyboardType,
           validator: validator,
           style: TextStyle(
-            color: enabled ? const Color(0xFF1E293B) : Colors.grey,
+            color: enabled
+                ? Theme.of(context).colorScheme.onSurface
+                : Colors.grey,
             fontWeight: FontWeight.w600,
           ),
           decoration: InputDecoration(
@@ -56,7 +59,10 @@ class EditProfileTextField extends StatelessWidget {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.primaryBlue, width: 1),
+              borderSide: const BorderSide(
+                color: AppColors.primaryBlue,
+                width: 1,
+              ),
             ),
             contentPadding: const EdgeInsets.symmetric(vertical: 16),
           ),

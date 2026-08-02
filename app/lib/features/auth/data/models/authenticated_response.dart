@@ -6,10 +6,7 @@ class AuthenticatedResponse extends BaseModel {
   final UserResponse user;
   final TokenResponse token;
 
-  AuthenticatedResponse({
-    required this.user,
-    required this.token,
-  });
+  AuthenticatedResponse({required this.user, required this.token});
 
   factory AuthenticatedResponse.fromJson(Map<String, dynamic> json) {
     return AuthenticatedResponse(
@@ -20,9 +17,6 @@ class AuthenticatedResponse extends BaseModel {
 
   @override
   Map<String, dynamic> toJson() {
-    return {
-      'user': user.toJson(),
-      'token': token.toJson(),
-    };
+    return {'user': user.toJson(), 'token': token.toJson()};
   }
 }

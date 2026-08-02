@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 import '../../../auth/data/auth_session.dart';
@@ -7,9 +8,8 @@ import '../../domain/entities/kyc_data_entity.dart';
 import '../../domain/repositories/kyc_repository.dart';
 
 class KycController extends ChangeNotifier {
-  KycController({
-    KycRepository? repository,
-  }) : _repository = repository ?? KycRepositoryImpl();
+  KycController({KycRepository? repository})
+    : _repository = repository ?? KycRepositoryImpl();
 
   final KycRepository _repository;
 

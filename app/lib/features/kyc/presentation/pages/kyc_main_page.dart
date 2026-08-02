@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -32,9 +33,9 @@ class _KycMainPageState extends State<KycMainPage> {
 
       final message = _kycController.errorMessage;
       if (message != null && message.isNotEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: AppText(message)));
         _kycController.clearMessages();
       }
     });
@@ -51,7 +52,7 @@ class _KycMainPageState extends State<KycMainPage> {
     if (!controller.canProceedCurrentStep) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Vui long hoan thanh thong tin cua buoc hien tai'),
+          content: AppText('Vui long hoan thanh thong tin cua buoc hien tai'),
           backgroundColor: Colors.red,
         ),
       );
@@ -74,7 +75,7 @@ class _KycMainPageState extends State<KycMainPage> {
     if (submitted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(controller.successMessage ?? 'Gui KYC thanh cong'),
+          content: AppText(controller.successMessage ?? 'Gui KYC thanh cong'),
         ),
       );
       Navigator.pop(context);
@@ -83,7 +84,7 @@ class _KycMainPageState extends State<KycMainPage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(controller.errorMessage ?? 'Gui KYC that bai'),
+        content: AppText(controller.errorMessage ?? 'Gui KYC that bai'),
         backgroundColor: Colors.red,
       ),
     );
@@ -109,7 +110,7 @@ class _KycMainPageState extends State<KycMainPage> {
       child: Consumer<KycController>(
         builder: (context, controller, child) {
           return Scaffold(
-            backgroundColor: AppColors.lightBackground,
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             appBar: AppBar(
               backgroundColor: Colors.transparent,
               elevation: 0,
@@ -117,7 +118,7 @@ class _KycMainPageState extends State<KycMainPage> {
                 icon: const Icon(Icons.arrow_back, color: Color(0xFF1A1C1E)),
                 onPressed: () => _onBack(controller),
               ),
-              title: const Text(
+              title: AppText(
                 'Identity Verification',
                 style: TextStyle(
                   color: Color(0xFF1A1C1E),
@@ -171,7 +172,7 @@ class _KycMainPageState extends State<KycMainPage> {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.lightBackground,
+        color: Theme.of(context).scaffoldBackgroundColor,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -207,7 +208,7 @@ class _KycMainPageState extends State<KycMainPage> {
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
+                      AppText(
                         isLastStep ? 'Gui xac minh' : 'Tiep theo',
                         style: const TextStyle(
                           color: Colors.white,

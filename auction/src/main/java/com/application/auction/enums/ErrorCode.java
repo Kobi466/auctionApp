@@ -68,7 +68,9 @@ public enum ErrorCode {
     WITHDRAWAL_REVIEW_INVALID(463, "Withdrawal review is invalid", HttpStatus.BAD_REQUEST),
     BID_AMOUNT_INVALID(464, "Bid amount is invalid", HttpStatus.BAD_REQUEST),
     BID_COOLDOWN_ACTIVE(465, "Please wait 5 seconds before placing another bid", HttpStatus.BAD_REQUEST),
-    AUCTION_ROOM_NOT_ENDED(466, "Auction room has not ended yet", HttpStatus.BAD_REQUEST);
+    AUCTION_ROOM_NOT_ENDED(466, "Auction room has not ended yet", HttpStatus.BAD_REQUEST),
+    LANGUAGE_NOT_SUPPORTED(467, "Language must be vi or en", HttpStatus.BAD_REQUEST),
+    THEME_NOT_SUPPORTED(468, "Theme must be LIGHT or DARK", HttpStatus.BAD_REQUEST);
 
     int code;
     String message;

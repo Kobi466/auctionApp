@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -26,7 +27,7 @@ class DocumentScanCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -42,11 +43,9 @@ class DocumentScanCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
+              AppText(
                 title,
-                style: AppTextStyles.registerTitleLight.copyWith(
-                  fontSize: 18,
-                ),
+                style: AppTextStyles.registerTitleLight.copyWith(fontSize: 18),
               ),
               const Icon(Icons.credit_card, color: AppColors.primaryBlue),
             ],
@@ -62,7 +61,9 @@ class DocumentScanCard extends StatelessWidget {
                 color: const Color(0xFFE8EAF6).withOpacity(0.5),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: hasImage ? AppColors.primaryBlue : AppColors.primaryBlue.withOpacity(0.1),
+                  color: hasImage
+                      ? AppColors.primaryBlue
+                      : AppColors.primaryBlue.withOpacity(0.1),
                   width: hasImage ? 2 : 1,
                 ),
                 image: hasImage && imagePath != null
@@ -78,7 +79,11 @@ class DocumentScanCard extends StatelessWidget {
                       children: [
                         Opacity(
                           opacity: 0.1,
-                          child: const Icon(Icons.person, size: 150, color: AppColors.primaryBlue),
+                          child: const Icon(
+                            Icons.person,
+                            size: 150,
+                            color: AppColors.primaryBlue,
+                          ),
                         ),
                         Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -89,15 +94,20 @@ class DocumentScanCard extends StatelessWidget {
                                 color: AppColors.primaryBlue,
                                 shape: BoxShape.circle,
                               ),
-                              child: const Icon(Icons.camera_alt, color: Colors.white, size: 28),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 28,
+                              ),
                             ),
                             const SizedBox(height: 12),
-                            Text(
+                            AppText(
                               hintText,
-                              style: AppTextStyles.registerSubtitleLight.copyWith(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
+                              style: AppTextStyles.registerSubtitleLight
+                                  .copyWith(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                             ),
                           ],
                         ),
@@ -112,7 +122,11 @@ class DocumentScanCard extends StatelessWidget {
                           color: AppColors.primaryBlue,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(Icons.edit, color: Colors.white, size: 16),
+                        child: const Icon(
+                          Icons.edit,
+                          color: Colors.white,
+                          size: 16,
+                        ),
                       ),
                     ),
             ),
@@ -129,7 +143,7 @@ class DocumentScanCard extends StatelessWidget {
                 const Icon(Icons.info, color: AppColors.primaryBlue, size: 16),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
+                  child: AppText(
                     infoText,
                     style: AppTextStyles.registerSubtitleLight.copyWith(
                       fontSize: 11,

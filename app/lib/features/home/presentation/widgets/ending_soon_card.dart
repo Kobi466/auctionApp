@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/utils/image_provider_helper.dart';
@@ -44,12 +45,15 @@ class EndingSoonCard extends StatelessWidget {
                 top: 12,
                 right: 12,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.pinkAccent.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Text(
+                  child: AppText(
                     timeLeft,
                     style: const TextStyle(
                       color: Colors.white,
@@ -62,7 +66,7 @@ class EndingSoonCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 12),
-          Text(
+          AppText(
             title,
             style: const TextStyle(
               fontSize: 11,
@@ -73,7 +77,7 @@ class EndingSoonCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
-          Text(
+          AppText(
             price,
             style: const TextStyle(
               fontSize: 12,

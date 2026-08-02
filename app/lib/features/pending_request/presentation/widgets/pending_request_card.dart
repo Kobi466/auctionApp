@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -33,7 +34,7 @@ class PendingRequestCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -63,12 +64,12 @@ class PendingRequestCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AppText(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF1E293B),
+                    color: Theme.of(context).colorScheme.onSurface,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -88,7 +89,7 @@ class PendingRequestCard extends StatelessWidget {
                         color: statusStyle.background,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
+                      child: AppText(
                         statusStyle.label,
                         style: TextStyle(
                           color: statusStyle.foreground,
@@ -97,9 +98,9 @@ class PendingRequestCard extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Text(
+                    AppText(
                       amount,
-                      style: const TextStyle(
+                      style: TextStyle(
                         color: Color(0xFF2563EB),
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
@@ -108,13 +109,13 @@ class PendingRequestCard extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
+                AppText(
                   transferContent.isEmpty
                       ? 'Chưa có nội dung chuyển khoản'
                       : transferContent,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     color: Color(0xFF475569),
                     fontWeight: FontWeight.w600,
@@ -130,11 +131,11 @@ class PendingRequestCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Expanded(
-                      child: Text(
+                      child: AppText(
                         'Gửi lúc: $time',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
                           color: Color(0xFF64748B),
                         ),
@@ -144,14 +145,11 @@ class PendingRequestCard extends StatelessWidget {
                 ),
                 if (adminNote != null && adminNote!.trim().isNotEmpty) ...[
                   const SizedBox(height: 6),
-                  Text(
+                  AppText(
                     'Admin: $adminNote',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF64748B),
-                    ),
+                    style: TextStyle(fontSize: 12, color: Color(0xFF64748B)),
                   ),
                 ],
                 if (status == 'APPROVED') ...[
@@ -249,20 +247,20 @@ class _RoomAccessBoxState extends State<_RoomAccessBox> {
       width: double.infinity,
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFF),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              const Expanded(
-                child: Text(
+              Expanded(
+                child: AppText(
                   'Thông tin vào phòng',
                   style: TextStyle(
-                    color: Color(0xFF1E293B),
+                    color: Theme.of(context).colorScheme.onSurface,
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
                   ),
@@ -279,7 +277,7 @@ class _RoomAccessBoxState extends State<_RoomAccessBox> {
                       ? Icons.visibility_outlined
                       : Icons.visibility_off_outlined,
                   size: 18,
-                  color: const Color(0xFF64748B),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                 ),
               ),
             ],
@@ -303,16 +301,15 @@ class _RoomAccessBoxState extends State<_RoomAccessBox> {
             child: ElevatedButton.icon(
               onPressed: hasAccess ? widget.onJoinRoom : null,
               icon: const Icon(Icons.login_rounded, size: 16),
-              label: const Text('Vào phòng bid'),
+              label: AppText('Vào phòng bid'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2563EB),
                 foregroundColor: Colors.white,
                 disabledBackgroundColor: const Color(0xFFE2E8F0),
-                disabledForegroundColor: const Color(0xFF94A3B8),
-                textStyle: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                ),
+                disabledForegroundColor: Theme.of(
+                  context,
+                ).colorScheme.onSurfaceVariant,
+                textStyle: TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -345,9 +342,9 @@ class _AccessLine extends StatelessWidget {
       children: [
         SizedBox(
           width: 64,
-          child: Text(
+          child: AppText(
             label,
-            style: const TextStyle(
+            style: TextStyle(
               color: Color(0xFF64748B),
               fontSize: 11,
               fontWeight: FontWeight.w700,
@@ -355,11 +352,11 @@ class _AccessLine extends StatelessWidget {
           ),
         ),
         Expanded(
-          child: Text(
+          child: AppText(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
+            style: TextStyle(
               color: Color(0xFF0F172A),
               fontSize: 12,
               fontWeight: FontWeight.w900,
@@ -372,9 +369,9 @@ class _AccessLine extends StatelessWidget {
               : () async {
                   await Clipboard.setData(ClipboardData(text: copyValue!));
                   if (!context.mounted) return;
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text('Đã sao chép $label')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: AppText('Đã sao chép $label')),
+                  );
                 },
           visualDensity: VisualDensity.compact,
           tooltip: 'Sao chép $label',

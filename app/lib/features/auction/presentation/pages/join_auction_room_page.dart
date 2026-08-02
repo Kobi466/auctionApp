@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -51,7 +52,7 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
     final password = _passwordController.text.trim();
     if (roomCode.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Nhap day du ma phong va mat khau')),
+        const SnackBar(content: AppText('Nhap day du ma phong va mat khau')),
       );
       return;
     }
@@ -68,9 +69,9 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
 
     final accessToken = AuthSession.instance.accessToken ?? '';
     if (accessToken.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Vui long dang nhap')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: AppText('Vui long dang nhap')));
       return;
     }
 
@@ -92,7 +93,7 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(error.toString().replaceFirst('Exception: ', '')),
+          content: AppText(error.toString().replaceFirst('Exception: ', '')),
           backgroundColor: Colors.red,
         ),
       );
@@ -104,21 +105,24 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
             const HomeAppBar(),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 child: Column(
                   children: [
                     const SizedBox(height: 20),
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: Theme.of(context).colorScheme.surface,
                         borderRadius: BorderRadius.circular(32),
                         boxShadow: [
                           BoxShadow(
@@ -132,7 +136,7 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Center(
-                            child: Text(
+                            child: AppText(
                               'Nhap ma phong va mat khau duoc cung cap de tham gia.',
                               textAlign: TextAlign.center,
                               style: TextStyle(
@@ -143,7 +147,7 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
                             ),
                           ),
                           const SizedBox(height: 32),
-                          const Text(
+                          AppText(
                             'MA PHONG',
                             style: TextStyle(
                               color: Color(0xFF1E293B),
@@ -154,7 +158,10 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
                           const SizedBox(height: 12),
                           _buildTextField(
                             controller: _roomCodeController,
-                            hintText: 'Vi du: 889900',
+                            hintText: AppTranslator.translate(
+                              context,
+                              'Vi du: 889900',
+                            ),
                             isSecret: true,
                             isVisible: _isRoomCodeVisible,
                             suffixIcon: _isRoomCodeVisible
@@ -168,7 +175,7 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
                             },
                           ),
                           const SizedBox(height: 24),
-                          const Text(
+                          AppText(
                             'MAT KHAU',
                             style: TextStyle(
                               color: Color(0xFF1E293B),
@@ -179,7 +186,10 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
                           const SizedBox(height: 12),
                           _buildTextField(
                             controller: _passwordController,
-                            hintText: '********',
+                            hintText: AppTranslator.translate(
+                              context,
+                              '********',
+                            ),
                             isSecret: true,
                             isVisible: _isPasswordVisible,
                             suffixIcon: _isPasswordVisible
@@ -208,7 +218,7 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
                                       ),
                                     )
                                   : const Icon(Icons.login_rounded),
-                              label: Text(
+                              label: AppText(
                                 _isJoining ? 'Dang vao...' : 'Vao phong ngay',
                               ),
                               style: ElevatedButton.styleFrom(
@@ -227,10 +237,13 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
                     const Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.verified_user_outlined,
-                            color: Color(0xFF94A3B8), size: 18),
+                        Icon(
+                          Icons.verified_user_outlined,
+                          color: Color(0xFF94A3B8),
+                          size: 18,
+                        ),
                         SizedBox(width: 8),
-                        Text(
+                        AppText(
                           'GIAO DICH BAO MAT',
                           style: TextStyle(
                             color: Color(0xFF94A3B8),
@@ -262,18 +275,20 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFF),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(25),
-        border: Border.all(color: const Color(0xFFF1F5F9)),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: TextField(
         controller: controller,
         obscureText: isSecret && !isVisible,
         decoration: InputDecoration(
           hintText: hintText,
-          hintStyle: const TextStyle(color: Color(0xFF94A3B8), fontSize: 16),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+          hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 16),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 24,
+            vertical: 16,
+          ),
           border: InputBorder.none,
           suffixIcon: Row(
             mainAxisSize: MainAxisSize.min,
@@ -288,18 +303,18 @@ class _JoinAuctionRoomPageState extends State<JoinAuctionRoomPage> {
                         );
                         if (!mounted) return;
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Đã sao chép $copyLabel')),
+                          SnackBar(content: AppText('Đã sao chép $copyLabel')),
                         );
                       },
-                icon: const Icon(
-                  Icons.copy_rounded,
-                  color: Color(0xFF94A3B8),
-                ),
+                icon: const Icon(Icons.copy_rounded, color: Color(0xFF94A3B8)),
               ),
               IconButton(
                 tooltip: isVisible ? 'Ẩn' : 'Hiện',
                 onPressed: onSuffixIconTap,
-                icon: Icon(suffixIcon, color: const Color(0xFF94A3B8)),
+                icon: Icon(
+                  suffixIcon,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(width: 6),
             ],

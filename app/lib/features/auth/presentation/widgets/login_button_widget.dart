@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -38,10 +39,7 @@ class LoginButtonWidget extends StatelessWidget {
                   color: Colors.white,
                 ),
               )
-            : const Text(
-                'Đăng nhập',
-                style: AppTextStyles.registerButtonLight,
-              ),
+            : AppText('Đăng nhập', style: AppTextStyles.registerButtonLight),
       ),
     );
   }

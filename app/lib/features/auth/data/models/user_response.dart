@@ -5,11 +5,7 @@ class UserResponse extends BaseModel {
   final String email;
   final bool isActive;
 
-  UserResponse({
-    required this.id,
-    required this.email,
-    required this.isActive,
-  });
+  UserResponse({required this.id, required this.email, required this.isActive});
 
   factory UserResponse.fromJson(Map<String, dynamic> json) {
     return UserResponse(
@@ -21,10 +17,6 @@ class UserResponse extends BaseModel {
 
   @override
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'email': email,
-      'isActive': isActive,
-    };
+    return {'id': id, 'email': email, 'isActive': isActive};
   }
 }

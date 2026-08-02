@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -29,10 +30,10 @@ class KycTextField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
+        AppText(
           label,
           style: AppTextStyles.registerLabelLight.copyWith(
-            color: AppColors.lightSubText,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
             fontSize: 14,
           ),
         ),
@@ -47,10 +48,12 @@ class KycTextField extends StatelessWidget {
           decoration: InputDecoration(
             hintText: hintText,
             hintStyle: AppTextStyles.registerInputLight.copyWith(
-              color: AppColors.lightHint.withOpacity(0.5),
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
             ),
             filled: true,
-            fillColor: const Color(0xFFE8EAF6), // Light indigo/purple as seen in screenshot
+            fillColor: const Color(
+              0xFFE8EAF6,
+            ), // Light indigo/purple as seen in screenshot
             contentPadding: const EdgeInsets.symmetric(
               horizontal: 16,
               vertical: 16,

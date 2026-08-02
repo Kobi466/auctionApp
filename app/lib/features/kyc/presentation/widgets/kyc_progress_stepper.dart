@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -25,7 +26,7 @@ class KycProgressStepper extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AppText(
                   'BƯỚC $currentStep TRÊN 4',
                   style: AppTextStyles.subtitle.copyWith(
                     color: AppColors.primaryBlue,
@@ -35,7 +36,7 @@ class KycProgressStepper extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
+                AppText(
                   title,
                   style: AppTextStyles.registerTitleLight.copyWith(
                     fontSize: 24,
@@ -43,7 +44,7 @@ class KycProgressStepper extends StatelessWidget {
                 ),
               ],
             ),
-            Text(
+            AppText(
               '${(progress * 100).toInt()}%',
               style: AppTextStyles.registerTitleLight.copyWith(
                 fontSize: 24,
@@ -58,7 +59,9 @@ class KycProgressStepper extends StatelessWidget {
           child: LinearProgressIndicator(
             value: progress,
             backgroundColor: AppColors.primaryBlue.withOpacity(0.1),
-            valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryBlue),
+            valueColor: const AlwaysStoppedAnimation<Color>(
+              AppColors.primaryBlue,
+            ),
             minHeight: 8,
           ),
         ),

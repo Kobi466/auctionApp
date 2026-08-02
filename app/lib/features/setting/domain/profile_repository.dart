@@ -1,9 +1,7 @@
 import '../data/models/profile_response.dart';
 
 abstract class ProfileRepository {
-  Future<ProfileResponse> getProfile({
-    required String accessToken,
-  });
+  Future<ProfileResponse> getProfile({required String accessToken});
 
   Future<ProfileResponse> updateProfile({
     required String accessToken,

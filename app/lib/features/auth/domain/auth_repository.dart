@@ -12,10 +12,7 @@ class AuthRepository {
     required String email,
     required String password,
   }) async {
-    return authService.login(
-      email: email,
-      password: password,
-    );
+    return authService.login(email: email, password: password);
   }
 
   Future<ApiResponse<UserResponse>> register({
@@ -32,9 +29,7 @@ class AuthRepository {
     );
   }
 
-  Future<void> logout({
-    required String token,
-  }) async {
+  Future<void> logout({required String token}) async {
     return authService.logout(token: token);
   }
 }

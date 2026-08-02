@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -66,7 +67,7 @@ class _ProductListPageState extends State<ProductListPage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFF),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Column(
           children: [
@@ -116,7 +117,7 @@ class _ProductListPageState extends State<ProductListPage>
             child: Container(
               height: 50,
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Theme.of(context).colorScheme.surface,
                 borderRadius: BorderRadius.circular(25),
                 boxShadow: [
                   BoxShadow(
@@ -133,8 +134,11 @@ class _ProductListPageState extends State<ProductListPage>
                     _keyword = value.trim().toLowerCase();
                   });
                 },
-                decoration: const InputDecoration(
-                  hintText: 'Tìm kiếm sản phẩm...',
+                decoration: InputDecoration(
+                  hintText: AppTranslator.translate(
+                    context,
+                    'Tìm kiếm sản phẩm...',
+                  ),
                   hintStyle: TextStyle(color: Color(0xFF94A3B8), fontSize: 14),
                   prefixIcon: Icon(Icons.search, color: Color(0xFF94A3B8)),
                   border: InputBorder.none,
@@ -166,11 +170,11 @@ class _ProductListPageState extends State<ProductListPage>
         controller: _tabController,
         isScrollable: false,
         labelColor: const Color(0xFF2563EB),
-        unselectedLabelColor: const Color(0xFF64748B),
+        unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
         indicatorSize: TabBarIndicatorSize.tab,
         indicator: BoxDecoration(
           borderRadius: BorderRadius.circular(25),
-          color: Colors.white,
+          color: Theme.of(context).colorScheme.surface,
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.05),
@@ -180,10 +184,10 @@ class _ProductListPageState extends State<ProductListPage>
           ],
         ),
         dividerColor: Colors.transparent,
-        tabs: const [
-          Tab(text: 'Tất cả'),
-          Tab(text: 'Đang diễn ra'),
-          Tab(text: 'Sắp diễn ra'),
+        tabs: [
+          Tab(text: AppTranslator.translate(context, 'Tất cả')),
+          Tab(text: AppTranslator.translate(context, 'Đang diễn ra')),
+          Tab(text: AppTranslator.translate(context, 'Sắp diễn ra')),
         ],
       ),
     );
@@ -204,9 +208,10 @@ class _ProductListPageState extends State<ProductListPage>
       final matchesTab = onlyLive
           ? status == 'LIVE'
           : onlyUpcoming
-              ? status == 'SCHEDULED'
-              : true;
-      final matchesKeyword = _keyword.isEmpty ||
+          ? status == 'SCHEDULED'
+          : true;
+      final matchesKeyword =
+          _keyword.isEmpty ||
           product.name.toLowerCase().contains(_keyword) ||
           product.brand.toLowerCase().contains(_keyword) ||
           product.categoryId.toLowerCase().contains(_keyword);
@@ -222,10 +227,14 @@ class _ProductListPageState extends State<ProductListPage>
           padding: const EdgeInsets.all(32),
           children: const [
             SizedBox(height: 120),
-            Icon(Icons.inventory_2_outlined, size: 56, color: Color(0xFF94A3B8)),
+            Icon(
+              Icons.inventory_2_outlined,
+              size: 56,
+              color: Color(0xFF94A3B8),
+            ),
             SizedBox(height: 12),
             Center(
-              child: Text(
+              child: AppText(
                 'Không có sản phẩm phù hợp',
                 style: TextStyle(
                   color: Color(0xFF64748B),
@@ -266,7 +275,8 @@ class _ProductListPageState extends State<ProductListPage>
             },
             onAction: product.auctionRoom == null
                 ? null
-                : () => AuctionRegistrationFlow.start(context, product: product),
+                : () =>
+                      AuctionRegistrationFlow.start(context, product: product),
           );
         },
       ),
@@ -280,12 +290,16 @@ class _ProductListPageState extends State<ProductListPage>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.wifi_off_rounded, size: 52, color: Color(0xFF94A3B8)),
+            const Icon(
+              Icons.wifi_off_rounded,
+              size: 52,
+              color: Color(0xFF94A3B8),
+            ),
             const SizedBox(height: 12),
-            Text(
+            AppText(
               message.replaceFirst('Exception: ', ''),
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: TextStyle(
                 color: Color(0xFF64748B),
                 fontWeight: FontWeight.w600,
               ),
@@ -297,7 +311,7 @@ class _ProductListPageState extends State<ProductListPage>
                 backgroundColor: AppColors.primaryBlue,
                 foregroundColor: Colors.white,
               ),
-              child: const Text('Thử lại'),
+              child: AppText('Thử lại'),
             ),
           ],
         ),
@@ -360,5 +374,4 @@ class _ProductListPageState extends State<ProductListPage>
     final minute = local.minute.toString().padLeft(2, '0');
     return '$day/$month/${local.year} $hour:$minute';
   }
-
 }

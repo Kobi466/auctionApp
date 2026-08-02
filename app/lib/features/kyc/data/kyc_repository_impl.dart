@@ -10,9 +10,7 @@ class KycRepositoryImpl implements KycRepository {
   KycRepositoryImpl([KycService? service]) : _service = service ?? KycService();
 
   @override
-  Future<KycResponseModel?> getMyKyc({
-    required String accessToken,
-  }) {
+  Future<KycResponseModel?> getMyKyc({required String accessToken}) {
     return _service.getMyKyc(accessToken: accessToken);
   }
 
@@ -22,9 +20,6 @@ class KycRepositoryImpl implements KycRepository {
     required KycDataEntity kycData,
   }) async {
     final request = await KycRequestModel.fromEntity(kycData);
-    return _service.submitKyc(
-      accessToken: accessToken,
-      request: request,
-    );
+    return _service.submitKyc(accessToken: accessToken, request: request);
   }
 }

@@ -31,8 +31,9 @@ class WithdrawalService {
     required String accessToken,
     String? status,
   }) async {
-    final endpoint =
-        status == null || status.isEmpty ? '/withdrawals' : '/withdrawals?status=$status';
+    final endpoint = status == null || status.isEmpty
+        ? '/withdrawals'
+        : '/withdrawals?status=$status';
     final response = await _apiClient.get(
       endpoint,
       headers: {'Authorization': 'Bearer $accessToken'},
@@ -68,14 +69,19 @@ class WithdrawalService {
     final apiResponse = ApiResponse<List<WithdrawalRequestModel>>.fromJson(
       body,
       (json) => (json as List<dynamic>)
-          .map((item) => WithdrawalRequestModel.fromJson(item as Map<String, dynamic>))
+          .map(
+            (item) =>
+                WithdrawalRequestModel.fromJson(item as Map<String, dynamic>),
+          )
           .toList(),
     );
 
     if (statusCode >= 200 && statusCode < 300 && apiResponse.isSuccess) {
       return apiResponse.data ?? const [];
     }
-    throw Exception(_message(apiResponse.message, rawBody, statusCode, fallback));
+    throw Exception(
+      _message(apiResponse.message, rawBody, statusCode, fallback),
+    );
   }
 
   WithdrawalRequestModel _parseOne(
@@ -94,7 +100,9 @@ class WithdrawalService {
       final withdrawal = apiResponse.data;
       if (withdrawal != null) return withdrawal;
     }
-    throw Exception(_message(apiResponse.message, rawBody, statusCode, fallback));
+    throw Exception(
+      _message(apiResponse.message, rawBody, statusCode, fallback),
+    );
   }
 
   String _message(

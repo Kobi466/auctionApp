@@ -5,14 +5,10 @@ import 'models/profile_response.dart';
 class ProfileService {
   final ApiClient _apiClient = ApiClient();
 
-  Future<ProfileResponse> getProfile({
-    required String accessToken,
-  }) async {
+  Future<ProfileResponse> getProfile({required String accessToken}) async {
     final response = await _apiClient.get(
       '/profiles/me',
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-      },
+      headers: {'Authorization': 'Bearer $accessToken'},
     );
 
     final int statusCode = response['statusCode'] as int;
@@ -35,8 +31,8 @@ class ProfileService {
       apiResponse.message.isNotEmpty
           ? apiResponse.message
           : rawBody.isNotEmpty
-              ? 'HTTP $statusCode: $rawBody'
-              : 'Khong tai duoc profile',
+          ? 'HTTP $statusCode: $rawBody'
+          : 'Khong tai duoc profile',
     );
   }
 
@@ -49,9 +45,7 @@ class ProfileService {
   }) async {
     final response = await _apiClient.put(
       '/profiles/me',
-      headers: {
-        'Authorization': 'Bearer $accessToken',
-      },
+      headers: {'Authorization': 'Bearer $accessToken'},
       body: {
         'fullName': fullName,
         'email': email,
@@ -80,8 +74,44 @@ class ProfileService {
       apiResponse.message.isNotEmpty
           ? apiResponse.message
           : rawBody.isNotEmpty
-              ? 'HTTP $statusCode: $rawBody'
-              : 'Cap nhat profile that bai',
+          ? 'HTTP $statusCode: $rawBody'
+          : 'Cap nhat profile that bai',
+    );
+  }
+
+  Future<ProfileResponse> updatePreferences({
+    required String accessToken,
+    String? language,
+    String? theme,
+  }) async {
+    final response = await _apiClient.patch(
+      '/profiles/me/preferences',
+      headers: {'Authorization': 'Bearer $accessToken'},
+      body: {
+        if (language != null) 'language': language,
+        if (theme != null) 'theme': theme,
+      },
+    );
+
+    final statusCode = response['statusCode'] as int;
+    final body = response['body'] as Map<String, dynamic>;
+    final rawBody = response['rawBody']?.toString() ?? '';
+    final apiResponse = ApiResponse<ProfileResponse>.fromJson(
+      body,
+      (json) => ProfileResponse.fromJson(json as Map<String, dynamic>),
+    );
+
+    if (statusCode >= 200 && statusCode < 300 && apiResponse.isSuccess) {
+      final profile = apiResponse.data;
+      if (profile != null) return profile;
+    }
+
+    throw Exception(
+      apiResponse.message.isNotEmpty
+          ? apiResponse.message
+          : rawBody.isNotEmpty
+          ? 'HTTP $statusCode: $rawBody'
+          : 'Khong dong bo duoc tuy chon',
     );
   }
 }

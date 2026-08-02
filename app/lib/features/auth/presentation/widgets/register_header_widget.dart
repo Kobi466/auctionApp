@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -23,13 +24,13 @@ class RegisterHeaderWidget extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 20),
-        const Text(
+        AppText(
           'Create Account',
           textAlign: TextAlign.center,
           style: AppTextStyles.registerTitleLight,
         ),
         const SizedBox(height: 10),
-        const Text(
+        AppText(
           'Đăng ký tài khoản để truy cập hệ thống đấu giá,\nquản lý hồ sơ và theo dõi phiên đấu giá của bạn.',
           textAlign: TextAlign.center,
           style: AppTextStyles.registerSubtitleLight,

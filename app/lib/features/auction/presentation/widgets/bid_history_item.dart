@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../data/models/bid_model.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -6,10 +7,7 @@ import '../../../../core/utils/currency_formatter.dart';
 class BidHistoryItem extends StatelessWidget {
   final BidModel bid;
 
-  const BidHistoryItem({
-    super.key,
-    required this.bid,
-  });
+  const BidHistoryItem({super.key, required this.bid});
 
   @override
   Widget build(BuildContext context) {
@@ -20,9 +18,9 @@ class BidHistoryItem extends StatelessWidget {
           CircleAvatar(
             backgroundColor: const Color(0xFFEEF2FF),
             radius: 22,
-            child: Text(
+            child: AppText(
               bid.userName.isNotEmpty ? bid.userName[0].toUpperCase() : '?',
-              style: const TextStyle(
+              style: TextStyle(
                 color: AppColors.primaryBlue,
                 fontWeight: FontWeight.bold,
               ),
@@ -33,16 +31,16 @@ class BidHistoryItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                AppText(
                   bid.userName,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                     color: Color(0xFF1E293B),
                   ),
                 ),
                 if (bid.isLeading)
-                  const Text(
+                  AppText(
                     'ĐANG DẪN ĐẦU',
                     style: TextStyle(
                       color: AppColors.primaryBlue,
@@ -56,23 +54,22 @@ class BidHistoryItem extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
+              AppText(
                 formatVnd(bid.amount),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 15,
-                  color: bid.isLeading ? AppColors.primaryBlue : const Color(0xFF1E293B),
+                  color: bid.isLeading
+                      ? AppColors.primaryBlue
+                      : Theme.of(context).colorScheme.onSurface,
                 ),
               ),
-              Text(
+              AppText(
                 _formatTime(bid.createdAt),
-                style: const TextStyle(
-                  color: Color(0xFF94A3B8),
-                  fontSize: 11,
-                ),
+                style: TextStyle(color: Color(0xFF94A3B8), fontSize: 11),
               ),
             ],
-          )
+          ),
         ],
       ),
     );

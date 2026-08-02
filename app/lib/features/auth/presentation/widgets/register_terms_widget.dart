@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -19,7 +20,7 @@ class RegisterTermsWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.softBlue,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.lightBorder),
+        border: Border.all(color: Theme.of(context).colorScheme.outlineVariant),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -36,7 +37,7 @@ class RegisterTermsWidget extends StatelessWidget {
           const Expanded(
             child: Padding(
               padding: EdgeInsets.only(top: 10),
-              child: Text(
+              child: AppText(
                 'Tôi đồng ý với điều khoản sử dụng và chính sách bảo mật của hệ thống.',
                 style: AppTextStyles.registerHelperLight,
               ),

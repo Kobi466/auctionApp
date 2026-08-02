@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_input_decoration.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -31,6 +32,7 @@ class RegisterTextFieldWidget extends StatelessWidget {
       obscureText: obscureText,
       style: AppTextStyles.registerInputLight,
       decoration: AppInputDecoration.light(
+        context: context,
         hintText: hintText,
         prefixIcon: prefixIcon,
         suffixIcon: suffixIcon,

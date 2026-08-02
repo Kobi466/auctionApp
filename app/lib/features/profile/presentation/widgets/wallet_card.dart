@@ -1,7 +1,9 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../../l10n/generated/app_localizations.dart';
 
 class WalletCard extends StatelessWidget {
   final num withdrawableBalance;
@@ -22,6 +24,7 @@ class WalletCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final canWithdraw = !isLoading && withdrawableBalance > 0;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       width: double.infinity,
@@ -46,17 +49,17 @@ class WalletCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Co the rut',
-                    style: TextStyle(
+                  AppText(
+                    l10n.withdrawable,
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    isLoading ? 'Dang tai...' : formatVnd(withdrawableBalance),
+                  AppText(
+                    isLoading ? l10n.loading : formatVnd(withdrawableBalance),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 28,
@@ -90,15 +93,15 @@ class WalletCard extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
-                  'Tien coc dang giu',
-                  style: TextStyle(
+                AppText(
+                  l10n.lockedDeposit,
+                  style: const TextStyle(
                     color: Colors.white70,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                Text(
+                AppText(
                   isLoading ? '...' : formatVnd(lockedDeposit),
                   style: const TextStyle(
                     color: Colors.white,
@@ -119,16 +122,18 @@ class WalletCard extends StatelessWidget {
                     backgroundColor: Colors.white,
                     foregroundColor: AppColors.primaryBlue,
                     disabledBackgroundColor: Colors.white.withOpacity(0.4),
-                    disabledForegroundColor: AppColors.primaryBlue.withOpacity(0.5),
+                    disabledForegroundColor: AppColors.primaryBlue.withOpacity(
+                      0.5,
+                    ),
                     elevation: 0,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text(
-                    'Rut tien',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: AppText(
+                    l10n.withdraw,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -144,9 +149,9 @@ class WalletCard extends StatelessWidget {
                     ),
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
-                  child: const Text(
-                    'Lich su',
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  child: AppText(
+                    l10n.history,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -156,5 +161,4 @@ class WalletCard extends StatelessWidget {
       ),
     );
   }
-
 }

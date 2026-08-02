@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -77,7 +78,7 @@ class RegisterScreenState extends State<RegisterScreen> {
     if (!acceptedTerms) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Vui lòng đồng ý với điều khoản sử dụng'),
+          content: AppText('Vui lòng đồng ý với điều khoản sử dụng'),
           backgroundColor: Colors.red,
         ),
       );
@@ -100,8 +101,10 @@ class RegisterScreenState extends State<RegisterScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            response.message.isNotEmpty ? response.message : 'Đăng ký thành công',
+          content: AppText(
+            response.message.isNotEmpty
+                ? response.message
+                : 'Đăng ký thành công',
           ),
         ),
       );
@@ -109,9 +112,8 @@ class RegisterScreenState extends State<RegisterScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => LoginScreen(
-            initialEmail: emailController.text.trim(),
-          ),
+          builder: (_) =>
+              LoginScreen(initialEmail: emailController.text.trim()),
         ),
       );
     } catch (e) {
@@ -119,7 +121,7 @@ class RegisterScreenState extends State<RegisterScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.toString().replaceFirst('Exception: ', '')),
+          content: AppText(e.toString().replaceFirst('Exception: ', '')),
           backgroundColor: Colors.red,
         ),
       );
@@ -134,16 +136,14 @@ class RegisterScreenState extends State<RegisterScreen> {
   void onGoToLoginPressed() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (_) => const LoginScreen(),
-      ),
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.lightBackground,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -176,9 +176,7 @@ class RegisterScreenState extends State<RegisterScreen> {
                       onPressed: onRegisterPressed,
                     ),
                     const SizedBox(height: 22),
-                    RegisterPromptWidget(
-                      onRegister: onGoToLoginPressed,
-                    ),
+                    RegisterPromptWidget(onRegister: onGoToLoginPressed),
                   ],
                 ),
               ),

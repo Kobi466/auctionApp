@@ -1,3 +1,4 @@
+import 'package:app/core/localization/app_translator.dart';
 import 'package:flutter/material.dart';
 
 class WishlistSection extends StatelessWidget {
@@ -9,7 +10,7 @@ class WishlistSection extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 20),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -28,7 +29,7 @@ class WishlistSection extends StatelessWidget {
                 children: const [
                   Icon(Icons.favorite, color: Color(0xFFE11D48), size: 20),
                   SizedBox(width: 8),
-                  Text(
+                  AppText(
                     'Danh sách yêu thích',
                     style: TextStyle(
                       fontSize: 14,
@@ -38,12 +39,9 @@ class WishlistSection extends StatelessWidget {
                   ),
                 ],
               ),
-              const Text(
+              AppText(
                 '1 sản phẩm',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Color(0xFF94A3B8),
-                ),
+                style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
               ),
             ],
           ),
@@ -51,7 +49,7 @@ class WishlistSection extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: const Color(0xFFF8FAFC),
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Row(
@@ -76,7 +74,7 @@ class WishlistSection extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
+                      AppText(
                         'MacBook Pro M3 Max 16-inch',
                         style: TextStyle(
                           fontSize: 12,
@@ -88,12 +86,15 @@ class WishlistSection extends StatelessWidget {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFFEE2E2),
                               borderRadius: BorderRadius.circular(4),
                             ),
-                            child: const Text(
+                            child: AppText(
                               'Live',
                               style: TextStyle(
                                 fontSize: 8,
@@ -103,7 +104,7 @@ class WishlistSection extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Text(
+                          AppText(
                             '65.000.000 VNĐ',
                             style: TextStyle(
                               fontSize: 11,

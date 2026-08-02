@@ -75,27 +75,23 @@ class AppTextStyles {
   );
 
   static const TextStyle registerTitleLight = TextStyle(
-    color: AppColors.lightText,
     fontSize: 32,
     fontWeight: FontWeight.w700,
     height: 1.2,
   );
 
   static const TextStyle registerSubtitleLight = TextStyle(
-    color: AppColors.lightSubText,
     fontSize: 15,
     fontWeight: FontWeight.w400,
     height: 1.5,
   );
 
   static const TextStyle registerLabelLight = TextStyle(
-    color: AppColors.lightText,
     fontSize: 14,
     fontWeight: FontWeight.w600,
   );
 
   static const TextStyle registerInputLight = TextStyle(
-    color: AppColors.lightText,
     fontSize: 16,
     fontWeight: FontWeight.w500,
   );
@@ -107,7 +103,6 @@ class AppTextStyles {
   );
 
   static const TextStyle registerHelperLight = TextStyle(
-    color: AppColors.lightSubText,
     fontSize: 14,
     fontWeight: FontWeight.w400,
   );
